@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Edit Request #{{ request_obj.key }}</h2>
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-home me-2"></i>Back to Homepage
+        </a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Request ID:</label>
+                        <input type="text" class="form-control" value="{{ request_obj.key }}" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Date Created:</label>
+                        <input type="text" class="form-control" value="{{ request_obj.created_at|date:'Y-m-d H:i' }}" readonly>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label">Description:</label>
+                        <input type="text" class="form-control" name="description" value="{{ request_obj.description }}" required maxlength="256">
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Antibody:</label>
+                        <select class="form-control" name="antibody" required>
+                            {% for antibody in antibodies %}
+                                <option value="{{ antibody.pk }}" {% if request_obj.antibody.pk == antibody.pk %}selected{% endif %}>{{ antibody.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Study:</label>
+                        <select class="form-control" name="study" required>
+                            {% for study in studies %}
+                                <option value="{{ study.pk }}" {% if request_obj.study.pk == study.pk %}selected{% endif %}>{{ study.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label">Tissue:</label>
+                        <select class="form-control" name="tissue" required>
+                            {% for tissue in tissues %}
+                                <option value="{{ tissue.pk }}" {% if request_obj.tissue.pk == tissue.pk %}selected{% endif %}>{{ tissue.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label">Special Request:</label>
+                        <textarea class="form-control" name="special_request" rows="3">{{ request_obj.special_request }}</textarea>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Status:</label>
+                        <select class="form-control" name="status" required>
+                            {% for status in statuses %}
+                                <option value="{{ status.pk }}" {% if request_obj.status.pk == status.pk %}selected{% endif %}>{{ status.status }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label">Notes:</label>
+                        <textarea class="form-control" name="notes" rows="3">{{ request_obj.notes }}</textarea>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <a href="{% url 'request_search' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

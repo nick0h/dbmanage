@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>New Request</h2>
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-home me-2"></i>Back to Homepage
+        </a>
+    </div>
+    <form method="post" id="requestForm">
+        {% csrf_token %}
+        
+        <div class="form-group mb-3">
+            <label for="id_date">Date:</label>
+            <input type="date" class="form-control" id="id_date" name="date" value="{{ today_date|date:'Y-m-d' }}" required>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="id_requestor">Requestor:</label>
+            {{ form.requestor }}
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="id_description">Description:</label>
+            {{ form.description }}
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="id_antibody">Antibody:</label>
+            {{ form.antibody }}
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="id_study">Study:</label>
+            {{ form.study }}
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="id_tissue">Tissue:</label>
+            <div class="input-group">
+                {{ form.tissue }}
+                <button type="button" class="btn btn-secondary" id="addTissueBtn">Add Tissue</button>
+            </div>
+            <div id="tissueList" class="mt-2"></div>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="id_special_request">Special Request:</label>
+            {{ form.special_request }}
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('requestForm');
+    const addTissueBtn = document.getElementById('addTissueBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const tissueList = document.getElementById('tissueList');
+    let tissueCount = 0;
+
+    // Set today's date if not already set
+    const dateField = document.getElementById('id_date');
+    if (!dateField.value) {
+        const today = new Date();
+        dateField.value = today.toISOString().split('T')[0];
+    }
+
+    // Add tissue dropdown
+    addTissueBtn.addEventListener('click', function() {
+        if (tissueCount < {{ max_tissues }}) {
+            const tissueSelect = document.createElement('select');
+            tissueSelect.className = 'form-control mt-2';
+            tissueSelect.name = 'tissue_' + tissueCount;
+            
+            // Add default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Select a tissue...';
+            tissueSelect.appendChild(defaultOption);
+            
+            // Clone the original tissue select options
+            const originalSelect = document.getElementById('id_tissue');
+            const options = originalSelect.querySelectorAll('option');
+            options.forEach(function(option) {
+                if (option.value !== '') { // Skip the default option
+                    const newOption = document.createElement('option');
+                    newOption.value = option.value;
+                    newOption.textContent = option.textContent;
+                    tissueSelect.appendChild(newOption);
+                }
+            });
+            
+            tissueList.appendChild(tissueSelect);
+            tissueCount++;
+        }
+    });
+
+    // Cancel button
+    cancelBtn.addEventListener('click', function() {
+        form.reset();
+        tissueList.innerHTML = '';
+        tissueCount = 0;
+        // Reset date to today
+        const today = new Date();
+        document.getElementById('id_date').value = today.toISOString().split('T')[0];
+    });
+});
+</script>
+{% endblock %} 

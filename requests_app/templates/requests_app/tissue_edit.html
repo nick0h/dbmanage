@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Edit Tissue</h2>
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-home me-2"></i>Back to Homepage
+        </a>
+    </div>
+    {% with title="Edit Tissue" %}
+    {{ block.super }}
+    {% endwith %}
+</div>
+{% endblock %}
+
+{% block form_content %}
+<div class="mb-3">
+    <label for="id_key" class="form-label">ID:</label>
+    <input type="text" class="form-control" id="id_key" name="key" value="{{ form.instance.key }}" readonly>
+</div>
+<div class="mb-3">
+    <label for="id_name" class="form-label">Name:</label>
+    <input type="text" class="form-control" id="id_name" name="name" value="{{ form.instance.name }}" required maxlength="255">
+</div>
+{% endblock %} 

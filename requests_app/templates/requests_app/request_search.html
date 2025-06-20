@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Search Requests</h2>
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-home me-2"></i>Back to Homepage
+        </a>
+    </div>
+    
+    <!-- Search Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    {{ form.request_id.label_tag }}
+                    {{ form.request_id }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.date_from.label_tag }}
+                    {{ form.date_from }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.date_to.label_tag }}
+                    {{ form.date_to }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.requestor.label_tag }}
+                    {{ form.requestor }}
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="id_tissue" class="form-label">Tissue</label>
+                    <select class="form-control" id="id_tissue" name="tissue">
+                        <option value="">All</option>
+                        {% for tissue in tissues %}
+                            <option value="{{ tissue.name }}" {% if form.data.tissue == tissue.name %}selected{% endif %}>{{ tissue.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    {{ form.study.label_tag }}
+                    {{ form.study }}
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                    <a href="{% url 'request_search' %}" class="btn btn-secondary">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    {% if requests %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Request ID</th>
+                    <th>Date</th>
+                    <th>Requestor</th>
+                    <th>Tissue</th>
+                    <th>Study</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in requests %}
+                <tr>
+                    <td>{{ request.key }}</td>
+                    <td>{{ request.created_at|date:"Y-m-d" }}</td>
+                    <td>{{ request.requestor.name|truncatechars:40 }}</td>
+                    <td>{{ request.tissue.name|truncatechars:40 }}</td>
+                    <td>{{ request.study.title|truncatechars:40 }}</td>
+                    <td>{{ request.status.status|truncatechars:40 }}</td>
+                    <td>
+                        <a href="{% url 'request_edit' request.key %}" class="btn btn-sm btn-primary">Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% elif request.GET %}
+    <div class="alert alert-info">No requests found matching your search criteria.</div>
+    {% endif %}
+</div>
+{% endblock %} 

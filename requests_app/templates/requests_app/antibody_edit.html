@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Edit Antibody</h2>
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-home me-2"></i>Back to Homepage
+        </a>
+    </div>
+    {% with title="Edit Antibody" %}
+    {{ block.super }}
+    {% endwith %}
+</div>
+{% endblock %}
+
+{% block form_content %}
+<div class="mb-3">
+    <label for="id_key" class="form-label">ID:</label>
+    <input type="text" class="form-control" id="id_key" name="key" value="{{ form.instance.key }}" readonly>
+</div>
+<div class="mb-3">
+    <label for="id_name" class="form-label">Name:</label>
+    <input type="text" class="form-control" id="id_name" name="name" value="{{ form.instance.name }}" required maxlength="255">
+</div>
+<div class="mb-3">
+    <label for="id_description" class="form-label">Description:</label>
+    <textarea class="form-control" id="id_description" name="description" required maxlength="255">{{ form.instance.description }}</textarea>
+</div>
+<div class="mb-3">
+    <label for="id_antigen" class="form-label">Antigen:</label>
+    <input type="text" class="form-control" id="id_antigen" name="antigen" value="{{ form.instance.antigen }}" required maxlength="255">
+</div>
+<div class="mb-3">
+    <label for="id_species" class="form-label">Species:</label>
+    <input type="text" class="form-control" id="id_species" name="species" value="{{ form.instance.species }}" required maxlength="100">
+</div>
+<div class="mb-3">
+    <label for="id_recognizes" class="form-label">Recognizes:</label>
+    <input type="text" class="form-control" id="id_recognizes" name="recognizes" value="{{ form.instance.recognizes }}" required maxlength="255">
+</div>
+<div class="mb-3">
+    <label for="id_vendor" class="form-label">Vendor:</label>
+    <input type="text" class="form-control" id="id_vendor" name="vendor" value="{{ form.instance.vendor }}" required maxlength="255">
+</div>
+{% endblock %} 
