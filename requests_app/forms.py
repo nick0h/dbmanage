@@ -2,7 +2,7 @@ from django import forms
 from .models import Requestor, Antibody, Study, Tissue, Request, Status
 
 class RequestForm(forms.ModelForm):
-    special_request = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}), required=False)
+    special_request = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}), required=False, max_length=256)
     
     class Meta:
         model = Request
@@ -13,6 +13,7 @@ class RequestForm(forms.ModelForm):
             'study': forms.Select(attrs={'class': 'form-control'}),
             'tissue': forms.Select(attrs={'class': 'form-control'}),
             'description': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
+            'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -23,13 +24,17 @@ class RequestForm(forms.ModelForm):
         self.fields['tissue'].queryset = Tissue.objects.all()
 
 class RequestEditForm(forms.ModelForm):
+    notes = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'maxlength': 256}), required=False, max_length=256)
+    description = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}), required=False, max_length=256)
+    
     class Meta:
         model = Request
-        fields = ['status', 'notes', 'description']
+        fields = ['status', 'notes', 'description', 'special_request']
         widgets = {
             'status': forms.Select(attrs={'class': 'form-control'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'maxlength': 256}),
             'description': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
+            'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -49,6 +54,43 @@ class StudyEditForm(forms.ModelForm):
         model = Study
         fields = ['study_id', 'title']
         widgets = {
-            'study_id': forms.TextInput(attrs={'class': 'form-control'}),
-            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'study_id': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
+            'title': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
+        }
+
+class AntibodyForm(forms.ModelForm):
+    class Meta:
+        model = Antibody
+        fields = ['name', 'description', 'antigen', 'species', 'recognizes', 'vendor']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
+            'antigen': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
+            'species': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
+            'recognizes': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
+            'vendor': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
+        }
+
+class RequestorForm(forms.ModelForm):
+    class Meta:
+        model = Requestor
+        fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
+        }
+
+class TissueForm(forms.ModelForm):
+    class Meta:
+        model = Tissue
+        fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
+        }
+
+class StatusForm(forms.ModelForm):
+    class Meta:
+        model = Status
+        fields = ['status']
+        widgets = {
+            'status': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
         } 

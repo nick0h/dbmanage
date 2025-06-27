@@ -24,7 +24,7 @@
 
         <div class="form-group mb-3">
             <label for="id_description">Description:</label>
-            {{ form.description }}
+            <input type="text" class="form-control" id="id_description" name="description" required maxlength="256">
         </div>
 
         <div class="form-group mb-3">
@@ -48,7 +48,7 @@
 
         <div class="form-group mb-3">
             <label for="id_special_request">Special Request:</label>
-            {{ form.special_request }}
+            <textarea class="form-control" id="id_special_request" name="special_request" rows="3" maxlength="256"></textarea>
         </div>
 
         <div class="form-group">

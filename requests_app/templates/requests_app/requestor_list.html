@@ -24,9 +24,27 @@
                     <table class="table table-striped table-hover">
                         <thead class="table-dark">
                             <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Edit</th>
+                                <th>
+                                    <a href="?sort=key&order={% if current_sort == 'key' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
+                                        ID
+                                        {% if current_sort == 'key' %}
+                                            <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% else %}
+                                            <i class="fas fa-sort text-muted"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="?sort=name&order={% if current_sort == 'name' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
+                                        Name
+                                        {% if current_sort == 'name' %}
+                                            <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% else %}
+                                            <i class="fas fa-sort text-muted"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -37,6 +55,9 @@
                                 <td>
                                     <a href="{% url 'requestor_edit' requestor.key %}" class="btn btn-sm btn-warning">
                                         <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <a href="{% url 'requestor_delete' requestor.key %}" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i> Delete
                                     </a>
                                 </td>
                             </tr>

@@ -29,44 +29,72 @@
                 <div class="row mb-3">
                     <div class="col-md-12">
                         <label class="form-label">Description:</label>
-                        <input type="text" class="form-control" name="description" value="{{ request_obj.description }}" required maxlength="256">
+                        <input type="text" class="form-control" name="description" value="{{ request_obj.description }}" readonly style="background-color: #f8f9fa; color: #6c757d;">
+                        <small class="text-muted">Description cannot be modified after creation</small>
                     </div>
                 </div>
 
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label">Antibody:</label>
-                        <select class="form-control" name="antibody" required>
+                        <select class="form-control" name="antibody" readonly style="background-color: #f8f9fa; color: #6c757d;" disabled>
                             {% for antibody in antibodies %}
                                 <option value="{{ antibody.pk }}" {% if request_obj.antibody.pk == antibody.pk %}selected{% endif %}>{{ antibody.name }}</option>
                             {% endfor %}
                         </select>
+                        <small class="text-muted">Antibody cannot be modified after creation</small>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Study:</label>
-                        <select class="form-control" name="study" required>
+                        <select class="form-control" name="study" readonly style="background-color: #f8f9fa; color: #6c757d;" disabled>
                             {% for study in studies %}
                                 <option value="{{ study.pk }}" {% if request_obj.study.pk == study.pk %}selected{% endif %}>{{ study.title }}</option>
                             {% endfor %}
                         </select>
+                        <small class="text-muted">Study cannot be modified after creation</small>
                     </div>
                 </div>
 
                 <div class="row mb-3">
                     <div class="col-md-12">
-                        <label class="form-label">Tissue:</label>
-                        <select class="form-control" name="tissue" required>
+                        <label class="form-label">Primary Tissue:</label>
+                        <select class="form-control" name="tissue" readonly style="background-color: #f8f9fa; color: #6c757d;" disabled>
                             {% for tissue in tissues %}
                                 <option value="{{ tissue.pk }}" {% if request_obj.tissue.pk == tissue.pk %}selected{% endif %}>{{ tissue.name }}</option>
                             {% endfor %}
                         </select>
+                        <small class="text-muted">Primary tissue cannot be modified after creation</small>
                     </div>
                 </div>
+
+                {% if request_obj.data.tissues %}
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label">Additional Tissues ({{ request_obj.data.tissues|length }}):</label>
+                        <div class="alert alert-info">
+                            <ul class="list-unstyled mb-0">
+                                {% for tissue_name in request_obj.data.tissues %}
+                                    <li><i class="fas fa-tag me-2"></i>{{ tissue_name|truncatechars:40 }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <small class="text-muted">Total tissues for this request: {{ request_obj.data.tissues|length|add:1 }}</small>
+                    </div>
+                </div>
+                {% else %}
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <div class="alert alert-light">
+                            <small class="text-muted">No additional tissues specified for this request.</small>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
 
                 <div class="row mb-3">
                     <div class="col-md-12">
                         <label class="form-label">Special Request:</label>
-                        <textarea class="form-control" name="special_request" rows="3">{{ request_obj.special_request }}</textarea>
+                        <textarea class="form-control" name="special_request" rows="3" maxlength="256">{{ request_obj.special_request }}</textarea>
                     </div>
                 </div>
 
@@ -84,7 +112,7 @@
                 <div class="row mb-3">
                     <div class="col-md-12">
                         <label class="form-label">Notes:</label>
-                        <textarea class="form-control" name="notes" rows="3">{{ request_obj.notes }}</textarea>
+                        <textarea class="form-control" name="notes" rows="3" maxlength="256">{{ request_obj.notes }}</textarea>
                     </div>
                 </div>
 

@@ -8,19 +8,18 @@
             <i class="fas fa-home me-2"></i>Back to Homepage
         </a>
     </div>
-    {% with title="Edit Tissue" %}
-    {{ block.super }}
-    {% endwith %}
+    <form method="post" id="editForm">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary mt-2">Save Changes</button>
+        <a href="{% url 'tissue_list' %}" class="btn btn-secondary mt-2">Cancel</a>
+    </form>
 </div>
-{% endblock %}
-
-{% block form_content %}
-<div class="mb-3">
-    <label for="id_key" class="form-label">ID:</label>
-    <input type="text" class="form-control" id="id_key" name="key" value="{{ form.instance.key }}" readonly>
-</div>
-<div class="mb-3">
-    <label for="id_name" class="form-label">Name:</label>
-    <input type="text" class="form-control" id="id_name" name="name" value="{{ form.instance.name }}" required maxlength="255">
-</div>
+<script>
+document.getElementById('editForm').addEventListener('submit', function(e) {
+    if (!confirm('Are you done?')) {
+        e.preventDefault();
+    }
+});
+</script>
 {% endblock %} 

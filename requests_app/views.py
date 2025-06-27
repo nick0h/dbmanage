@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import FormView, ListView, UpdateView, DetailView
+from django.views.generic import FormView, ListView, UpdateView, DetailView, DeleteView
 from django.urls import reverse_lazy
-from .forms import RequestForm, RequestEditForm, RequestSearchForm, StudyEditForm
+from .forms import RequestForm, RequestEditForm, RequestSearchForm, StudyEditForm, AntibodyForm, RequestorForm, TissueForm, StatusForm
 from .models import Request, Status, Study, Requestor, Antibody, Tissue
 from django.http import JsonResponse
 from django.db.models import Q
@@ -22,6 +22,32 @@ class RequestListView(ListView):
     template_name = 'requests_app/request_list.html'
     context_object_name = 'requests'
     paginate_by = 20
+
+    def get_queryset(self):
+        queryset = Request.objects.all()
+        
+        # Get sort parameters
+        sort_by = self.request.GET.get('sort', '-created_at')
+        order = self.request.GET.get('order', 'desc')
+        
+        # Validate sort field to prevent injection
+        allowed_fields = ['key', 'created_at', 'requestor__name', 'description', 'antibody__name', 'study__title', 'tissue__name', 'status__status']
+        if sort_by.lstrip('-') not in [field.lstrip('-') for field in allowed_fields]:
+            sort_by = '-created_at'
+        
+        # Apply sorting
+        if order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+            
+        return queryset.order_by(sort_by)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_sort'] = self.request.GET.get('sort', '-created_at')
+        context['current_order'] = self.request.GET.get('order', 'desc')
+        return context
 
 class RequestDetailView(DetailView):
     model = Request
@@ -44,11 +70,23 @@ class RequestCreateView(FormView):
         request_obj = form.save(commit=False)
         request_obj.status = Status.get_default_status()
         
+        # Collect additional tissues from form data
+        additional_tissues = []
+        for key, value in self.request.POST.items():
+            if key.startswith('tissue_') and value:  # tissue_0, tissue_1, etc.
+                try:
+                    tissue_id = int(value)
+                    tissue = Tissue.objects.get(pk=tissue_id)
+                    additional_tissues.append(tissue.name)
+                except (ValueError, Tissue.DoesNotExist):
+                    pass
+        
         # Populate the data JSONField with form data
         request_obj.data = {
             'date': self.request.POST.get('date'),
             'description': form.cleaned_data.get('description'),
             'special_request': form.cleaned_data.get('special_request'),
+            'tissues': additional_tissues,
         }
         
         request_obj.save()
@@ -68,6 +106,12 @@ class RequestUpdateView(UpdateView):
         context['tissues'] = Tissue.objects.all()
         context['statuses'] = Status.objects.all()
         return context
+
+class RequestDeleteView(DeleteView):
+    model = Request
+    template_name = 'requests_app/request_confirm_delete.html'
+    success_url = reverse_lazy('request_list')
+    context_object_name = 'request'
 
 class RequestSearchView(ListView):
     model = Request
@@ -111,7 +155,7 @@ class RequestSearchView(ListView):
 # Study Views
 class StudyUpdateView(UpdateView):
     model = Study
-    fields = ['title']
+    form_class = StudyEditForm
     template_name = 'requests_app/study_edit.html'
     success_url = reverse_lazy('study_list')
 
@@ -119,6 +163,38 @@ class StudyListView(ListView):
     model = Study
     template_name = 'requests_app/study_list.html'
     context_object_name = 'studies'
+
+    def get_queryset(self):
+        queryset = Study.objects.all()
+        
+        # Get sort parameters
+        sort_by = self.request.GET.get('sort', 'key')
+        order = self.request.GET.get('order', 'asc')
+        
+        # Validate sort field to prevent injection
+        allowed_fields = ['key', 'study_id', 'title']
+        if sort_by.lstrip('-') not in [field.lstrip('-') for field in allowed_fields]:
+            sort_by = 'key'
+        
+        # Apply sorting
+        if order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+            
+        return queryset.order_by(sort_by)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_sort'] = self.request.GET.get('sort', 'key')
+        context['current_order'] = self.request.GET.get('order', 'asc')
+        return context
+
+class StudyDeleteView(DeleteView):
+    model = Study
+    template_name = 'requests_app/study_confirm_delete.html'
+    success_url = reverse_lazy('study_list')
+    context_object_name = 'study'
 
 def study_create(request):
     if request.method == 'POST':
@@ -142,31 +218,60 @@ class RequestorListView(ListView):
     template_name = 'requests_app/requestor_list.html'
     context_object_name = 'requestors'
 
+    def get_queryset(self):
+        queryset = Requestor.objects.all()
+        
+        # Get sort parameters
+        sort_by = self.request.GET.get('sort', 'key')
+        order = self.request.GET.get('order', 'asc')
+        
+        # Validate sort field to prevent injection
+        allowed_fields = ['key', 'name']
+        if sort_by.lstrip('-') not in [field.lstrip('-') for field in allowed_fields]:
+            sort_by = 'key'
+        
+        # Apply sorting
+        if order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+            
+        return queryset.order_by(sort_by)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_sort'] = self.request.GET.get('sort', 'key')
+        context['current_order'] = self.request.GET.get('order', 'asc')
+        return context
+
 class RequestorUpdateView(UpdateView):
     model = Requestor
-    fields = ['name']
+    form_class = RequestorForm
     template_name = 'requests_app/requestor_edit.html'
     success_url = reverse_lazy('requestor_list')
 
+class RequestorDeleteView(DeleteView):
+    model = Requestor
+    template_name = 'requests_app/requestor_confirm_delete.html'
+    success_url = reverse_lazy('requestor_list')
+    context_object_name = 'requestor'
+
 def sanitize_input(input_str):
     # Remove HTML tags
-    input_str = re.sub(r'<[^>]*>', '', input_str)
-    # Remove script tags
-    input_str = re.sub(r'<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>', '', input_str, flags=re.IGNORECASE)
-    # Remove potentially dangerous characters
-    input_str = re.sub(r'[&<>"\']', '', input_str)
-    return input_str
+    clean = re.compile('<.*?>')
+    return re.sub(clean, '', input_str)
 
 def validate_input(input_str):
-    if not input_str or len(input_str.strip()) == 0:
+    # Check if input is not empty and contains only allowed characters
+    if not input_str or len(input_str) > 256:
         return False
-    if len(input_str) > 256:
-        return False
-    return True
+    # Allow letters, numbers, spaces, hyphens, and underscores
+    return bool(re.match(r'^[a-zA-Z0-9\s\-_]+$', input_str))
 
 def requestor_create(request):
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
+        
         name = sanitize_input(name)
         
         if validate_input(name):
@@ -174,6 +279,7 @@ def requestor_create(request):
             return redirect('requestor_list')
         else:
             return JsonResponse({'error': 'Invalid input'}, status=400)
+    
     return render(request, 'requests_app/requestor_form.html', {'title': 'Add New Requestor'})
 
 # Antibody Views
@@ -182,33 +288,66 @@ class AntibodyListView(ListView):
     template_name = 'requests_app/antibody_list.html'
     context_object_name = 'antibodies'
 
+    def get_queryset(self):
+        queryset = Antibody.objects.all()
+        
+        # Get sort parameters
+        sort_by = self.request.GET.get('sort', 'key')
+        order = self.request.GET.get('order', 'asc')
+        
+        # Validate sort field to prevent injection
+        allowed_fields = ['key', 'name', 'description', 'antigen', 'species', 'recognizes', 'vendor']
+        if sort_by.lstrip('-') not in [field.lstrip('-') for field in allowed_fields]:
+            sort_by = 'key'
+        
+        # Apply sorting
+        if order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+            
+        return queryset.order_by(sort_by)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_sort'] = self.request.GET.get('sort', 'key')
+        context['current_order'] = self.request.GET.get('order', 'asc')
+        return context
+
 class AntibodyUpdateView(UpdateView):
     model = Antibody
-    fields = ['name', 'description', 'antigen', 'species', 'recognizes', 'vendor']
+    form_class = AntibodyForm
     template_name = 'requests_app/antibody_edit.html'
     success_url = reverse_lazy('antibody_list')
 
+class AntibodyDeleteView(DeleteView):
+    model = Antibody
+    template_name = 'requests_app/antibody_confirm_delete.html'
+    success_url = reverse_lazy('antibody_list')
+    context_object_name = 'antibody'
+
 def antibody_create(request):
     if request.method == 'POST':
-        name = sanitize_input(request.POST.get('name', '').strip())
-        description = sanitize_input(request.POST.get('description', '').strip())
-        antigen = sanitize_input(request.POST.get('antigen', '').strip())
-        species = sanitize_input(request.POST.get('species', '').strip())
-        recognizes = sanitize_input(request.POST.get('recognizes', '').strip())
-        vendor = sanitize_input(request.POST.get('vendor', '').strip())
+        name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
+        antigen = request.POST.get('antigen', '').strip()
+        species = request.POST.get('species', '').strip()
+        recognizes = request.POST.get('recognizes', '').strip()
+        vendor = request.POST.get('vendor', '').strip()
         
-        if all(validate_input(field) for field in [name, description, antigen, species, recognizes, vendor]):
-            Antibody.objects.create(
-                name=name,
-                description=description,
-                antigen=antigen,
-                species=species,
-                recognizes=recognizes,
-                vendor=vendor
-            )
+        name = sanitize_input(name)
+        description = sanitize_input(description)
+        antigen = sanitize_input(antigen)
+        species = sanitize_input(species)
+        recognizes = sanitize_input(recognizes)
+        vendor = sanitize_input(vendor)
+        
+        if validate_input(name) and validate_input(description) and validate_input(antigen) and validate_input(species) and validate_input(recognizes) and validate_input(vendor):
+            Antibody.objects.create(name=name, description=description, antigen=antigen, species=species, recognizes=recognizes, vendor=vendor)
             return redirect('antibody_list')
         else:
             return JsonResponse({'error': 'Invalid input'}, status=400)
+    
     return render(request, 'requests_app/antibody_form.html', {'title': 'Add New Antibody'})
 
 # Tissue Views
@@ -217,15 +356,48 @@ class TissueListView(ListView):
     template_name = 'requests_app/tissue_list.html'
     context_object_name = 'tissues'
 
+    def get_queryset(self):
+        queryset = Tissue.objects.all()
+        
+        # Get sort parameters
+        sort_by = self.request.GET.get('sort', 'key')
+        order = self.request.GET.get('order', 'asc')
+        
+        # Validate sort field to prevent injection
+        allowed_fields = ['key', 'name']
+        if sort_by.lstrip('-') not in [field.lstrip('-') for field in allowed_fields]:
+            sort_by = 'key'
+        
+        # Apply sorting
+        if order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+            
+        return queryset.order_by(sort_by)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_sort'] = self.request.GET.get('sort', 'key')
+        context['current_order'] = self.request.GET.get('order', 'asc')
+        return context
+
 class TissueUpdateView(UpdateView):
     model = Tissue
-    fields = ['name']
+    form_class = TissueForm
     template_name = 'requests_app/tissue_edit.html'
     success_url = reverse_lazy('tissue_list')
+
+class TissueDeleteView(DeleteView):
+    model = Tissue
+    template_name = 'requests_app/tissue_confirm_delete.html'
+    success_url = reverse_lazy('tissue_list')
+    context_object_name = 'tissue'
 
 def tissue_create(request):
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
+        
         name = sanitize_input(name)
         
         if validate_input(name):
@@ -233,6 +405,7 @@ def tissue_create(request):
             return redirect('tissue_list')
         else:
             return JsonResponse({'error': 'Invalid input'}, status=400)
+    
     return render(request, 'requests_app/tissue_form.html', {'title': 'Add New Tissue'})
 
 # Status Views
@@ -241,9 +414,48 @@ class StatusListView(ListView):
     template_name = 'requests_app/status_list.html'
     context_object_name = 'statuses'
 
+    def get_queryset(self):
+        queryset = Status.objects.all()
+        
+        # Get sort parameters
+        sort_by = self.request.GET.get('sort', 'key')
+        order = self.request.GET.get('order', 'asc')
+        
+        # Validate sort field to prevent injection
+        allowed_fields = ['key', 'status']
+        if sort_by.lstrip('-') not in [field.lstrip('-') for field in allowed_fields]:
+            sort_by = 'key'
+        
+        # Apply sorting
+        if order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+            
+        return queryset.order_by(sort_by)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_sort'] = self.request.GET.get('sort', 'key')
+        context['current_order'] = self.request.GET.get('order', 'asc')
+        return context
+
+class StatusUpdateView(UpdateView):
+    model = Status
+    form_class = StatusForm
+    template_name = 'requests_app/status_edit.html'
+    success_url = reverse_lazy('status_list')
+
+class StatusDeleteView(DeleteView):
+    model = Status
+    template_name = 'requests_app/status_confirm_delete.html'
+    success_url = reverse_lazy('status_list')
+    context_object_name = 'status'
+
 def status_create(request):
     if request.method == 'POST':
         status = request.POST.get('status', '').strip()
+        
         status = sanitize_input(status)
         
         if validate_input(status):
@@ -253,9 +465,3 @@ def status_create(request):
             return JsonResponse({'error': 'Invalid input'}, status=400)
     
     return render(request, 'requests_app/status_form.html', {'title': 'Add New Status'})
-
-class StatusUpdateView(UpdateView):
-    model = Status
-    fields = ['status']
-    template_name = 'requests_app/status_edit.html'
-    success_url = reverse_lazy('status_list')

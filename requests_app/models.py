@@ -24,7 +24,7 @@ class Status(models.Model):
 
     @classmethod
     def get_default_status(cls):
-        status, _ = cls.objects.get_or_create(status='Awaiting Completion')
+        status, _ = cls.objects.get_or_create(status='submitted')
         return status
 
 class Antibody(models.Model):
