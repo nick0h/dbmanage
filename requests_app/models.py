@@ -2,6 +2,14 @@ from django.db import models
 
 # Create your models here.
 
+PRIORITY_CHOICES = [
+    (1, '1 - Low'),
+    (2, '2'),
+    (3, '3'),
+    (4, '4'),
+    (5, '5 - High'),
+]
+
 class Requestor(models.Model):
     key = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
@@ -72,6 +80,7 @@ class Request(models.Model):
     special_request = models.TextField(blank=True, null=True)
     status = models.ForeignKey(Status, on_delete=models.CASCADE, default=Status.get_default_status)
     notes = models.TextField(blank=True, null=True)
+    priority = models.IntegerField(choices=PRIORITY_CHOICES, default=3)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -97,6 +97,16 @@
                                         {% endif %}
                                     </a>
                                 </th>
+                                <th>
+                                    <a href="?sort=priority&order={% if current_sort == 'priority' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                        Priority
+                                        {% if current_sort == 'priority' %}
+                                            <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% else %}
+                                            <i class="fas fa-sort text-muted"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -125,6 +135,7 @@
                                     {% endif %}
                                 </td>
                                 <td>{{ request.status.status|truncatechars:40 }}</td>
+                                <td>{{ request.get_priority_display }}</td>
                                 <td>
                                     <a href="{% url 'request_edit' request.key %}" class="btn btn-sm btn-warning">Edit</a>
                                     <a href="{% url 'request_delete' request.key %}" class="btn btn-sm btn-danger">Delete</a>

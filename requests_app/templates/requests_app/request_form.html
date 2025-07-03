@@ -47,6 +47,12 @@
         </div>
 
         <div class="form-group mb-3">
+            <label for="id_priority">Priority:</label>
+            {{ form.priority }}
+            <div class="form-text">1 = Low, 5 = High</div>
+        </div>
+
+        <div class="form-group mb-3">
             <label for="id_special_request">Special Request:</label>
             <textarea class="form-control" id="id_special_request" name="special_request" rows="3" maxlength="256"></textarea>
         </div>

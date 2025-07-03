@@ -28,42 +28,64 @@ A Django-based web application for managing antibody requests, studies, and rela
 
 ## Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd dbProj
-   ```
+### 1. **Install Dependencies**
 
-2. **Set up virtual environment**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+```bash
+sudo apt install python3.12 postgresql postgresql-contrib python3.12-venv
+```
 
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 2. **Set Up PostgreSQL Database**
 
-4. **Set up PostgreSQL database**
-   - Create a database named `antibody_requests_db`
-   - Update database settings in `antibody_requests/settings.py` if needed
+```bash
 
-5. **Run migrations**
-   ```bash
-   python manage.py makemigrations
-   python manage.py migrate
-   ```
+sudo -u postgres psql
+------------------------------------------------------------------------------
+CREATE DATABASE antibody_requests_db;
 
-6. **Create superuser (optional)**
-   ```bash
-   python manage.py createsuperuser
-   ```
+CREATE USER myuser WITH PASSWORD 'mypassword';
 
-7. **Run the development server**
-   ```bash
-   python manage.py runserver
-   ```
+\c antibody_requests_db
+
+GRANT ALL PRIVILEGES ON DATABASE antibody_requests_db TO myuser;
+
+GRANT ALL PRIVILEGES ON SCHEMA public TO myuser;
+```
+
+### 3. **Clone the Repository**
+
+```bash
+git clone https://github.com/nick0h/dbmanage.git
+cd dbmanage
+```
+
+### 4. **Run the Installation Script**
+
+```bash
+chmod +x install.sh
+./install.sh
+```
+
+The installation script will automatically:
+- Create a Python virtual environment
+- Install required dependencies
+- Run database migrations
+- Optionally create a superuser account
+- Collect static files
+- Set up environment variables
+
+### 5. **Start the Development Server**
+
+```bash
+./run.sh
+```
+
+Or manually:
+```bash
+source venv/bin/activate
+python manage.py runserver
+```
+
+The application will be available at: **http://localhost:8000**
 
 ## Usage
 

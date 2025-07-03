@@ -22,3 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('requests_app.urls')),
 ]
+
+handler404 = 'requests_app.views.custom_404'
+handler500 = 'requests_app.views.custom_500'

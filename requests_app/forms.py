@@ -6,13 +6,14 @@ class RequestForm(forms.ModelForm):
     
     class Meta:
         model = Request
-        fields = ['requestor', 'antibody', 'study', 'description', 'tissue', 'special_request']
+        fields = ['requestor', 'antibody', 'study', 'description', 'tissue', 'priority', 'special_request']
         widgets = {
             'requestor': forms.Select(attrs={'class': 'form-control'}),
             'antibody': forms.Select(attrs={'class': 'form-control'}),
             'study': forms.Select(attrs={'class': 'form-control'}),
             'tissue': forms.Select(attrs={'class': 'form-control'}),
             'description': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
+            'priority': forms.Select(attrs={'class': 'form-control'}),
             'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
         }
 
@@ -29,12 +30,13 @@ class RequestEditForm(forms.ModelForm):
     
     class Meta:
         model = Request
-        fields = ['status', 'notes', 'description', 'special_request']
+        fields = ['status', 'notes', 'description', 'special_request', 'priority']
         widgets = {
             'status': forms.Select(attrs={'class': 'form-control'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'maxlength': 256}),
             'description': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
             'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
+            'priority': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):

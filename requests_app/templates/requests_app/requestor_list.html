@@ -44,6 +44,11 @@
                                         {% endif %}
                                     </a>
                                 </th>
+                                <th>
+                                    <a href="?sort=priority&order={% if current_sort == 'priority' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
+                                        Priority
+                                    </a>
+                                </th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -52,6 +57,7 @@
                             <tr>
                                 <td>{{ requestor.key }}</td>
                                 <td>{{ requestor.name|truncatechars:40 }}</td>
+                                <td>{{ requestor.get_priority_display }}</td>
                                 <td>
                                     <a href="{% url 'requestor_edit' requestor.key %}" class="btn btn-sm btn-warning">
                                         <i class="fas fa-edit"></i> Edit
