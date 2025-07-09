@@ -7,6 +7,11 @@ from django.http import JsonResponse
 from django.db.models import Q
 from datetime import datetime
 import re
+from django.contrib import messages
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+import openpyxl
+import os
 
 # Create your views here.
 
@@ -268,6 +273,13 @@ def validate_input(input_str):
     # Allow letters, numbers, spaces, hyphens, and underscores
     return bool(re.match(r'^[a-zA-Z0-9\s\-_]+$', input_str))
 
+def validate_import_input(input_str):
+    # More permissive validation for imports - allows common characters in study titles and IDs
+    if not input_str or len(input_str) > 256:
+        return False
+    # Allow letters, numbers, spaces, hyphens, underscores, parentheses, colons, periods, and commas
+    return bool(re.match(r'^[a-zA-Z0-9\s\-_\(\):.,]+$', input_str))
+
 def requestor_create(request):
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
@@ -471,3 +483,183 @@ def custom_404(request, exception):
 
 def custom_500(request):
     return render(request, "500.html", status=500)
+
+def import_studies_from_file(request):
+    if request.method == 'POST':
+        if 'file' not in request.FILES:
+            messages.error(request, 'No file was uploaded.')
+            return redirect('study_list')
+        
+        uploaded_file = request.FILES['file']
+        
+        # Check file extension
+        if not uploaded_file.name.endswith('.xlsx'):
+            messages.error(request, 'Please upload an Excel file (.xlsx)')
+            return redirect('study_list')
+        
+        try:
+            # Read the Excel file
+            workbook = openpyxl.load_workbook(uploaded_file)
+            sheet = workbook.active
+            
+            # Check if the first row contains the expected headers
+            first_row = [cell.value for cell in sheet[1]]
+            if len(first_row) < 2:
+                messages.error(request, 'File formatting is incorrect for study')
+                return redirect('study_list')
+            
+            # Check for required headers (case insensitive)
+            first_row_lower = [str(cell).lower().strip() if cell else '' for cell in first_row]
+            study_id_index = None
+            title_index = None
+            
+            for i, header in enumerate(first_row_lower):
+                if 'study id' in header:
+                    study_id_index = i
+                elif 'title' in header:
+                    title_index = i
+            
+            if study_id_index is None or title_index is None:
+                messages.error(request, 'File formatting is incorrect for study')
+                return redirect('study_list')
+            
+            # Process each row starting from the second row
+            imported_count = 0
+            for row_num in range(2, sheet.max_row + 1):
+                study_id_cell = sheet.cell(row=row_num, column=study_id_index + 1)
+                title_cell = sheet.cell(row=row_num, column=title_index + 1)
+                
+                study_id = study_id_cell.value
+                title = title_cell.value
+                
+                # Skip empty rows
+                if not study_id or not title:
+                    continue
+                
+                # Clean and validate the data
+                study_id = str(study_id).strip()
+                title = str(title).strip()
+                
+                if validate_import_input(study_id) and validate_import_input(title):
+                    # Check if study already exists
+                    if not Study.objects.filter(study_id=study_id).exists():
+                        Study.objects.create(study_id=study_id, title=title)
+                        imported_count += 1
+            
+            if imported_count > 0:
+                messages.success(request, f'Successfully imported {imported_count} studies.')
+            else:
+                messages.warning(request, 'No new studies were imported.')
+                
+        except Exception as e:
+            messages.error(request, f'Error processing file: {str(e)}')
+        
+        return redirect('study_list')
+    
+    return redirect('study_list')
+
+def import_antibodies_from_file(request):
+    if request.method == 'POST':
+        if 'file' not in request.FILES:
+            messages.error(request, 'No file was uploaded.')
+            return redirect('antibody_list')
+        
+        uploaded_file = request.FILES['file']
+        
+        # Check file extension
+        if not uploaded_file.name.endswith('.xlsx'):
+            messages.error(request, 'Please upload an Excel file (.xlsx)')
+            return redirect('antibody_list')
+        
+        try:
+            # Read the Excel file
+            workbook = openpyxl.load_workbook(uploaded_file)
+            sheet = workbook.active
+            
+            # Check if the first row contains the expected headers
+            first_row = [cell.value for cell in sheet[1]]
+            if len(first_row) < 6:
+                messages.error(request, 'File formatting is incorrect for antibody')
+                return redirect('antibody_list')
+            
+            # Check for required headers (case insensitive)
+            first_row_lower = [str(cell).lower().strip() if cell else '' for cell in first_row]
+            name_index = None
+            description_index = None
+            antigen_index = None
+            species_index = None
+            recognizes_index = None
+            vendor_index = None
+            
+            for i, header in enumerate(first_row_lower):
+                if 'name' in header:
+                    name_index = i
+                elif 'description' in header:
+                    description_index = i
+                elif 'antigen' in header:
+                    antigen_index = i
+                elif 'species' in header:
+                    species_index = i
+                elif 'recognizes' in header:
+                    recognizes_index = i
+                elif 'vendor' in header:
+                    vendor_index = i
+            
+            if (name_index is None or description_index is None or antigen_index is None or 
+                species_index is None or recognizes_index is None or vendor_index is None):
+                messages.error(request, 'File formatting is incorrect for antibody')
+                return redirect('antibody_list')
+            
+            # Process each row starting from the second row
+            imported_count = 0
+            for row_num in range(2, sheet.max_row + 1):
+                name_cell = sheet.cell(row=row_num, column=name_index + 1)
+                description_cell = sheet.cell(row=row_num, column=description_index + 1)
+                antigen_cell = sheet.cell(row=row_num, column=antigen_index + 1)
+                species_cell = sheet.cell(row=row_num, column=species_index + 1)
+                recognizes_cell = sheet.cell(row=row_num, column=recognizes_index + 1)
+                vendor_cell = sheet.cell(row=row_num, column=vendor_index + 1)
+                
+                name = name_cell.value
+                description = description_cell.value
+                antigen = antigen_cell.value
+                species = species_cell.value
+                recognizes = recognizes_cell.value
+                vendor = vendor_cell.value
+                
+                # Skip empty rows (name is required)
+                if not name:
+                    continue
+                
+                # Clean and validate the data
+                name = str(name).strip()
+                description = str(description).strip() if description else ''
+                antigen = str(antigen).strip() if antigen else ''
+                species = str(species).strip() if species else ''
+                recognizes = str(recognizes).strip() if recognizes else ''
+                vendor = str(vendor).strip() if vendor else ''
+                
+                if validate_import_input(name):
+                    # Check if antibody already exists
+                    if not Antibody.objects.filter(name=name).exists():
+                        Antibody.objects.create(
+                            name=name,
+                            description=description,
+                            antigen=antigen,
+                            species=species,
+                            recognizes=recognizes,
+                            vendor=vendor
+                        )
+                        imported_count += 1
+            
+            if imported_count > 0:
+                messages.success(request, f'Successfully imported {imported_count} antibodies.')
+            else:
+                messages.warning(request, 'No new antibodies were imported.')
+                
+        except Exception as e:
+            messages.error(request, f'Error processing file: {str(e)}')
+        
+        return redirect('antibody_list')
+    
+    return redirect('antibody_list')

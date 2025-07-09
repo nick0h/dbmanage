@@ -45,4 +45,8 @@ urlpatterns = [
     path('data/statuses/create/', views.status_create, name='status_create'),
     path('data/statuses/<int:pk>/edit/', views.StatusUpdateView.as_view(), name='status_edit'),
     path('data/statuses/<int:pk>/delete/', views.StatusDeleteView.as_view(), name='status_delete'),
+    
+    # Import URLs
+    path('data/studies/import/', views.import_studies_from_file, name='import_studies'),
+    path('data/antibodies/import/', views.import_antibodies_from_file, name='import_antibodies'),
 ] 

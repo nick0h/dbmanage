@@ -45,6 +45,9 @@ class Antibody(models.Model):
     vendor = models.CharField(max_length=255)
 
     def __str__(self):
+        return f"{self.name} - {self.description}"
+
+    def get_name_only(self):
         return self.name
 
     def get_display_fields(self):

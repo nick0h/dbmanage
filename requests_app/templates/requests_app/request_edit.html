@@ -39,7 +39,7 @@
                         <label class="form-label">Antibody:</label>
                         <select class="form-control" name="antibody" readonly style="background-color: #f8f9fa; color: #6c757d;" disabled>
                             {% for antibody in antibodies %}
-                                <option value="{{ antibody.pk }}" {% if request_obj.antibody.pk == antibody.pk %}selected{% endif %}>{{ antibody.name }}</option>
+                                <option value="{{ antibody.pk }}" {% if request_obj.antibody.pk == antibody.pk %}selected{% endif %}>{{ antibody.name }} - {{ antibody.description }}</option>
                             {% endfor %}
                         </select>
                         <small class="text-muted">Antibody cannot be modified after creation</small>

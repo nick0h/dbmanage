@@ -31,7 +31,8 @@ A Django-based web application for managing antibody requests, studies, and rela
 ### 1. **Install Dependencies**
 
 ```bash
-sudo apt install python3.12 postgresql postgresql-contrib python3.12-venv
+sudo apt upgrade
+sudo apt install python3.12 postgresql postgresql-contrib python3.12-venv pip3
 ```
 
 ### 2. **Set Up PostgreSQL Database**

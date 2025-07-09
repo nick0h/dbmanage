@@ -21,6 +21,7 @@ class RequestForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['requestor'].queryset = Requestor.objects.all()
         self.fields['antibody'].queryset = Antibody.objects.all()
+        self.fields['antibody'].label_from_instance = lambda obj: f"{obj.name} - {obj.description}"
         self.fields['study'].queryset = Study.objects.all()
         self.fields['tissue'].queryset = Tissue.objects.all()
 

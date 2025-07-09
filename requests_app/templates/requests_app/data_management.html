@@ -23,9 +23,6 @@
                         <a href="{% url 'requestor_create' %}" class="btn btn-success">
                             <i class="fas fa-user-plus me-2"></i>Add Requestor
                         </a>
-                        <button class="btn btn-info" disabled>
-                            <i class="fas fa-file-import me-2"></i>Add Requestors from File
-                        </button>
                     </div>
                 </div>
             </div>
@@ -43,7 +40,7 @@
                         <a href="{% url 'antibody_create' %}" class="btn btn-success">
                             <i class="fas fa-plus me-2"></i>Add Antibody
                         </a>
-                        <button class="btn btn-info" disabled>
+                        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#importAntibodyModal">
                             <i class="fas fa-file-import me-2"></i>Add Antibodies from File
                         </button>
                     </div>
@@ -63,9 +60,6 @@
                         <a href="{% url 'tissue_create' %}" class="btn btn-success">
                             <i class="fas fa-plus me-2"></i>Add Tissue
                         </a>
-                        <button class="btn btn-info" disabled>
-                            <i class="fas fa-file-import me-2"></i>Add Tissues from File
-                        </button>
                     </div>
                 </div>
             </div>
@@ -83,9 +77,6 @@
                         <a href="{% url 'status_create' %}" class="btn btn-success">
                             <i class="fas fa-plus me-2"></i>Add Status
                         </a>
-                        <button class="btn btn-info" disabled>
-                            <i class="fas fa-file-import me-2"></i>Add Statuses from File
-                        </button>
                     </div>
                 </div>
             </div>
@@ -103,7 +94,7 @@
                         <a href="{% url 'study_create' %}" class="btn btn-success">
                             <i class="fas fa-plus me-2"></i>Add Study
                         </a>
-                        <button class="btn btn-info" disabled>
+                        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#importStudyModal">
                             <i class="fas fa-file-import me-2"></i>Add Studies from File
                         </button>
                     </div>
@@ -123,4 +114,61 @@
 
 <!-- Add Font Awesome for icons -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
+<!-- Import Antibody Modal -->
+<div class="modal fade" id="importAntibodyModal" tabindex="-1" aria-labelledby="importAntibodyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importAntibodyModalLabel">Import Antibodies from Excel File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'import_antibodies' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="antibodyFile" class="form-label">Select Excel File (.xlsx)</label>
+                        <input type="file" class="form-control" id="antibodyFile" name="file" accept=".xlsx" required>
+                        <div class="form-text">
+                            The file should have columns with headers "Name", "Description", "Antigen", "Species", "Recognizes", and "Vendor" (case insensitive).
+                            The first row should contain the headers, and data should start from the second row.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Import Antibodies</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Import Study Modal -->
+<div class="modal fade" id="importStudyModal" tabindex="-1" aria-labelledby="importStudyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importStudyModalLabel">Import Studies from Excel File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'import_studies' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="studyFile" class="form-label">Select Excel File (.xlsx)</label>
+                        <input type="file" class="form-control" id="studyFile" name="file" accept=".xlsx" required>
+                        <div class="form-text">
+                            The file should have columns with headers "Study ID" and "Title" (case insensitive).
+                            The first row should contain the headers, and data should start from the second row.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Import Studies</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %} 
