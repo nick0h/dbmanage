@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import FormView, ListView, UpdateView, DetailView, DeleteView
 from django.urls import reverse_lazy
-from .forms import RequestForm, RequestEditForm, RequestSearchForm, StudyEditForm, AntibodyForm, RequestorForm, TissueForm, StatusForm
-from .models import Request, Status, Study, Requestor, Antibody, Tissue
+from .forms import RequestForm, RequestEditForm, RequestSearchForm, StudyEditForm, AntibodyForm, RequestorForm, TissueForm, StatusForm, AssigneeForm, ProbeForm, PriorityForm
+from .models import Request, Status, Study, Requestor, Antibody, Tissue, Assignee, Probe, Priority
 from django.http import JsonResponse
 from django.db.models import Q
 from datetime import datetime
@@ -36,7 +36,7 @@ class RequestListView(ListView):
         order = self.request.GET.get('order', 'desc')
         
         # Validate sort field to prevent injection
-        allowed_fields = ['key', 'created_at', 'requestor__name', 'description', 'antibody__name', 'study__title', 'tissue__name', 'status__status']
+        allowed_fields = ['key', 'created_at', 'requestor__name', 'description', 'antibody__name', 'probe__name', 'study__title', 'tissue__name', 'status__status', 'assigned_to__name']
         if sort_by.lstrip('-') not in [field.lstrip('-') for field in allowed_fields]:
             sort_by = '-created_at'
         
@@ -67,8 +67,10 @@ class RequestCreateView(FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['today_date'] = datetime.now().date()
-        context['tissues'] = Tissue.objects.all()
+        context['tissues'] = Tissue.objects.all().order_by('name')
         context['max_tissues'] = 10
+        context['assignees'] = Assignee.objects.all().order_by('name')
+        context['probes'] = Probe.objects.all().order_by('name')
         return context
 
     def form_valid(self, form):
@@ -106,10 +108,12 @@ class RequestUpdateView(UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['request_obj'] = self.object
-        context['antibodies'] = Antibody.objects.all()
-        context['studies'] = Study.objects.all()
-        context['tissues'] = Tissue.objects.all()
-        context['statuses'] = Status.objects.all()
+        context['antibodies'] = Antibody.objects.all().order_by('name')
+        context['studies'] = Study.objects.all().order_by('study_id')
+        context['tissues'] = Tissue.objects.all().order_by('name')
+        context['statuses'] = Status.objects.all().order_by('status')
+        context['assignees'] = Assignee.objects.all().order_by('name')
+        context['probes'] = Probe.objects.all().order_by('name')
         return context
 
 class RequestDeleteView(DeleteView):
@@ -126,8 +130,17 @@ class RequestSearchView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form'] = RequestSearchForm(self.request.GET)
-        context['tissues'] = Tissue.objects.all()
+        # Create form with GET data
+        form = RequestSearchForm(self.request.GET)
+        
+        context['form'] = form
+        context['tissues'] = Tissue.objects.all().order_by('name')
+        context['assignees'] = Assignee.objects.all().order_by('name')
+        context['antibodies'] = Antibody.objects.all().order_by('name')
+        context['probes'] = Probe.objects.all().order_by('name')
+        context['studies'] = Study.objects.all().order_by('study_id')
+        context['statuses'] = Status.objects.all().order_by('status')
+        context['priorities'] = Priority.objects.all().order_by('value')
         return context
 
     def get_queryset(self):
@@ -139,9 +152,18 @@ class RequestSearchView(ListView):
             date_from = form.cleaned_data.get('date_from')
             date_to = form.cleaned_data.get('date_to')
             requestor = form.cleaned_data.get('requestor')
+            description = form.cleaned_data.get('description')
+            antibody = form.cleaned_data.get('antibody')
+            probe = form.cleaned_data.get('probe')
             tissue = form.cleaned_data.get('tissue')
             study = form.cleaned_data.get('study')
+            status = form.cleaned_data.get('status')
+            priority = form.cleaned_data.get('priority')
+            assigned_to = form.cleaned_data.get('assigned_to')
+            special_request = form.cleaned_data.get('special_request')
+            notes = form.cleaned_data.get('notes')
 
+            # Apply filters
             if request_id:
                 queryset = queryset.filter(key=request_id)
             if date_from:
@@ -150,12 +172,98 @@ class RequestSearchView(ListView):
                 queryset = queryset.filter(created_at__lte=date_to)
             if requestor:
                 queryset = queryset.filter(requestor=requestor)
+            if description:
+                queryset = queryset.filter(description__icontains=description)
+            if antibody:
+                queryset = queryset.filter(antibody=antibody)
+            if probe:
+                queryset = queryset.filter(probe=probe)
             if tissue:
-                queryset = queryset.filter(tissue__name__icontains=tissue)
+                queryset = queryset.filter(tissue=tissue)
             if study:
                 queryset = queryset.filter(study=study)
+            if status:
+                queryset = queryset.filter(status=status)
+            if priority:
+                queryset = queryset.filter(priority=priority)
+            if assigned_to:
+                queryset = queryset.filter(assigned_to=assigned_to)
+            if special_request:
+                queryset = queryset.filter(special_request__icontains=special_request)
+            if notes:
+                queryset = queryset.filter(notes__icontains=notes)
 
         return queryset.order_by('-created_at')
+
+class RequestHomeView(ListView):
+    model = Request
+    template_name = 'requests_app/request_home.html'
+    context_object_name = 'requests'
+    paginate_by = 20
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get sort parameters
+        context['current_sort'] = self.request.GET.get('sort', '-created_at')
+        context['current_order'] = self.request.GET.get('order', 'desc')
+        
+        return context
+
+    def get_queryset(self):
+        queryset = Request.objects.all()
+        
+        # Apply sorting
+        sort_by = self.request.GET.get('sort', '-created_at')
+        order = self.request.GET.get('order', 'desc')
+        
+        # Validate sort field to prevent injection
+        allowed_fields = ['key', 'created_at', 'requestor__name', 'description', 'antibody__name', 'probe__name', 'study__title', 'tissue__name', 'status__status', 'assigned_to__name']
+        if sort_by.lstrip('-') not in [field.lstrip('-') for field in allowed_fields]:
+            sort_by = '-created_at'
+        
+        # Apply sorting
+        if order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+            
+        return queryset.order_by(sort_by)
+
+class SimpleRequestHomeView(ListView):
+    model = Request
+    template_name = 'requests_app/simple_request_home.html'
+    context_object_name = 'requests'
+    paginate_by = 20
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get sort parameters
+        context['current_sort'] = self.request.GET.get('sort', '-created_at')
+        context['current_order'] = self.request.GET.get('order', 'desc')
+        
+        return context
+
+    def get_queryset(self):
+        queryset = Request.objects.all()
+        
+        # Apply sorting
+        sort_by = self.request.GET.get('sort', '-created_at')
+        order = self.request.GET.get('order', 'desc')
+        
+        # Validate sort field to prevent injection
+        allowed_fields = ['key', 'created_at', 'requestor__name', 'description', 'antibody__name', 'probe__name', 'study__title', 'tissue__name', 'status__status', 'assigned_to__name']
+        if sort_by.lstrip('-') not in [field.lstrip('-') for field in allowed_fields]:
+            sort_by = '-created_at'
+        
+        # Apply sorting
+        if order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+            
+        return queryset.order_by(sort_by)
 
 # Study Views
 class StudyUpdateView(UpdateView):
@@ -477,6 +585,226 @@ def status_create(request):
             return JsonResponse({'error': 'Invalid input'}, status=400)
     
     return render(request, 'requests_app/status_form.html', {'title': 'Add New Status'})
+
+# Assignee Views
+class AssigneeListView(ListView):
+    model = Assignee
+    template_name = 'requests_app/assignee_list.html'
+    context_object_name = 'assignees'
+
+    def get_queryset(self):
+        queryset = Assignee.objects.all()
+        
+        # Get sort parameters
+        sort_by = self.request.GET.get('sort', 'key')
+        order = self.request.GET.get('order', 'asc')
+        
+        # Validate sort field to prevent injection
+        allowed_fields = ['key', 'name', 'email', 'department']
+        if sort_by.lstrip('-') not in [field.lstrip('-') for field in allowed_fields]:
+            sort_by = 'key'
+        
+        # Apply sorting
+        if order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+            
+        return queryset.order_by(sort_by)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_sort'] = self.request.GET.get('sort', 'key')
+        context['current_order'] = self.request.GET.get('order', 'asc')
+        return context
+
+class AssigneeUpdateView(UpdateView):
+    model = Assignee
+    form_class = AssigneeForm
+    template_name = 'requests_app/assignee_edit.html'
+    success_url = reverse_lazy('assignee_list')
+
+class AssigneeDeleteView(DeleteView):
+    model = Assignee
+    template_name = 'requests_app/assignee_confirm_delete.html'
+    success_url = reverse_lazy('assignee_list')
+    context_object_name = 'assignee'
+
+def assignee_create(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        department = request.POST.get('department', '').strip()
+        
+        name = sanitize_input(name)
+        email = sanitize_input(email)
+        department = sanitize_input(department)
+        
+        if validate_input(name):
+            Assignee.objects.create(name=name, email=email, department=department)
+            return redirect('assignee_list')
+        else:
+            return JsonResponse({'error': 'Invalid input'}, status=400)
+    
+    return render(request, 'requests_app/assignee_form.html', {'title': 'Add New Assignee'})
+
+# Probe Views
+class ProbeListView(ListView):
+    model = Probe
+    template_name = 'requests_app/probe_list.html'
+    context_object_name = 'probes'
+
+    def get_queryset(self):
+        queryset = Probe.objects.all()
+        
+        # Get sort parameters
+        sort_by = self.request.GET.get('sort', 'key')
+        order = self.request.GET.get('order', 'asc')
+        
+        # Validate sort field to prevent injection
+        allowed_fields = ['key', 'name', 'description', 'sequence', 'target_gene', 'vendor', 'catalog_number', 'platform', 'target_region', 'number_of_pairs']
+        if sort_by.lstrip('-') not in [field.lstrip('-') for field in allowed_fields]:
+            sort_by = 'key'
+        
+        # Apply sorting
+        if order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+            
+        return queryset.order_by(sort_by)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_sort'] = self.request.GET.get('sort', 'key')
+        context['current_order'] = self.request.GET.get('order', 'asc')
+        return context
+
+class ProbeUpdateView(UpdateView):
+    model = Probe
+    form_class = ProbeForm
+    template_name = 'requests_app/probe_edit.html'
+    success_url = reverse_lazy('probe_list')
+
+class ProbeDeleteView(DeleteView):
+    model = Probe
+    template_name = 'requests_app/probe_confirm_delete.html'
+    success_url = reverse_lazy('probe_list')
+    context_object_name = 'probe'
+
+def probe_create(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
+        sequence = request.POST.get('sequence', '').strip()
+        target_gene = request.POST.get('target_gene', '').strip()
+        vendor = request.POST.get('vendor', '').strip()
+        catalog_number = request.POST.get('catalog_number', '').strip()
+        platform = request.POST.get('platform', '').strip()
+        target_region = request.POST.get('target_region', '').strip()
+        number_of_pairs = request.POST.get('number_of_pairs', '').strip()
+        
+        name = sanitize_input(name)
+        description = sanitize_input(description)
+        sequence = sanitize_input(sequence)
+        target_gene = sanitize_input(target_gene)
+        vendor = sanitize_input(vendor)
+        catalog_number = sanitize_input(catalog_number)
+        platform = sanitize_input(platform)
+        target_region = sanitize_input(target_region)
+        number_of_pairs = sanitize_input(number_of_pairs)
+        
+        if validate_input(name):
+            # Convert number_of_pairs to integer if provided
+            pairs_value = None
+            if number_of_pairs:
+                try:
+                    pairs_value = int(number_of_pairs)
+                except ValueError:
+                    pairs_value = None
+            
+            Probe.objects.create(
+                name=name,
+                description=description,
+                sequence=sequence,
+                target_gene=target_gene,
+                vendor=vendor,
+                catalog_number=catalog_number,
+                platform=platform,
+                target_region=target_region,
+                number_of_pairs=pairs_value
+            )
+            return redirect('probe_list')
+        else:
+            return JsonResponse({'error': 'Invalid input'}, status=400)
+    
+    return render(request, 'requests_app/probe_form.html', {'title': 'Add New Probe'})
+
+class PriorityListView(ListView):
+    model = Priority
+    template_name = 'requests_app/priority_list.html'
+    context_object_name = 'priorities'
+
+    def get_queryset(self):
+        queryset = Priority.objects.all()
+        
+        # Get sort parameters
+        sort_by = self.request.GET.get('sort', 'value')
+        order = self.request.GET.get('order', 'asc')
+        
+        # Validate sort field to prevent injection
+        allowed_fields = ['key', 'value', 'label', 'description']
+        if sort_by.lstrip('-') not in [field.lstrip('-') for field in allowed_fields]:
+            sort_by = 'value'
+        
+        # Apply sorting
+        if order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+            
+        return queryset.order_by(sort_by)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_sort'] = self.request.GET.get('sort', 'value')
+        context['current_order'] = self.request.GET.get('order', 'asc')
+        return context
+
+class PriorityUpdateView(UpdateView):
+    model = Priority
+    form_class = PriorityForm
+    template_name = 'requests_app/priority_edit.html'
+    success_url = reverse_lazy('priority_list')
+
+class PriorityDeleteView(DeleteView):
+    model = Priority
+    template_name = 'requests_app/priority_confirm_delete.html'
+    success_url = reverse_lazy('priority_list')
+    context_object_name = 'priority'
+
+def priority_create(request):
+    if request.method == 'POST':
+        form = PriorityForm(request.POST)
+        if form.is_valid():
+            # Sanitize input
+            priority = form.save(commit=False)
+            priority.value = sanitize_input(str(priority.value))
+            priority.label = sanitize_input(priority.label)
+            priority.description = sanitize_input(priority.description)
+            
+            # Validate input
+            if not validate_input(priority.value) or not validate_input(priority.label):
+                messages.error(request, 'Invalid input detected. Please check your data.')
+                return render(request, 'requests_app/priority_form.html', {'form': form})
+            
+            priority.save()
+            messages.success(request, 'Priority created successfully!')
+            return redirect('priority_list')
+    else:
+        form = PriorityForm()
+    
+    return render(request, 'requests_app/priority_form.html', {'form': form})
 
 def custom_404(request, exception):
     return render(request, "404.html", status=404)

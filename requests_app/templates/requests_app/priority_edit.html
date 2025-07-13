@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Edit Priority</h2>
+        <a href="{% url 'priority_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Priorities
+        </a>
+    </div>
+    
+    <form method="post" id="priorityForm">
+        {% csrf_token %}
+        
+        <div class="form-group mb-3">
+            <label for="id_value">Priority Value:</label>
+            {{ form.value }}
+            <div class="form-text">Enter a number between 1-10 (e.g., 1, 2, 3, 4, 5)</div>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="id_label">Label:</label>
+            {{ form.label }}
+            <div class="form-text">Enter a descriptive label (e.g., "1 - Low", "5 - High")</div>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="id_description">Description:</label>
+            {{ form.description }}
+            <div class="form-text">Optional description of this priority level</div>
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Update</button>
+            <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('priorityForm');
+    const cancelBtn = document.getElementById('cancelBtn');
+
+    // Cancel button
+    cancelBtn.addEventListener('click', function() {
+        window.location.href = "{% url 'priority_list' %}";
+    });
+});
+</script>
+{% endblock %} 

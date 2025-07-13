@@ -6,7 +6,9 @@ urlpatterns = [
     path('', views.home, name='home'),
     
     # Request URLs
-    path('requests/', views.RequestListView.as_view(), name='request_list'),
+    path('requests/', views.RequestHomeView.as_view(), name='requests_home'),
+    path('requests_home/', views.SimpleRequestHomeView.as_view(), name='simple_requests_home'),
+    path('requests/list/', views.RequestListView.as_view(), name='request_list'),
     path('requests/create/', views.RequestCreateView.as_view(), name='request_create'),
     path('requests/<int:pk>/', views.RequestDetailView.as_view(), name='request_detail'),
     path('requests/<int:pk>/edit/', views.RequestUpdateView.as_view(), name='request_edit'),
@@ -45,6 +47,24 @@ urlpatterns = [
     path('data/statuses/create/', views.status_create, name='status_create'),
     path('data/statuses/<int:pk>/edit/', views.StatusUpdateView.as_view(), name='status_edit'),
     path('data/statuses/<int:pk>/delete/', views.StatusDeleteView.as_view(), name='status_delete'),
+    
+    # Assignee URLs
+    path('data/assignees/', views.AssigneeListView.as_view(), name='assignee_list'),
+    path('data/assignees/create/', views.assignee_create, name='assignee_create'),
+    path('data/assignees/<int:pk>/edit/', views.AssigneeUpdateView.as_view(), name='assignee_edit'),
+    path('data/assignees/<int:pk>/delete/', views.AssigneeDeleteView.as_view(), name='assignee_delete'),
+    
+    # Probe URLs
+    path('data/probes/', views.ProbeListView.as_view(), name='probe_list'),
+    path('data/probes/create/', views.probe_create, name='probe_create'),
+    path('data/probes/<int:pk>/edit/', views.ProbeUpdateView.as_view(), name='probe_edit'),
+    path('data/probes/<int:pk>/delete/', views.ProbeDeleteView.as_view(), name='probe_delete'),
+    
+    # Priority URLs
+    path('data/priorities/', views.PriorityListView.as_view(), name='priority_list'),
+    path('data/priorities/create/', views.priority_create, name='priority_create'),
+    path('data/priorities/<int:pk>/edit/', views.PriorityUpdateView.as_view(), name='priority_edit'),
+    path('data/priorities/<int:pk>/delete/', views.PriorityDeleteView.as_view(), name='priority_delete'),
     
     # Import URLs
     path('data/studies/import/', views.import_studies_from_file, name='import_studies'),

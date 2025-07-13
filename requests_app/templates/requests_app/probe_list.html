@@ -6,25 +6,25 @@
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h2>Antibodies</h2>
+                <h2>Probes</h2>
                 <a href="{% url 'home' %}" class="btn btn-outline-secondary">
                     <i class="fas fa-home me-2"></i>Back to Homepage
                 </a>
             </div>
             
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3>Antibody List</h3>
-                <a href="{% url 'antibody_create' %}" class="btn btn-primary">
-                    <i class="fas fa-plus-circle me-2"></i>Add New Antibody
+                <h3>Probe List</h3>
+                <a href="{% url 'probe_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus-circle me-2"></i>Add New Probe
                 </a>
             </div>
             
-            {% if antibodies %}
+            {% if probes %}
                 <div class="table-responsive">
                     <table class="table table-striped table-hover table-sm" style="font-size: 0.85rem;">
                         <thead class="table-dark">
                             <tr>
-                                <th style="min-width: 50px;">
+                                <th>
                                     <a href="?sort=key&order={% if current_sort == 'key' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
                                         ID
                                         {% if current_sort == 'key' %}
@@ -34,7 +34,7 @@
                                         {% endif %}
                                     </a>
                                 </th>
-                                <th style="min-width: 120px;">
+                                <th>
                                     <a href="?sort=name&order={% if current_sort == 'name' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
                                         Name
                                         {% if current_sort == 'name' %}
@@ -44,7 +44,7 @@
                                         {% endif %}
                                     </a>
                                 </th>
-                                <th style="min-width: 150px;">
+                                <th>
                                     <a href="?sort=description&order={% if current_sort == 'description' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
                                         Description
                                         {% if current_sort == 'description' %}
@@ -54,37 +54,17 @@
                                         {% endif %}
                                     </a>
                                 </th>
-                                <th style="min-width: 100px;">
-                                    <a href="?sort=antigen&order={% if current_sort == 'antigen' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
-                                        Antigen
-                                        {% if current_sort == 'antigen' %}
+                                <th>
+                                    <a href="?sort=target_gene&order={% if current_sort == 'target_gene' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
+                                        Target Gene
+                                        {% if current_sort == 'target_gene' %}
                                             <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
                                         {% else %}
                                             <i class="fas fa-sort text-muted"></i>
                                         {% endif %}
                                     </a>
                                 </th>
-                                <th style="min-width: 80px;">
-                                    <a href="?sort=species&order={% if current_sort == 'species' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
-                                        Species
-                                        {% if current_sort == 'species' %}
-                                            <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
-                                        {% else %}
-                                            <i class="fas fa-sort text-muted"></i>
-                                        {% endif %}
-                                    </a>
-                                </th>
-                                <th style="min-width: 100px;">
-                                    <a href="?sort=recognizes&order={% if current_sort == 'recognizes' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
-                                        Recognizes
-                                        {% if current_sort == 'recognizes' %}
-                                            <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
-                                        {% else %}
-                                            <i class="fas fa-sort text-muted"></i>
-                                        {% endif %}
-                                    </a>
-                                </th>
-                                <th style="min-width: 100px;">
+                                <th>
                                     <a href="?sort=vendor&order={% if current_sort == 'vendor' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
                                         Vendor
                                         {% if current_sort == 'vendor' %}
@@ -94,25 +74,56 @@
                                         {% endif %}
                                     </a>
                                 </th>
-                                <th style="min-width: 120px;">Actions</th>
+                                <th>
+                                    <a href="?sort=platform&order={% if current_sort == 'platform' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
+                                        Platform
+                                        {% if current_sort == 'platform' %}
+                                            <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% else %}
+                                            <i class="fas fa-sort text-muted"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="?sort=target_region&order={% if current_sort == 'target_region' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
+                                        Target Region
+                                        {% if current_sort == 'target_region' %}
+                                            <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% else %}
+                                            <i class="fas fa-sort text-muted"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="?sort=number_of_pairs&order={% if current_sort == 'number_of_pairs' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
+                                        Pairs
+                                        {% if current_sort == 'number_of_pairs' %}
+                                            <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% else %}
+                                            <i class="fas fa-sort text-muted"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for antibody in antibodies %}
+                            {% for probe in probes %}
                             <tr>
-                                <td>{{ antibody.key }}</td>
-                                <td title="{{ antibody.name }}">{{ antibody.name|truncatechars:30 }}</td>
-                                <td title="{{ antibody.description }}">{{ antibody.description|truncatechars:40 }}</td>
-                                <td title="{{ antibody.antigen }}">{{ antibody.antigen|truncatechars:25 }}</td>
-                                <td title="{{ antibody.species }}">{{ antibody.species|truncatechars:20 }}</td>
-                                <td title="{{ antibody.recognizes }}">{{ antibody.recognizes|truncatechars:25 }}</td>
-                                <td title="{{ antibody.vendor }}">{{ antibody.vendor|truncatechars:25 }}</td>
+                                <td>{{ probe.key }}</td>
+                                <td title="{{ probe.name }}">{{ probe.name|truncatechars:30 }}</td>
+                                <td title="{{ probe.description }}">{{ probe.description|truncatechars:40 }}</td>
+                                <td title="{{ probe.target_gene }}">{{ probe.target_gene|truncatechars:25 }}</td>
+                                <td title="{{ probe.vendor }}">{{ probe.vendor|truncatechars:25 }}</td>
+                                <td title="{{ probe.platform }}">{{ probe.platform|truncatechars:20 }}</td>
+                                <td title="{{ probe.target_region }}">{{ probe.target_region|truncatechars:25 }}</td>
+                                <td>{{ probe.number_of_pairs|default:"-" }}</td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{% url 'antibody_edit' antibody.key %}" class="btn btn-warning btn-sm" title="Edit">
+                                        <a href="{% url 'probe_edit' probe.key %}" class="btn btn-warning btn-sm" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <a href="{% url 'antibody_delete' antibody.key %}" class="btn btn-danger btn-sm" title="Delete">
+                                        <a href="{% url 'probe_delete' probe.key %}" class="btn btn-danger btn-sm" title="Delete">
                                             <i class="fas fa-trash"></i>
                                         </a>
                                     </div>
@@ -124,12 +135,12 @@
                 </div>
             {% else %}
                 <div class="alert alert-info text-center">
-                    <h4 class="alert-heading">No Antibodies Found</h4>
-                    <p>There are no antibodies in the system yet.</p>
+                    <h4 class="alert-heading">No Probes Found</h4>
+                    <p>There are no probes in the system yet.</p>
                     <hr>
                     <p class="mb-0">
-                        <a href="{% url 'antibody_create' %}" class="btn btn-primary">
-                            <i class="fas fa-plus-circle me-2"></i>Add New Antibody
+                        <a href="{% url 'probe_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-2"></i>Add New Probe
                         </a>
                     </p>
                 </div>

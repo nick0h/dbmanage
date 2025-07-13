@@ -17,13 +17,16 @@
                 <div class="card-body text-center">
                     <h3 class="card-title">Request Management</h3>
                     <div class="d-grid gap-3 mt-4">
-                        <a href="{% url 'request_create' %}" class="btn btn-primary btn-lg">
+                        <a href="{% url 'requests_home' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-home me-2"></i>Requests Home
+                        </a>
+                        <a href="{% url 'request_create' %}" class="btn btn-success btn-lg">
                             <i class="fas fa-plus-circle me-2"></i>Add New Request
                         </a>
                         <a href="{% url 'request_search' %}" class="btn btn-info btn-lg">
                             <i class="fas fa-search me-2"></i>Search Requests
                         </a>
-                        <a href="{% url 'request_list' %}" class="btn btn-success btn-lg">
+                        <a href="{% url 'request_list' %}" class="btn btn-outline-secondary btn-lg">
                             <i class="fas fa-list me-2"></i>View All Requests
                         </a>
                     </div>

@@ -33,6 +33,12 @@
         </div>
 
         <div class="form-group mb-3">
+            <label for="id_probe">Probe:</label>
+            {{ form.probe }}
+            <div class="form-text">Optional - Select a probe if needed</div>
+        </div>
+
+        <div class="form-group mb-3">
             <label for="id_study">Study:</label>
             {{ form.study }}
         </div>
@@ -50,6 +56,12 @@
             <label for="id_priority">Priority:</label>
             {{ form.priority }}
             <div class="form-text">1 = Low, 5 = High</div>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="id_assigned_to">Assigned To:</label>
+            {{ form.assigned_to }}
+            <div class="form-text">Optional - Select who should handle this request</div>
         </div>
 
         <div class="form-group mb-3">

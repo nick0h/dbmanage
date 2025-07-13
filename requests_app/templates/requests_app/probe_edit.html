@@ -1,0 +1,56 @@
+{% extends "requests_app/form_base.html" %}
+
+{% block title %}Edit Probe{% endblock %}
+
+{% block form_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Edit Probe</h2>
+    <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-home me-2"></i>Back to Homepage
+    </a>
+</div>
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="id_name" class="form-label">Name:</label>
+        <input type="text" class="form-control" id="id_name" name="name" value="{{ probe.name }}" required maxlength="256">
+    </div>
+    <div class="mb-3">
+        <label for="id_description" class="form-label">Description:</label>
+        <textarea class="form-control" id="id_description" name="description" rows="3" maxlength="256">{{ probe.description }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label for="id_sequence" class="form-label">Sequence:</label>
+        <input type="text" class="form-control" id="id_sequence" name="sequence" value="{{ probe.sequence }}" maxlength="500">
+    </div>
+    <div class="mb-3">
+        <label for="id_target_gene" class="form-label">Target Gene:</label>
+        <input type="text" class="form-control" id="id_target_gene" name="target_gene" value="{{ probe.target_gene }}" maxlength="256">
+    </div>
+    <div class="mb-3">
+        <label for="id_vendor" class="form-label">Vendor:</label>
+        <input type="text" class="form-control" id="id_vendor" name="vendor" value="{{ probe.vendor }}" maxlength="256">
+    </div>
+    <div class="mb-3">
+        <label for="id_catalog_number" class="form-label">Catalog Number:</label>
+        <input type="text" class="form-control" id="id_catalog_number" name="catalog_number" value="{{ probe.catalog_number }}" maxlength="100">
+    </div>
+    <div class="mb-3">
+        <label for="id_platform" class="form-label">Platform:</label>
+        <input type="text" class="form-control" id="id_platform" name="platform" value="{{ probe.platform }}" maxlength="256">
+        <div class="form-text">e.g., Illumina, Affymetrix, Custom</div>
+    </div>
+    <div class="mb-3">
+        <label for="id_target_region" class="form-label">Target Region:</label>
+        <input type="text" class="form-control" id="id_target_region" name="target_region" value="{{ probe.target_region }}" maxlength="256">
+        <div class="form-text">e.g., Exon 1, Promoter region, 3' UTR</div>
+    </div>
+    <div class="mb-3">
+        <label for="id_number_of_pairs" class="form-label">Number of Pairs:</label>
+        <input type="number" class="form-control" id="id_number_of_pairs" name="number_of_pairs" value="{{ probe.number_of_pairs }}" min="1">
+        <div class="form-text">Number of probe pairs (e.g., 1, 2, 3)</div>
+    </div>
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <a href="{% url 'probe_list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %} 

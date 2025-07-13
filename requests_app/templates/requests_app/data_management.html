@@ -82,6 +82,40 @@
             </div>
         </div>
 
+        <!-- Assignee Management -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">Assignees</h3>
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'assignee_list' %}" class="btn btn-primary">
+                            <i class="fas fa-user-tie me-2"></i>View Assignees
+                        </a>
+                        <a href="{% url 'assignee_create' %}" class="btn btn-success">
+                            <i class="fas fa-plus me-2"></i>Add Assignee
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Probe Management -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">Probes</h3>
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'probe_list' %}" class="btn btn-primary">
+                            <i class="fas fa-dna me-2"></i>View Probes
+                        </a>
+                        <a href="{% url 'probe_create' %}" class="btn btn-success">
+                            <i class="fas fa-plus me-2"></i>Add Probe
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Study Management -->
         <div class="col-md-6 mb-4">
             <div class="card h-100 shadow-sm">
@@ -97,6 +131,23 @@
                         <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#importStudyModal">
                             <i class="fas fa-file-import me-2"></i>Add Studies from File
                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Priority Management -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">Priorities</h3>
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'priority_list' %}" class="btn btn-primary">
+                            <i class="fas fa-flag me-2"></i>View Priorities
+                        </a>
+                        <a href="{% url 'priority_create' %}" class="btn btn-success">
+                            <i class="fas fa-plus me-2"></i>Add Priority
+                        </a>
                     </div>
                 </div>
             </div>

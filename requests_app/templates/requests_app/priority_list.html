@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Priorities</h2>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'priority_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus-circle me-2"></i>Add New Priority
+                    </a>
+                    <a href="{% url 'data_management' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Data Management
+                    </a>
+                </div>
+            </div>
+            
+            {% if priorities %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-sm" style="font-size: 0.85rem;">
+                        <thead>
+                            <tr>
+                                <th style="min-width: 50px;">
+                                    <a href="?sort=key&order={% if current_sort == 'key' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                        ID
+                                        {% if current_sort == 'key' %}
+                                            <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% else %}
+                                            <i class="fas fa-sort text-muted"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th style="min-width: 80px;">
+                                    <a href="?sort=value&order={% if current_sort == 'value' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                        Value
+                                        {% if current_sort == 'value' %}
+                                            <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% else %}
+                                            <i class="fas fa-sort text-muted"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th style="min-width: 120px;">
+                                    <a href="?sort=label&order={% if current_sort == 'label' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                        Label
+                                        {% if current_sort == 'label' %}
+                                            <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% else %}
+                                            <i class="fas fa-sort text-muted"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th style="min-width: 200px;">
+                                    <a href="?sort=description&order={% if current_sort == 'description' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                        Description
+                                        {% if current_sort == 'description' %}
+                                            <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% else %}
+                                            <i class="fas fa-sort text-muted"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th style="min-width: 120px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for priority in priorities %}
+                            <tr>
+                                <td>{{ priority.key }}</td>
+                                <td>{{ priority.value }}</td>
+                                <td title="{{ priority.label }}">{{ priority.label|truncatechars:30 }}</td>
+                                <td title="{{ priority.description }}">{{ priority.description|truncatechars:50 }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'priority_edit' priority.key %}" class="btn btn-warning btn-sm" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'priority_delete' priority.key %}" class="btn btn-danger btn-sm" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center">
+                    <h4 class="alert-heading">No Priorities Found</h4>
+                    <p>There are no priorities in the system yet.</p>
+                    <hr>
+                    <p class="mb-0">
+                        <a href="{% url 'priority_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-2"></i>Create New Priority
+                        </a>
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

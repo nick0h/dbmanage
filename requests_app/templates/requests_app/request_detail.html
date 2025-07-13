@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Request Details - #{{ request.key }}</h2>
+                <div>
+                    <a href="{% url 'request_list' %}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-list me-2"></i>Back to List
+                    </a>
+                    <a href="{% url 'request_edit' request.key %}" class="btn btn-warning me-2">
+                        <i class="fas fa-edit me-2"></i>Edit
+                    </a>
+                    <a href="{% url 'request_delete' request.key %}" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Delete
+                    </a>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Basic Information -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Basic Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="fw-bold" style="width: 30%;">Request ID:</td>
+                                    <td>{{ request.key }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Created:</td>
+                                    <td>{{ request.created_at|date:'Y-m-d H:i' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Last Updated:</td>
+                                    <td>{{ request.updated_at|date:'Y-m-d H:i' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Requestor:</td>
+                                    <td>{{ request.requestor.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Status:</td>
+                                    <td>
+                                        <span class="badge bg-{% if request.status.status == 'submitted' %}primary{% elif request.status.status == 'in_progress' %}warning{% elif request.status.status == 'completed' %}success{% else %}secondary{% endif %}">
+                                            {{ request.status.status|title }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Priority:</td>
+                                    <td>
+                                        <span class="badge bg-{% if request.priority.value == 1 %}success{% elif request.priority.value == 2 %}info{% elif request.priority.value == 3 %}warning{% elif request.priority.value == 4 %}orange{% else %}danger{% endif %}">
+                                            {{ request.priority.label }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Assigned To:</td>
+                                    <td>
+                                        {% if request.assigned_to %}
+                                            {{ request.assigned_to.name }}
+                                            {% if request.assigned_to.email %}
+                                                <br><small class="text-muted">{{ request.assigned_to.email }}</small>
+                                            {% endif %}
+                                            {% if request.assigned_to.department %}
+                                                <br><small class="text-muted">{{ request.assigned_to.department }}</small>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">Not assigned</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Study Information -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-microscope me-2"></i>Study Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="fw-bold" style="width: 30%;">Study ID:</td>
+                                    <td>{{ request.study.study_id }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Study Title:</td>
+                                    <td>{{ request.study.title }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Study Status:</td>
+                                    <td>
+                                        {% if request.study.status %}
+                                            <span class="badge bg-secondary">{{ request.study.status.status }}</span>
+                                        {% else %}
+                                            <span class="text-muted">No status set</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Antibody Information -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-flask me-2"></i>Antibody Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="fw-bold" style="width: 30%;">Name:</td>
+                                    <td>{{ request.antibody.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Description:</td>
+                                    <td>{{ request.antibody.description }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Antigen:</td>
+                                    <td>{{ request.antibody.antigen }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Species:</td>
+                                    <td>{{ request.antibody.species }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Recognizes:</td>
+                                    <td>{{ request.antibody.recognizes }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Vendor:</td>
+                                    <td>{{ request.antibody.vendor }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Probe Information -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-dna me-2"></i>Probe Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if request.probe %}
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td class="fw-bold" style="width: 30%;">Name:</td>
+                                        <td>{{ request.probe.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Description:</td>
+                                        <td>{{ request.probe.description|default:"No description" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Sequence:</td>
+                                        <td>{{ request.probe.sequence|default:"No sequence" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Target Gene:</td>
+                                        <td>{{ request.probe.target_gene|default:"No target gene" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Vendor:</td>
+                                        <td>{{ request.probe.vendor|default:"No vendor" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Catalog Number:</td>
+                                        <td>{{ request.probe.catalog_number|default:"No catalog number" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Platform:</td>
+                                        <td>{{ request.probe.platform|default:"No platform" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Target Region:</td>
+                                        <td>{{ request.probe.target_region|default:"No target region" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Number of Pairs:</td>
+                                        <td>{{ request.probe.number_of_pairs|default:"Not specified" }}</td>
+                                    </tr>
+                                </table>
+                            {% else %}
+                                <p class="text-muted mb-0">No probe assigned to this request.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tissue Information -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-tint me-2"></i>Tissue Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="fw-bold" style="width: 30%;">Primary Tissue:</td>
+                                    <td>{{ request.tissue.name }}</td>
+                                </tr>
+                                {% if request.data.tissues %}
+                                    <tr>
+                                        <td class="fw-bold">Additional Tissues:</td>
+                                        <td>
+                                            {% for tissue in request.data.tissues %}
+                                                <span class="badge bg-info me-1">{{ tissue }}</span>
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Request Details -->
+                <div class="col-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-file-alt me-2"></i>Request Details
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold">Description:</h6>
+                                    <p>{{ request.description|default:"No description provided" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold">Special Request:</h6>
+                                    <p>{{ request.special_request|default:"No special requests" }}</p>
+                                </div>
+                            </div>
+                            {% if request.notes %}
+                                <div class="row mt-3">
+                                    <div class="col-12">
+                                        <h6 class="fw-bold">Notes:</h6>
+                                        <p>{{ request.notes }}</p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if request.data.date %}
+                                <div class="row mt-3">
+                                    <div class="col-12">
+                                        <h6 class="fw-bold">Request Date:</h6>
+                                        <p>{{ request.data.date }}</p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.badge.bg-orange {
+    background-color: #fd7e14 !important;
+}
+</style>
+{% endblock %} 

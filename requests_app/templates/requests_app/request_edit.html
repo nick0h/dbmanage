@@ -57,6 +57,19 @@
 
                 <div class="row mb-3">
                     <div class="col-md-12">
+                        <label class="form-label">Probe:</label>
+                        <select class="form-control" name="probe" readonly style="background-color: #f8f9fa; color: #6c757d;" disabled>
+                            <option value="">No Probe</option>
+                            {% for probe in probes %}
+                                <option value="{{ probe.pk }}" {% if request_obj.probe and request_obj.probe.pk == probe.pk %}selected{% endif %}>{{ probe.name }} - {{ probe.description }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Probe cannot be modified after creation</small>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
                         <label class="form-label">Primary Tissue:</label>
                         <select class="form-control" name="tissue" readonly style="background-color: #f8f9fa; color: #6c757d;" disabled>
                             {% for tissue in tissues %}
@@ -109,11 +122,11 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label">Status:</label>
-                        <select class="form-control" name="status" required>
-                            {% for status in statuses %}
-                                <option value="{{ status.pk }}" {% if request_obj.status.pk == status.pk %}selected{% endif %}>{{ status.status }}</option>
-                            {% endfor %}
-                        </select>
+                        {{ form.status }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Assigned To:</label>
+                        {{ form.assigned_to }}
                     </div>
                 </div>
 

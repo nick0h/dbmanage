@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Assignees</h2>
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-home me-2"></i>Back to Homepage
+        </a>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3>Assignee List</h3>
+                <a href="{% url 'assignee_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus-circle me-2"></i>Add New Assignee
+                </a>
+            </div>
+            
+            {% if assignees %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>
+                                    <a href="?sort=key&order={% if current_sort == 'key' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
+                                        ID
+                                        {% if current_sort == 'key' %}
+                                            <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% else %}
+                                            <i class="fas fa-sort text-muted"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="?sort=name&order={% if current_sort == 'name' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
+                                        Name
+                                        {% if current_sort == 'name' %}
+                                            <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% else %}
+                                            <i class="fas fa-sort text-muted"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="?sort=email&order={% if current_sort == 'email' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
+                                        Email
+                                        {% if current_sort == 'email' %}
+                                            <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% else %}
+                                            <i class="fas fa-sort text-muted"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="?sort=department&order={% if current_sort == 'department' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-white">
+                                        Department
+                                        {% if current_sort == 'department' %}
+                                            <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% else %}
+                                            <i class="fas fa-sort text-muted"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for assignee in assignees %}
+                            <tr>
+                                <td>{{ assignee.key }}</td>
+                                <td>{{ assignee.name|truncatechars:40 }}</td>
+                                <td>{{ assignee.email|truncatechars:40 }}</td>
+                                <td>{{ assignee.department|truncatechars:40 }}</td>
+                                <td>
+                                    <a href="{% url 'assignee_edit' assignee.key %}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <a href="{% url 'assignee_delete' assignee.key %}" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center">
+                    <h4 class="alert-heading">No Assignees Found</h4>
+                    <p>There are no assignees in the system yet.</p>
+                    <hr>
+                    <p class="mb-0">
+                        <a href="{% url 'assignee_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-2"></i>Add New Assignee
+                        </a>
+                    </p>
+                </div>
+            {% endif %}
+            
+            <div class="text-center mt-4">
+                <a href="{% url 'data_management' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Data Management
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Requests</h2>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'request_create' %}" class="btn btn-success">
+                        <i class="fas fa-plus-circle me-2"></i>Add Request
+                    </a>
+                    <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-home me-2"></i>Back to Homepage
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Requests List -->
+            {% if requests %}
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list me-2"></i>All Requests
+                            <span class="badge bg-primary ms-2">{{ page_obj.paginator.count }} total</span>
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'request_search' %}" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-search me-1"></i>Search Requests
+                            </a>
+                            <a href="{% url 'request_list' %}" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-table me-1"></i>Full List View
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover table-sm mb-0" style="font-size: 0.85rem;">
+                                <thead>
+                                    <tr>
+                                        <th style="min-width: 50px;">
+                                            <a href="?sort=key&order={% if current_sort == 'key' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                                ID
+                                                {% if current_sort == 'key' %}
+                                                    <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th style="min-width: 80px;">
+                                            <a href="?sort=created_at&order={% if current_sort == 'created_at' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                                Date
+                                                {% if current_sort == 'created_at' %}
+                                                    <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th style="min-width: 100px;">
+                                            <a href="?sort=requestor__name&order={% if current_sort == 'requestor__name' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                                Requestor
+                                                {% if current_sort == 'requestor__name' %}
+                                                    <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th style="min-width: 120px;">
+                                            <a href="?sort=description&order={% if current_sort == 'description' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                                Description
+                                                {% if current_sort == 'description' %}
+                                                    <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th style="min-width: 120px;">
+                                            <a href="?sort=antibody__name&order={% if current_sort == 'antibody__name' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                                Antibody
+                                                {% if current_sort == 'antibody__name' %}
+                                                    <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th style="min-width: 100px;">
+                                            <a href="?sort=probe__name&order={% if current_sort == 'probe__name' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                                Probe
+                                                {% if current_sort == 'probe__name' %}
+                                                    <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th style="min-width: 120px;">
+                                            <a href="?sort=study__title&order={% if current_sort == 'study__title' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                                Study
+                                                {% if current_sort == 'study__title' %}
+                                                    <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th style="min-width: 100px;">
+                                            <a href="?sort=tissue__name&order={% if current_sort == 'tissue__name' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                                Tissue
+                                                {% if current_sort == 'tissue__name' %}
+                                                    <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th style="min-width: 80px;">
+                                            <a href="?sort=status__status&order={% if current_sort == 'status__status' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                                Status
+                                                {% if current_sort == 'status__status' %}
+                                                    <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th style="min-width: 60px;">
+                                            <a href="?sort=priority&order={% if current_sort == 'priority' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                                Priority
+                                                {% if current_sort == 'priority' %}
+                                                    <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th style="min-width: 100px;">
+                                            <a href="?sort=assigned_to__name&order={% if current_sort == 'assigned_to__name' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                                Assigned To
+                                                {% if current_sort == 'assigned_to__name' %}
+                                                    <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th style="min-width: 80px;">View</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for request in requests %}
+                                    <tr>
+                                        <td>{{ request.key }}</td>
+                                        <td>{{ request.created_at|date:'Y-m-d' }}</td>
+                                        <td title="{{ request.requestor.name }}">{{ request.requestor.name|truncatechars:25 }}</td>
+                                        <td title="{{ request.description }}">{{ request.description|truncatechars:30 }}</td>
+                                        <td title="{{ request.antibody.name }}">{{ request.antibody.name|truncatechars:30 }}</td>
+                                        <td title="{{ request.probe.name|default:'No Probe' }}">{{ request.probe.name|truncatechars:25|default:"No Probe" }}</td>
+                                        <td title="{{ request.study.title }}">{{ request.study.title|truncatechars:30 }}</td>
+                                        <td title="{{ request.tissue.name }}{% if request.data.tissues %}, {{ request.data.tissues|join:', ' }}{% endif %}">
+                                            {% if request.data.tissues %}
+                                                <div>
+                                                    <strong>{{ request.tissue.name|truncatechars:20 }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        +{{ request.data.tissues|length }} more
+                                                    </small>
+                                                </div>
+                                            {% else %}
+                                                {{ request.tissue.name|truncatechars:25 }}
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ request.status.status|truncatechars:20 }}</td>
+                                        <td>{{ request.get_priority_display }}</td>
+                                        <td title="{{ request.assigned_to.name|default:'Not Assigned' }}">{{ request.assigned_to.name|truncatechars:25|default:"Not Assigned" }}</td>
+                                        <td>
+                                            <a href="{% url 'request_detail' request.key %}" class="btn btn-info btn-sm" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1" aria-label="First">
+                                    <span aria-hidden="true">&laquo;&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                                    <span aria-hidden="true">&raquo;&raquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            {% else %}
+                <div class="alert alert-info text-center">
+                    <h4 class="alert-heading">No Requests Found</h4>
+                    <p>There are no requests in the system yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 
