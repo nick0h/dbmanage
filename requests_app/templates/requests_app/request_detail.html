@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load url_filters %}
 
 {% block content %}
 <div class="container-fluid mt-3">
@@ -263,7 +264,7 @@
                                 <div class="row mt-3">
                                     <div class="col-12">
                                         <h6 class="fw-bold">Notes:</h6>
-                                        <p>{{ request.notes }}</p>
+                                        <p>{{ request.notes|make_borealis_links }}</p>
                                     </div>
                                 </div>
                             {% endif %}
@@ -286,6 +287,18 @@
 <style>
 .badge.bg-orange {
     background-color: #fd7e14 !important;
+}
+
+/* Style for borealis links */
+.borealis-link {
+    color: #007bff !important;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.borealis-link:hover {
+    color: #0056b3 !important;
+    text-decoration: none;
 }
 </style>
 {% endblock %} 

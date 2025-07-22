@@ -21,19 +21,11 @@
             <!-- Requests List -->
             {% if requests %}
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="card-header">
                         <h5 class="mb-0">
                             <i class="fas fa-list me-2"></i>All Requests
                             <span class="badge bg-primary ms-2">{{ page_obj.paginator.count }} total</span>
                         </h5>
-                        <div class="d-flex gap-2">
-                            <a href="{% url 'request_search' %}" class="btn btn-outline-info btn-sm">
-                                <i class="fas fa-search me-1"></i>Search Requests
-                            </a>
-                            <a href="{% url 'request_list' %}" class="btn btn-outline-info btn-sm">
-                                <i class="fas fa-table me-1"></i>Full List View
-                            </a>
-                        </div>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -131,9 +123,9 @@
                                             </a>
                                         </th>
                                         <th style="min-width: 60px;">
-                                            <a href="?sort=priority&order={% if current_sort == 'priority' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                            <a href="?sort=priority__value&order={% if current_sort == 'priority__value' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
                                                 Priority
-                                                {% if current_sort == 'priority' %}
+                                                {% if current_sort == 'priority__value' %}
                                                     <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
                                                 {% else %}
                                                     <i class="fas fa-sort text-muted"></i>
@@ -177,7 +169,11 @@
                                             {% endif %}
                                         </td>
                                         <td>{{ request.status.status|truncatechars:20 }}</td>
-                                        <td>{{ request.get_priority_display }}</td>
+                                        <td>
+                                            <span class="badge {% if request.priority.value == 1 %}bg-success{% elif request.priority.value == 2 %}bg-info{% elif request.priority.value == 3 %}bg-warning{% elif request.priority.value == 4 %}{% else %}bg-danger{% endif %}" {% if request.priority.value == 4 %}style="background-color: #fd7e14; color: white;"{% endif %}>
+                                                {{ request.priority.value }}
+                                            </span>
+                                        </td>
                                         <td title="{{ request.assigned_to.name|default:'Not Assigned' }}">{{ request.assigned_to.name|truncatechars:25|default:"Not Assigned" }}</td>
                                         <td>
                                             <a href="{% url 'request_detail' request.key %}" class="btn btn-info btn-sm" title="View">

@@ -108,9 +108,9 @@
                                     </a>
                                 </th>
                                 <th style="min-width: 60px;">
-                                    <a href="?sort=priority&order={% if current_sort == 'priority' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
+                                    <a href="?sort=priority__value&order={% if current_sort == 'priority__value' and current_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-dark">
                                         Priority
-                                        {% if current_sort == 'priority' %}
+                                        {% if current_sort == 'priority__value' %}
                                             <i class="fas fa-sort-{% if current_order == 'asc' %}up{% else %}down{% endif %}"></i>
                                         {% else %}
                                             <i class="fas fa-sort text-muted"></i>

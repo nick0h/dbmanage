@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Search Requests</h2>
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-home me-2"></i>Back to Homepage
+        </a>
+    </div>
+    
+    <!-- Search Form -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-search me-2"></i>Search Criteria</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3" action="">
+                <!-- Basic Information -->
+                <div class="col-md-3">
+                    {{ form.request_id.label_tag }}
+                    {{ form.request_id }}
+                </div>
+                <div class="col-md-3">
+                    {{ form.date_from.label_tag }}
+                    {{ form.date_from }}
+                </div>
+                <div class="col-md-3">
+                    {{ form.date_to.label_tag }}
+                    {{ form.date_to }}
+                </div>
+                <div class="col-md-3">
+                    {{ form.requestor.label_tag }}
+                    {{ form.requestor }}
+                </div>
+                
+                <!-- Request Details -->
+                <div class="col-md-6">
+                    {{ form.description.label_tag }}
+                    {{ form.description }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.special_request.label_tag }}
+                    {{ form.special_request }}
+                </div>
+                
+                <!-- Related Objects -->
+                <div class="col-md-4">
+                    {{ form.antibody.label_tag }}
+                    {{ form.antibody }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.probe.label_tag }}
+                    {{ form.probe }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.study.label_tag }}
+                    {{ form.study }}
+                </div>
+                
+                <!-- Additional Filters -->
+                <div class="col-md-3">
+                    {{ form.tissue.label_tag }}
+                    {{ form.tissue }}
+                </div>
+                <div class="col-md-3">
+                    {{ form.status.label_tag }}
+                    {{ form.status }}
+                </div>
+                <div class="col-md-3">
+                    {{ form.priority.label_tag }}
+                    {{ form.priority }}
+                </div>
+                <div class="col-md-3">
+                    {{ form.assigned_to.label_tag }}
+                    {{ form.assigned_to }}
+                </div>
+                
+                <!-- Notes -->
+                <div class="col-md-12">
+                    {{ form.notes.label_tag }}
+                    {{ form.notes }}
+                </div>
+                
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Search
+                    </button>
+                    <a href="{% url 'admin_search' %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+    <!-- Search Results -->
+    {% if requests %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>Search Results
+                <span class="badge bg-primary ms-2">{{ page_obj.paginator.count }} total</span>
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-sm mb-0" style="font-size: 0.85rem;">
+                    <thead>
+                        <tr>
+                            <th style="min-width: 50px;">ID</th>
+                            <th style="min-width: 80px;">Date</th>
+                            <th style="min-width: 100px;">Requestor</th>
+                            <th style="min-width: 120px;">Description</th>
+                            <th style="min-width: 120px;">Antibody</th>
+                            <th style="min-width: 100px;">Probe</th>
+                            <th style="min-width: 120px;">Study</th>
+                            <th style="min-width: 100px;">Tissue</th>
+                            <th style="min-width: 80px;">Status</th>
+                            <th style="min-width: 60px;">Priority</th>
+                            <th style="min-width: 100px;">Assigned To</th>
+                            <th style="min-width: 80px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in requests %}
+                        <tr>
+                            <td>{{ request.key }}</td>
+                            <td>{{ request.created_at|date:'Y-m-d' }}</td>
+                            <td title="{{ request.requestor.name }}">{{ request.requestor.name|truncatechars:25 }}</td>
+                            <td title="{{ request.description }}">{{ request.description|truncatechars:30|default:"No description" }}</td>
+                            <td title="{{ request.antibody.name }}">{{ request.antibody.name|truncatechars:30 }}</td>
+                            <td title="{{ request.probe.name|default:'No Probe' }}">{{ request.probe.name|truncatechars:25|default:"No Probe" }}</td>
+                            <td title="{{ request.study.title }}">{{ request.study.title|truncatechars:30 }}</td>
+                            <td title="{{ request.tissue.name }}{% if request.data.tissues %}, {{ request.data.tissues|join:', ' }}{% endif %}">
+                                {% if request.data.tissues %}
+                                    <div>
+                                        <strong>{{ request.tissue.name|truncatechars:20 }}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            +{{ request.data.tissues|length }} more
+                                        </small>
+                                    </div>
+                                {% else %}
+                                    {{ request.tissue.name|truncatechars:25 }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if request.status.status == 'submitted' %}primary{% elif request.status.status == 'in_progress' %}warning{% elif request.status.status == 'completed' %}success{% else %}secondary{% endif %}">
+                                    {{ request.status.status|truncatechars:15 }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if request.priority.value == 1 %}bg-success{% elif request.priority.value == 2 %}bg-info{% elif request.priority.value == 3 %}bg-warning{% elif request.priority.value == 4 %}{% else %}bg-danger{% endif %}" {% if request.priority.value == 4 %}style="background-color: #fd7e14; color: white;"{% endif %}>
+                                    {{ request.priority.value }}
+                                </span>
+                            </td>
+                            <td title="{{ request.assigned_to.name|default:'Not Assigned' }}">{{ request.assigned_to.name|truncatechars:25|default:"Not Assigned" }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'request_detail' request.key %}" class="btn btn-info btn-sm" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'request_edit' request.key %}" class="btn btn-warning btn-sm" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'request_delete' request.key %}" class="btn btn-danger btn-sm" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% elif request.GET %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>No requests found matching your search criteria.
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.badge.bg-orange {
+    background-color: #fd7e14 !important;
+}
+</style>
+
+
+
+{% endblock %} 

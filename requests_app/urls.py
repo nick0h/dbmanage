@@ -14,6 +14,7 @@ urlpatterns = [
     path('requests/<int:pk>/edit/', views.RequestUpdateView.as_view(), name='request_edit'),
     path('requests/<int:pk>/delete/', views.RequestDeleteView.as_view(), name='request_delete'),
     path('requests/search/', views.RequestSearchView.as_view(), name='request_search'),
+
     
     # Study URLs
     path('data/studies/<int:pk>/edit/', views.StudyUpdateView.as_view(), name='study_edit'),

@@ -18,6 +18,8 @@ import os
 def home(request):
     return render(request, 'requests_app/home.html')
 
+
+
 def data_management(request):
     return render(request, 'requests_app/data_management.html')
 
@@ -36,7 +38,7 @@ class RequestListView(ListView):
         order = self.request.GET.get('order', 'desc')
         
         # Validate sort field to prevent injection
-        allowed_fields = ['key', 'created_at', 'requestor__name', 'description', 'antibody__name', 'probe__name', 'study__title', 'tissue__name', 'status__status', 'assigned_to__name']
+        allowed_fields = ['key', 'created_at', 'requestor__name', 'description', 'antibody__name', 'probe__name', 'study__title', 'tissue__name', 'status__status', 'priority__value', 'assigned_to__name']
         if sort_by.lstrip('-') not in [field.lstrip('-') for field in allowed_fields]:
             sort_by = '-created_at'
         
@@ -195,6 +197,8 @@ class RequestSearchView(ListView):
 
         return queryset.order_by('-created_at')
 
+
+
 class RequestHomeView(ListView):
     model = Request
     template_name = 'requests_app/request_home.html'
@@ -218,7 +222,7 @@ class RequestHomeView(ListView):
         order = self.request.GET.get('order', 'desc')
         
         # Validate sort field to prevent injection
-        allowed_fields = ['key', 'created_at', 'requestor__name', 'description', 'antibody__name', 'probe__name', 'study__title', 'tissue__name', 'status__status', 'assigned_to__name']
+        allowed_fields = ['key', 'created_at', 'requestor__name', 'description', 'antibody__name', 'probe__name', 'study__title', 'tissue__name', 'status__status', 'priority__value', 'assigned_to__name']
         if sort_by.lstrip('-') not in [field.lstrip('-') for field in allowed_fields]:
             sort_by = '-created_at'
         
@@ -253,7 +257,7 @@ class SimpleRequestHomeView(ListView):
         order = self.request.GET.get('order', 'desc')
         
         # Validate sort field to prevent injection
-        allowed_fields = ['key', 'created_at', 'requestor__name', 'description', 'antibody__name', 'probe__name', 'study__title', 'tissue__name', 'status__status', 'assigned_to__name']
+        allowed_fields = ['key', 'created_at', 'requestor__name', 'description', 'antibody__name', 'probe__name', 'study__title', 'tissue__name', 'status__status', 'priority__value', 'assigned_to__name']
         if sort_by.lstrip('-') not in [field.lstrip('-') for field in allowed_fields]:
             sort_by = '-created_at'
         
