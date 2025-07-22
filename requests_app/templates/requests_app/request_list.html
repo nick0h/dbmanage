@@ -154,7 +154,11 @@
                                     {% endif %}
                                 </td>
                                 <td>{{ request.status.status|truncatechars:20 }}</td>
-                                <td>{{ request.get_priority_display }}</td>
+                                <td>
+                                    <span class="badge {% if request.priority.value == 1 %}bg-success{% elif request.priority.value == 2 %}bg-info{% elif request.priority.value == 3 %}bg-warning{% elif request.priority.value == 4 %}{% else %}bg-danger{% endif %}" {% if request.priority.value == 4 %}style="background-color: #fd7e14; color: white;"{% endif %}>
+                                        {{ request.priority.value }}
+                                    </span>
+                                </td>
                                 <td title="{{ request.assigned_to.name|default:'Not Assigned' }}">{{ request.assigned_to.name|truncatechars:25|default:"Not Assigned" }}</td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
