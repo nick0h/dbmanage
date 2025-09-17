@@ -37,7 +37,7 @@
                 <div class="card-body d-flex flex-column">
                     <p class="mb-3">Manage immunohistochemistry staining requests, including antibody selection, probe configuration, and staining protocols.</p>
                     <div class="d-grid gap-2 mt-auto">
-                        <a href="{% url 'staining_requests' %}" class="btn btn-primary">
+                        <a href="{% url 'staining_requests_current' %}" class="btn btn-primary">
                             <i class="fas fa-eye me-2"></i>View Current Requests
                         </a>
                         <a href="{% url 'staining_request_create' %}" class="btn btn-success">
@@ -69,7 +69,7 @@
                 <div class="card-body d-flex flex-column">
                     <p class="mb-3">Manage tissue embedding requests, including processing protocols, embedding media selection, and processing schedules.</p>
                     <div class="d-grid gap-2 mt-auto">
-                        <a href="{% url 'embedding_requests' %}" class="btn btn-success">
+                        <a href="{% url 'embedding_requests_current' %}" class="btn btn-success">
                             <i class="fas fa-eye me-2"></i>View Current Requests
                         </a>
                         <a href="{% url 'embedding_request_create' %}" class="btn btn-outline-success">
@@ -101,7 +101,7 @@
                 <div class="card-body d-flex flex-column">
                     <p class="mb-3">Manage tissue sectioning requests, including cutting parameters, section thickness, and slide preparation specifications.</p>
                     <div class="d-grid gap-2 mt-auto">
-                        <a href="{% url 'sectioning_requests' %}" class="btn btn-info">
+                        <a href="{% url 'sectioning_requests_current' %}" class="btn btn-info">
                             <i class="fas fa-eye me-2"></i>View Current Requests
                         </a>
                         <a href="{% url 'sectioning_request_create' %}" class="btn btn-outline-info">

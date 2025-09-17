@@ -280,6 +280,67 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Change Log Section -->
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-history me-2"></i>Request History
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if request.change_logs.all %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Version</th>
+                                                <th>Change Type</th>
+                                                <th>Description</th>
+                                                <th>Changed Fields</th>
+                                                <th>Date/Time</th>
+                                                <th>Status</th>
+                                                <th>Requestor</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for log in request.change_logs.all %}
+                                            <tr>
+                                                <td>
+                                                    <span class="badge bg-secondary">v{{ forloop.counter }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge {% if log.change_type == 'created' %}bg-success{% elif log.change_type == 'updated' %}bg-warning{% else %}bg-info{% endif %}">
+                                                        {{ log.change_type|title }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ log.description }}</td>
+                                                <td>
+                                                    {% if log.changed_fields %}
+                                                        {% for field in log.changed_fields %}
+                                                            <span class="badge bg-light text-dark me-1">{{ field }}</span>
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        <span class="text-muted">-</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ log.changed_at|date:'Y-m-d H:i' }}</td>
+                                                <td>{{ log.status }}</td>
+                                                <td>{{ log.requestor }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No change history available for this request.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

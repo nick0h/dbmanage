@@ -98,8 +98,10 @@
                                 <tr>
                                     <td class="fw-bold">Tissues:</td>
                                     <td>
-                                        {% if request.tissues %}
-                                            {{ request.tissues.name }}
+                                        {% if request.tissues.all %}
+                                            {% for tissue in request.tissues.all %}
+                                                <span class="badge bg-info me-1">{{ tissue.name }}</span>
+                                            {% endfor %}
                                         {% else %}
                                             <span class="text-muted">No tissues specified</span>
                                         {% endif %}

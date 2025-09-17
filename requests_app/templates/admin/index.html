@@ -40,7 +40,10 @@
                     </div>
                     <h5 class="card-title text-primary">Staining</h5>
                     <p class="card-text text-muted small">Manage staining requests and antibodies</p>
-                    <a href="{% url 'staining_requests' %}" class="btn btn-primary btn-sm">View Requests</a>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'staining_requests_current' %}" class="btn btn-primary btn-sm">View Current Requests</a>
+                        <a href="{% url 'staining_requests' %}" class="btn btn-outline-primary btn-sm">View All Requests</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -52,7 +55,10 @@
                     </div>
                     <h5 class="card-title text-success">Embedding</h5>
                     <p class="card-text text-muted small">Manage embedding requests and processing</p>
-                    <a href="{% url 'embedding_requests' %}" class="btn btn-success btn-sm">View Requests</a>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'embedding_requests_current' %}" class="btn btn-success btn-sm">View Current Requests</a>
+                        <a href="{% url 'embedding_requests' %}" class="btn btn-outline-success btn-sm">View All Requests</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -64,7 +70,10 @@
                     </div>
                     <h5 class="card-title text-info">Sectioning</h5>
                     <p class="card-text text-muted small">Manage sectioning requests and cutting</p>
-                    <a href="{% url 'sectioning_requests' %}" class="btn btn-info btn-sm">View Requests</a>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'sectioning_requests_current' %}" class="btn btn-info btn-sm">View Current Requests</a>
+                        <a href="{% url 'sectioning_requests' %}" class="btn btn-outline-info btn-sm">View All Requests</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -183,6 +192,31 @@
                                         </div>
                                     </td>
                                 </tr>
+
+                                <!-- Staining Request Change Logs -->
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-history fa-sm"></i>
+                                            </div>
+                                            <div>
+                                                <strong>Staining Request Change Logs</strong>
+                                                <br><small class="text-muted">Request modification history</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">View change history for staining requests</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'admin:requests_app_stainingrequestchangelog_changelist' %}" class="btn btn-outline-info btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -235,6 +269,31 @@
                                         </div>
                                     </td>
                                 </tr>
+
+                                <!-- Embedding Request Change Logs -->
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-history fa-sm"></i>
+                                            </div>
+                                            <div>
+                                                <strong>Embedding Request Change Logs</strong>
+                                                <br><small class="text-muted">Request modification history</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">View change history for embedding requests</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'admin:requests_app_embeddingrequestchangelog_changelist' %}" class="btn btn-outline-info btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -282,6 +341,31 @@
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
                                             <a href="{% url 'admin:requests_app_sectioningrequest_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Sectioning Request Change Logs -->
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-history fa-sm"></i>
+                                            </div>
+                                            <div>
+                                                <strong>Sectioning Request Change Logs</strong>
+                                                <br><small class="text-muted">Request modification history</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">View change history for sectioning requests</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'admin:requests_app_sectioningrequestchangelog_changelist' %}" class="btn btn-outline-info btn-sm">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                         </div>

@@ -99,7 +99,7 @@ class EmbeddingRequestForm(forms.ModelForm):
         widgets = {
             'requestor': forms.Select(attrs={'class': 'form-control'}),
             'study': forms.Select(attrs={'class': 'form-control'}),
-            'tissues': forms.Select(attrs={'class': 'form-control'}),
+            'tissues': forms.SelectMultiple(attrs={'class': 'form-control'}),
             'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
             'assigned_to': forms.Select(attrs={'class': 'form-control'}),
             'currently_in': forms.Select(attrs={'class': 'form-control'}, choices=[(True, 'Yes'), (False, 'No')]),
@@ -130,7 +130,7 @@ class SectioningRequestForm(forms.ModelForm):
         widgets = {
             'requestor': forms.Select(attrs={'class': 'form-control'}),
             'study': forms.Select(attrs={'class': 'form-control'}),
-            'tissues': forms.Select(attrs={'class': 'form-control'}),
+            'tissues': forms.SelectMultiple(attrs={'class': 'form-control'}),
             'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
             'assigned_to': forms.Select(attrs={'class': 'form-control'}),
             'cut_surface_down': forms.CheckboxInput(attrs={'class': 'form-check-input'}),

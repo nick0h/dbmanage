@@ -204,7 +204,7 @@ class EmbeddingRequest(models.Model):
     requestor = models.ForeignKey(Requestor, on_delete=models.CASCADE)
     status = models.ForeignKey(Status, default=Status.get_default_status, on_delete=models.CASCADE)
     study = models.ForeignKey(Study, on_delete=models.CASCADE)
-    tissues = models.ForeignKey(Tissue, blank=True, null=True, on_delete=models.SET_NULL)
+    tissues = models.ManyToManyField(Tissue, blank=True)
     
     class Meta:
         verbose_name = "Embedding Request"
@@ -233,7 +233,7 @@ class SectioningRequest(models.Model):
     requestor = models.ForeignKey(Requestor, on_delete=models.CASCADE)
     status = models.ForeignKey(Status, default=Status.get_default_status, on_delete=models.CASCADE)
     study = models.ForeignKey(Study, on_delete=models.CASCADE)
-    tissues = models.ForeignKey(Tissue, blank=True, null=True, on_delete=models.SET_NULL)
+    tissues = models.ManyToManyField(Tissue, blank=True)
     
     class Meta:
         verbose_name = "Sectioning Request"
@@ -286,6 +286,11 @@ class StainingRequestChangeLog(BaseChangeLog):
         ordering = ['-changed_at']
     
     @classmethod
+    def get_request_history(cls, request_id):
+        """Get all versions of a request ordered by change time"""
+        return cls.objects.filter(request_id=request_id).order_by('changed_at')
+    
+    @classmethod
     def log_change(cls, request, change_type, changed_fields=None, description=None):
         """Log a change to a StainingRequest"""
         # Store current state of the request
@@ -326,7 +331,7 @@ class EmbeddingRequestChangeLog(BaseChangeLog):
     request = models.ForeignKey(EmbeddingRequest, on_delete=models.CASCADE, related_name='change_logs')
     requestor = models.ForeignKey(Requestor, blank=True, null=True, on_delete=models.SET_NULL)
     study = models.ForeignKey(Study, blank=True, null=True, on_delete=models.SET_NULL)
-    tissues = models.ForeignKey(Tissue, blank=True, null=True, on_delete=models.SET_NULL)
+    tissues = models.ManyToManyField(Tissue, blank=True)
     status = models.ForeignKey(Status, blank=True, null=True, on_delete=models.SET_NULL)
     assigned_to = models.ForeignKey(Assignee, blank=True, null=True, on_delete=models.SET_NULL)
     special_request = models.TextField(blank=True, null=True)
@@ -342,13 +347,18 @@ class EmbeddingRequestChangeLog(BaseChangeLog):
         ordering = ['-changed_at']
     
     @classmethod
+    def get_request_history(cls, request_id):
+        """Get all versions of a request ordered by change time"""
+        return cls.objects.filter(request_id=request_id).order_by('changed_at')
+    
+    @classmethod
     def log_change(cls, request, change_type, changed_fields=None, description=None):
         """Log a change to an EmbeddingRequest"""
         # Store current state of the request
         data = {
             'requestor': request.requestor.key if request.requestor else None,
             'study': request.study.key if request.study else None,
-            'tissues': request.tissues.key if request.tissues else None,
+            'tissues': [t.key for t in request.tissues.all()],
             'status': request.status.key if request.status else None,
             'assigned_to': request.assigned_to.key if request.assigned_to else None,
             'special_request': request.special_request,
@@ -384,7 +394,7 @@ class SectioningRequestChangeLog(BaseChangeLog):
     request = models.ForeignKey(SectioningRequest, on_delete=models.CASCADE, related_name='change_logs')
     requestor = models.ForeignKey(Requestor, blank=True, null=True, on_delete=models.SET_NULL)
     study = models.ForeignKey(Study, blank=True, null=True, on_delete=models.SET_NULL)
-    tissues = models.ForeignKey(Tissue, blank=True, null=True, on_delete=models.SET_NULL)
+    tissues = models.ManyToManyField(Tissue, blank=True)
     status = models.ForeignKey(Status, blank=True, null=True, on_delete=models.SET_NULL)
     assigned_to = models.ForeignKey(Assignee, blank=True, null=True, on_delete=models.SET_NULL)
     special_request = models.TextField(blank=True, null=True)
@@ -400,13 +410,18 @@ class SectioningRequestChangeLog(BaseChangeLog):
         ordering = ['-changed_at']
     
     @classmethod
+    def get_request_history(cls, request_id):
+        """Get all versions of a request ordered by change time"""
+        return cls.objects.filter(request_id=request_id).order_by('changed_at')
+    
+    @classmethod
     def log_change(cls, request, change_type, changed_fields=None, description=None):
         """Log a change to a SectioningRequest"""
         # Store current state of the request
         data = {
             'requestor': request.requestor.key if request.requestor else None,
             'study': request.study.key if request.study else None,
-            'tissues': request.tissues.key if request.tissues else None,
+            'tissues': [t.key for t in request.tissues.all()],
             'status': request.status.key if request.status else None,
             'assigned_to': request.assigned_to.key if request.assigned_to else None,
             'special_request': request.special_request,

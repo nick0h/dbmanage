@@ -1409,7 +1409,6 @@ class StainingRequestSearchView(ListView):
         context['form'] = StainingRequestSearchForm(self.request.GET)
         context['search_performed'] = any(self.request.GET.get(field) for field in ['request_id', 'date_from', 'date_to', 'requestor', 'description', 'antibody', 'probe', 'tissue', 'study', 'status', 'priority', 'assigned_to', 'special_request', 'notes'])
         return context
-
 # Staining Request Detail, Edit, Delete Views
 class StainingRequestDetailView(DetailView):
     model = Request
@@ -1541,3 +1540,4 @@ class SectioningRequestDeleteView(DeleteView):
     model = SectioningRequest
     template_name = 'requests_app/request_confirm_delete.html'
     success_url = reverse_lazy('sectioning_requests')
+

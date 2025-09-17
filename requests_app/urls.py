@@ -70,10 +70,15 @@ urlpatterns = [
     path('data/studies/import/', views.import_studies_from_file, name='import_studies'),
     path('data/antibodies/import/', views.import_antibodies_from_file, name='import_antibodies'),
     
-    # Request Type Specific URLs
+    # Request Type Specific URLs (All Requests)
     path('staining/', views.StainingRequestsView.as_view(), name='staining_requests'),
     path('embedding/', views.EmbeddingRequestsView.as_view(), name='embedding_requests'),
     path('sectioning/', views.SectioningRequestsView.as_view(), name='sectioning_requests'),
+    
+    # Request Type Current URLs (Filtered - Exclude Complete)
+    path('staining/current/', views.StainingRequestsCurrentView.as_view(), name='staining_requests_current'),
+    path('embedding/current/', views.EmbeddingRequestsCurrentView.as_view(), name='embedding_requests_current'),
+    path('sectioning/current/', views.SectioningRequestsCurrentView.as_view(), name='sectioning_requests_current'),
     
     # Request Type Create URLs
     path('staining/create/', views.StainingRequestCreateView.as_view(), name='staining_request_create'),
@@ -99,4 +104,9 @@ urlpatterns = [
     path('staining/search/', views.StainingRequestSearchView.as_view(), name='staining_request_search'),
     path('embedding/search/', views.EmbeddingRequestSearchView.as_view(), name='embedding_request_search'),
     path('sectioning/search/', views.SectioningRequestSearchView.as_view(), name='sectioning_request_search'),
+    
+    # Request History URLs
+    path('staining/<int:pk>/history/', views.StainingRequestHistoryView.as_view(), name='staining_request_history'),
+    path('embedding/<int:pk>/history/', views.EmbeddingRequestHistoryView.as_view(), name='embedding_request_history'),
+    path('sectioning/<int:pk>/history/', views.SectioningRequestHistoryView.as_view(), name='sectioning_request_history'),
 ] 
