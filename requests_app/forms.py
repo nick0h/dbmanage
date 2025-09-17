@@ -95,7 +95,7 @@ class EmbeddingRequestForm(forms.ModelForm):
     
     class Meta:
         model = EmbeddingRequest
-        fields = ['requestor', 'study', 'tissues', 'special_request', 'assigned_to', 'currently_in', 'take_down_date', 'length_of_time_in_etoh']
+        fields = ['requestor', 'study', 'tissues', 'special_request', 'assigned_to', 'currently_in', 'take_down_date', 'length_of_time_in_etoh', 'number_of_animals', 'date_of_xylene_etoh_change']
         widgets = {
             'requestor': forms.Select(attrs={'class': 'form-control'}),
             'study': forms.Select(attrs={'class': 'form-control'}),
@@ -105,6 +105,8 @@ class EmbeddingRequestForm(forms.ModelForm):
             'currently_in': forms.Select(attrs={'class': 'form-control'}, choices=[(True, 'Yes'), (False, 'No')]),
             'take_down_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'length_of_time_in_etoh': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 40}),
+            'number_of_animals': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Number of Animals'}),
+            'date_of_xylene_etoh_change': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
 
     def __init__(self, *args, **kwargs):
