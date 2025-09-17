@@ -1,5 +1,5 @@
 from django import forms
-from .models import Requestor, Antibody, Study, Tissue, Request, Status, Assignee, Probe, Priority
+from .models import Requestor, Antibody, Study, Tissue, Request, Status, Assignee, Probe, Priority, EmbeddingRequest, SectioningRequest
 
 class RequestForm(forms.ModelForm):
     special_request = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}), required=False, max_length=256)
@@ -88,8 +88,153 @@ class RequestSearchForm(forms.Form):
         self.fields['status'].empty_label = "Select Status"
         self.fields['priority'].empty_label = "Select Priority"
         self.fields['assigned_to'].empty_label = "Select Assignee"
-        
 
+# Embedding Request Form
+class EmbeddingRequestForm(forms.ModelForm):
+    special_request = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}), required=False, max_length=256)
+    
+    class Meta:
+        model = EmbeddingRequest
+        fields = ['requestor', 'study', 'tissues', 'special_request', 'assigned_to', 'currently_in', 'take_down_date', 'length_of_time_in_etoh']
+        widgets = {
+            'requestor': forms.Select(attrs={'class': 'form-control'}),
+            'study': forms.Select(attrs={'class': 'form-control'}),
+            'tissues': forms.Select(attrs={'class': 'form-control'}),
+            'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
+            'assigned_to': forms.Select(attrs={'class': 'form-control'}),
+            'currently_in': forms.Select(attrs={'class': 'form-control'}, choices=[(True, 'Yes'), (False, 'No')]),
+            'take_down_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'length_of_time_in_etoh': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 40}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['requestor'].queryset = Requestor.objects.all().order_by('name')
+        self.fields['study'].queryset = Study.objects.all().order_by('study_id')
+        self.fields['tissues'].queryset = Tissue.objects.all().order_by('name')
+        self.fields['assigned_to'].queryset = Assignee.objects.all().order_by('name')
+        self.fields['assigned_to'].required = False
+        self.fields['tissues'].required = False
+        self.fields['take_down_date'].required = False
+        self.fields['length_of_time_in_etoh'].required = False
+
+# Sectioning Request Form
+class SectioningRequestForm(forms.ModelForm):
+    special_request = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}), required=False, max_length=256)
+    
+    class Meta:
+        model = SectioningRequest
+        fields = ['requestor', 'study', 'tissues', 'special_request', 'assigned_to', 'cut_surface_down', 'sections_per_slide', 'slides_per_block', 'other', 'for_what']
+        widgets = {
+            'requestor': forms.Select(attrs={'class': 'form-control'}),
+            'study': forms.Select(attrs={'class': 'form-control'}),
+            'tissues': forms.Select(attrs={'class': 'form-control'}),
+            'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
+            'assigned_to': forms.Select(attrs={'class': 'form-control'}),
+            'cut_surface_down': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'sections_per_slide': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'slides_per_block': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'other': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'maxlength': 256}),
+            'for_what': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['requestor'].queryset = Requestor.objects.all().order_by('name')
+        self.fields['study'].queryset = Study.objects.all().order_by('study_id')
+        self.fields['tissues'].queryset = Tissue.objects.all().order_by('name')
+        self.fields['assigned_to'].queryset = Assignee.objects.all().order_by('name')
+        self.fields['assigned_to'].required = False
+        self.fields['tissues'].required = False
+        self.fields['sections_per_slide'].required = False
+        self.fields['slides_per_block'].required = False
+        self.fields['other'].required = False
+
+# Staining Request Search Form
+class StainingRequestSearchForm(forms.Form):
+    request_id = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Request ID'}))
+    date_from = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+    date_to = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+    requestor = forms.ModelChoiceField(queryset=Requestor.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    description = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Description'}))
+    antibody = forms.ModelChoiceField(queryset=Antibody.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    probe = forms.ModelChoiceField(queryset=Probe.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    tissue = forms.ModelChoiceField(queryset=Tissue.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    study = forms.ModelChoiceField(queryset=Study.objects.all().order_by('study_id'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    status = forms.ModelChoiceField(queryset=Status.objects.all().order_by('status'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    priority = forms.ModelChoiceField(queryset=Priority.objects.all().order_by('value'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    assigned_to = forms.ModelChoiceField(queryset=Assignee.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    special_request = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Special Request'}))
+    notes = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Notes'}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Set up label_from_instance for better display
+        self.fields['antibody'].label_from_instance = lambda obj: f"{obj.name} - {obj.description}"
+        self.fields['probe'].label_from_instance = lambda obj: f"{obj.name} - {obj.description}"
+        
+        # Add empty choice to all ModelChoiceFields
+        self.fields['requestor'].empty_label = "Select Requestor"
+        self.fields['antibody'].empty_label = "Select Antibody"
+        self.fields['probe'].empty_label = "Select Probe"
+        self.fields['tissue'].empty_label = "Select Tissue"
+        self.fields['study'].empty_label = "Select Study"
+        self.fields['status'].empty_label = "Select Status"
+        self.fields['priority'].empty_label = "Select Priority"
+        self.fields['assigned_to'].empty_label = "Select Assignee"
+
+# Sectioning Request Search Form
+class SectioningRequestSearchForm(forms.Form):
+    request_id = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Request ID'}))
+    date_from = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+    date_to = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+    requestor = forms.ModelChoiceField(queryset=Requestor.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    tissue = forms.ModelChoiceField(queryset=Tissue.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    study = forms.ModelChoiceField(queryset=Study.objects.all().order_by('study_id'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    status = forms.ModelChoiceField(queryset=Status.objects.all().order_by('status'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    assigned_to = forms.ModelChoiceField(queryset=Assignee.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    special_request = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Special Request'}))
+    cut_surface_down = forms.ChoiceField(choices=[('', 'All'), ('Yes', 'Yes'), ('No', 'No')], required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    sections_per_slide = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Sections per Slide'}))
+    slides_per_block = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Slides per Block'}))
+    other = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Other'}))
+    for_what = forms.ChoiceField(choices=[('', 'All'), ('H&E', 'H&E'), ('Special stain', 'Special stain'), ('IHC', 'IHC'), ('ISH', 'ISH'), ('other', 'Other')], required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Add empty choice to all ModelChoiceFields
+        self.fields['requestor'].empty_label = "Select Requestor"
+        self.fields['tissue'].empty_label = "Select Tissue"
+        self.fields['status'].empty_label = "Select Status"
+        self.fields['assigned_to'].empty_label = "Select Assignee"
+
+# Embedding Request Search Form
+class EmbeddingRequestSearchForm(forms.Form):
+    request_id = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Request ID'}))
+    date_from = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+    date_to = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+    requestor = forms.ModelChoiceField(queryset=Requestor.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    tissue = forms.ModelChoiceField(queryset=Tissue.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    study = forms.ModelChoiceField(queryset=Study.objects.all().order_by('study_id'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    status = forms.ModelChoiceField(queryset=Status.objects.all().order_by('status'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    assigned_to = forms.ModelChoiceField(queryset=Assignee.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    special_request = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Special Request'}))
+    number_of_animals = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Number of Animals'}))
+    take_down_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+    currently_in = forms.ChoiceField(required=False, choices=[('', 'All'), (True, 'Yes'), (False, 'No')], widget=forms.Select(attrs={'class': 'form-control'}))
+    date_of_xylene_etoh_change = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+    length_of_time_in_etoh = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Length of Time in EtOH'}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Add empty choice to all ModelChoiceFields
+        self.fields['requestor'].empty_label = "Select Requestor"
+        self.fields['tissue'].empty_label = "Select Tissue"
+        self.fields['status'].empty_label = "Select Status"
+        self.fields['assigned_to'].empty_label = "Select Assignee"
 
 class StudyEditForm(forms.ModelForm):
     class Meta:
@@ -171,4 +316,4 @@ class ProbeForm(forms.ModelForm):
             'platform': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
             'target_region': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
             'number_of_pairs': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
-        } 
+        }

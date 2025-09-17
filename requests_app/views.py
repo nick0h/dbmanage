@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import FormView, ListView, UpdateView, DetailView, DeleteView
 from django.urls import reverse_lazy
-from .forms import RequestForm, RequestEditForm, RequestSearchForm, StudyEditForm, AntibodyForm, RequestorForm, TissueForm, StatusForm, AssigneeForm, ProbeForm, PriorityForm
-from .models import Request, Status, Study, Requestor, Antibody, Tissue, Assignee, Probe, Priority
+from .forms import RequestForm, RequestEditForm, RequestSearchForm, StudyEditForm, AntibodyForm, RequestorForm, TissueForm, StatusForm, AssigneeForm, ProbeForm, PriorityForm, SectioningRequestSearchForm, EmbeddingRequestSearchForm, EmbeddingRequestForm, SectioningRequestForm, StainingRequestSearchForm
+from .models import Request, Status, Study, Requestor, Antibody, Tissue, Assignee, Probe, Priority, StainingRequest, EmbeddingRequest, SectioningRequest, StainingRequestChangeLog, EmbeddingRequestChangeLog, SectioningRequestChangeLog
 from django.http import JsonResponse
 from django.db.models import Q
 from datetime import datetime
@@ -101,6 +101,91 @@ class RequestCreateView(FormView):
         request_obj.save()
         return super().form_valid(form)
 
+# Staining Request Create View
+class StainingRequestCreateView(FormView):
+    template_name = 'requests_app/request_form.html'
+    form_class = RequestForm
+    success_url = reverse_lazy('staining_requests')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['today_date'] = datetime.now().date()
+        context['tissues'] = Tissue.objects.all().order_by('name')
+        context['max_tissues'] = 10
+        context['assignees'] = Assignee.objects.all().order_by('name')
+        context['probes'] = Probe.objects.all().order_by('name')
+        return context
+
+    def form_valid(self, form):
+        request_obj = form.save(commit=False)
+        request_obj.status = Status.get_default_status()
+        
+        # Collect additional tissues from form data
+        additional_tissues = []
+        for key, value in self.request.POST.items():
+            if key.startswith('tissue_') and value:  # tissue_0, tissue_1, etc.
+                try:
+                    tissue_id = int(value)
+                    tissue = Tissue.objects.get(pk=tissue_id)
+                    additional_tissues.append(tissue.name)
+                except (ValueError, Tissue.DoesNotExist):
+                    pass
+        
+        # Populate the data JSONField with form data
+        request_obj.data = {
+            'date': self.request.POST.get('date'),
+            'description': form.cleaned_data.get('description'),
+            'special_request': form.cleaned_data.get('special_request'),
+            'tissues': additional_tissues,
+        }
+        
+        request_obj.save()
+        
+        # Log the creation
+        StainingRequestChangeLog.log_change(
+            request=request_obj,
+            change_type='created',
+            description='Staining request created'
+        )
+        
+        return super().form_valid(form)
+
+# Embedding Request Create View
+class EmbeddingRequestCreateView(FormView):
+    template_name = 'requests_app/embedding_request_form.html'
+    form_class = EmbeddingRequestForm
+    success_url = reverse_lazy('embedding_requests')
+
+    def form_valid(self, form):
+        request_obj = form.save()
+        
+        # Log the creation
+        EmbeddingRequestChangeLog.log_change(
+            request=request_obj,
+            change_type='created',
+            description='Embedding request created'
+        )
+        
+        return super().form_valid(form)
+
+# Sectioning Request Create View
+class SectioningRequestCreateView(FormView):
+    template_name = 'requests_app/sectioning_request_form.html'
+    form_class = SectioningRequestForm
+    success_url = reverse_lazy('sectioning_requests')
+
+    def form_valid(self, form):
+        request_obj = form.save()
+        
+        # Log the creation
+        SectioningRequestChangeLog.log_change(
+            request=request_obj,
+            change_type='created',
+            description='Sectioning request created'
+        )
+        
+        return super().form_valid(form)
+
 class RequestUpdateView(UpdateView):
     model = Request
     form_class = RequestEditForm
@@ -113,7 +198,7 @@ class RequestUpdateView(UpdateView):
         context['antibodies'] = Antibody.objects.all().order_by('name')
         context['studies'] = Study.objects.all().order_by('study_id')
         context['tissues'] = Tissue.objects.all().order_by('name')
-        context['statuses'] = Status.objects.all().order_by('status')
+        context['statuses'] = Status.objects.exclude(status='submitted').order_by('status')
         context['assignees'] = Assignee.objects.all().order_by('name')
         context['probes'] = Probe.objects.all().order_by('name')
         return context
@@ -141,7 +226,7 @@ class RequestSearchView(ListView):
         context['antibodies'] = Antibody.objects.all().order_by('name')
         context['probes'] = Probe.objects.all().order_by('name')
         context['studies'] = Study.objects.all().order_by('study_id')
-        context['statuses'] = Status.objects.all().order_by('status')
+        context['statuses'] = Status.objects.exclude(status='submitted').order_by('status')
         context['priorities'] = Priority.objects.all().order_by('value')
         return context
 
@@ -995,3 +1080,464 @@ def import_antibodies_from_file(request):
         return redirect('antibody_list')
     
     return redirect('antibody_list')
+
+# Staining Request Views
+class StainingRequestsView(ListView):
+    model = StainingRequest
+    template_name = 'requests_app/staining_requests.html'
+    context_object_name = 'requests'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = StainingRequest.objects.all()
+        
+        # Get filter parameters
+        selected_statuses = self.request.GET.getlist('status')
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        
+        # Filter by status (exclude complete by default if no status selected)
+        if selected_statuses:
+            # Convert status names to status objects
+            status_objects = Status.objects.filter(status__in=selected_statuses)
+            queryset = queryset.filter(status__in=status_objects)
+        else:
+            # Default: show all except complete
+            complete_status = Status.objects.filter(status__icontains='complete').first()
+            if complete_status:
+                queryset = queryset.exclude(status=complete_status)
+        
+        # Filter by date range
+        if date_from:
+            queryset = queryset.filter(created_at__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(created_at__lte=date_to)
+        
+        return queryset.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['statuses'] = Status.objects.exclude(status='submitted').order_by('status')
+        context['selected_statuses'] = self.request.GET.getlist('status')
+        context['date_from'] = self.request.GET.get('date_from', '')
+        context['date_to'] = self.request.GET.get('date_to', '')
+        return context
+
+# Embedding Request Views
+class EmbeddingRequestsView(ListView):
+    model = EmbeddingRequest
+    template_name = 'requests_app/embedding_requests.html'
+    context_object_name = 'requests'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = EmbeddingRequest.objects.all()
+        
+        # Get filter parameters
+        selected_statuses = self.request.GET.getlist('status')
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        
+        # Filter by status (exclude complete by default if no status selected)
+        if selected_statuses:
+            # Convert status names to status objects
+            status_objects = Status.objects.filter(status__in=selected_statuses)
+            queryset = queryset.filter(status__in=status_objects)
+        else:
+            # Default: show all except complete
+            complete_status = Status.objects.filter(status__icontains='complete').first()
+            if complete_status:
+                queryset = queryset.exclude(status=complete_status)
+        
+        # Filter by date range
+        if date_from:
+            queryset = queryset.filter(created_at__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(created_at__lte=date_to)
+        
+        return queryset.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['statuses'] = Status.objects.exclude(status='submitted').order_by('status')
+        context['selected_statuses'] = self.request.GET.getlist('status')
+        context['date_from'] = self.request.GET.get('date_from', '')
+        context['date_to'] = self.request.GET.get('date_to', '')
+        return context
+
+class EmbeddingRequestSearchView(ListView):
+    model = EmbeddingRequest
+    template_name = 'requests_app/embedding_request_search.html'
+    context_object_name = 'requests'
+    paginate_by = 20
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = EmbeddingRequestSearchForm(self.request.GET)
+        context['form'] = form
+        context['tissues'] = Tissue.objects.all().order_by('name')
+        context['assignees'] = Assignee.objects.all().order_by('name')
+        context['statuses'] = Status.objects.exclude(status='submitted').order_by('status')
+        context['priorities'] = Priority.objects.all().order_by('value')
+        return context
+
+    def get_queryset(self):
+        queryset = EmbeddingRequest.objects.all()
+        form = EmbeddingRequestSearchForm(self.request.GET)
+        
+        if form.is_valid():
+            request_id = form.cleaned_data.get('request_id')
+            date_from = form.cleaned_data.get('date_from')
+            date_to = form.cleaned_data.get('date_to')
+            requestor = form.cleaned_data.get('requestor')
+            tissue = form.cleaned_data.get('tissue')
+            study = form.cleaned_data.get('study')
+            status = form.cleaned_data.get('status')
+            assigned_to = form.cleaned_data.get('assigned_to')
+            special_request = form.cleaned_data.get('special_request')
+            number_of_animals = form.cleaned_data.get('number_of_animals')
+            take_down_date = form.cleaned_data.get('take_down_date')
+            currently_in = form.cleaned_data.get('currently_in')
+            date_of_xylene_etoh_change = form.cleaned_data.get('date_of_xylene_etoh_change')
+            length_of_time_in_etoh = form.cleaned_data.get('length_of_time_in_etoh')
+
+            # Apply filters
+            if request_id:
+                queryset = queryset.filter(key=request_id)
+            if date_from:
+                queryset = queryset.filter(created_at__gte=date_from)
+            if date_to:
+                queryset = queryset.filter(created_at__lte=date_to)
+            if requestor:
+                queryset = queryset.filter(requestor=requestor)
+            if tissue:
+                queryset = queryset.filter(tissues=tissue)
+            if study:
+                queryset = queryset.filter(study=study)
+            if status:
+                queryset = queryset.filter(status=status)
+            if assigned_to:
+                queryset = queryset.filter(assigned_to=assigned_to)
+            if special_request:
+                queryset = queryset.filter(special_request__icontains=special_request)
+            if number_of_animals:
+                queryset = queryset.filter(number_of_animals=number_of_animals)
+            if take_down_date:
+                queryset = queryset.filter(take_down_date=take_down_date)
+            if currently_in != '':
+                queryset = queryset.filter(currently_in=currently_in)
+            if date_of_xylene_etoh_change:
+                queryset = queryset.filter(date_of_xylene_etoh_change=date_of_xylene_etoh_change)
+            if length_of_time_in_etoh:
+                queryset = queryset.filter(length_of_time_in_etoh__icontains=length_of_time_in_etoh)
+
+        return queryset.order_by('-created_at')
+
+# Sectioning Request Views
+class SectioningRequestsView(ListView):
+    model = SectioningRequest
+    template_name = 'requests_app/sectioning_requests.html'
+    context_object_name = 'requests'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = SectioningRequest.objects.all()
+        
+        # Get filter parameters
+        selected_statuses = self.request.GET.getlist('status')
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        
+        # Filter by status (exclude complete by default if no status selected)
+        if selected_statuses:
+            # Convert status names to status objects
+            status_objects = Status.objects.filter(status__in=selected_statuses)
+            queryset = queryset.filter(status__in=status_objects)
+        else:
+            # Default: show all except complete
+            complete_status = Status.objects.filter(status__icontains='complete').first()
+            if complete_status:
+                queryset = queryset.exclude(status=complete_status)
+        
+        # Filter by date range
+        if date_from:
+            queryset = queryset.filter(created_at__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(created_at__lte=date_to)
+        
+        return queryset.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['statuses'] = Status.objects.exclude(status='submitted').order_by('status')
+        context['selected_statuses'] = self.request.GET.getlist('status')
+        context['date_from'] = self.request.GET.get('date_from', '')
+        context['date_to'] = self.request.GET.get('date_to', '')
+        return context
+
+class SectioningRequestSearchView(ListView):
+    model = SectioningRequest
+    template_name = 'requests_app/sectioning_request_search.html'
+    context_object_name = 'requests'
+    paginate_by = 20
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = SectioningRequestSearchForm(self.request.GET)
+        context['form'] = form
+        context['tissues'] = Tissue.objects.all().order_by('name')
+        context['assignees'] = Assignee.objects.all().order_by('name')
+        context['statuses'] = Status.objects.exclude(status='submitted').order_by('status')
+        context['priorities'] = Priority.objects.all().order_by('value')
+        return context
+
+    def get_queryset(self):
+        queryset = SectioningRequest.objects.all()
+        form = SectioningRequestSearchForm(self.request.GET)
+        
+        if form.is_valid():
+            request_id = form.cleaned_data.get('request_id')
+            date_from = form.cleaned_data.get('date_from')
+            date_to = form.cleaned_data.get('date_to')
+            requestor = form.cleaned_data.get('requestor')
+            tissue = form.cleaned_data.get('tissue')
+            study = form.cleaned_data.get('study')
+            status = form.cleaned_data.get('status')
+            assigned_to = form.cleaned_data.get('assigned_to')
+            special_request = form.cleaned_data.get('special_request')
+            cut_surface_down = form.cleaned_data.get('cut_surface_down')
+            sections_per_slide = form.cleaned_data.get('sections_per_slide')
+            slides_per_block = form.cleaned_data.get('slides_per_block')
+            other = form.cleaned_data.get('other')
+            for_what = form.cleaned_data.get('for_what')
+
+            # Apply filters
+            if request_id:
+                queryset = queryset.filter(key=request_id)
+            if date_from:
+                queryset = queryset.filter(created_at__gte=date_from)
+            if date_to:
+                queryset = queryset.filter(created_at__lte=date_to)
+            if requestor:
+                queryset = queryset.filter(requestor=requestor)
+            if tissue:
+                queryset = queryset.filter(tissues=tissue)
+            if study:
+                queryset = queryset.filter(study=study)
+            if status:
+                queryset = queryset.filter(status=status)
+            if assigned_to:
+                queryset = queryset.filter(assigned_to=assigned_to)
+            if special_request:
+                queryset = queryset.filter(special_request__icontains=special_request)
+            if cut_surface_down:
+                if cut_surface_down == 'Yes':
+                    queryset = queryset.filter(cut_surface_down=True)
+                elif cut_surface_down == 'No':
+                    queryset = queryset.filter(cut_surface_down=False)
+            if sections_per_slide:
+                queryset = queryset.filter(sections_per_slide=sections_per_slide)
+            if slides_per_block:
+                queryset = queryset.filter(slides_per_block=slides_per_block)
+            if other:
+                queryset = queryset.filter(other__icontains=other)
+            if for_what:
+                queryset = queryset.filter(for_what=for_what)
+
+        return queryset.order_by('-created_at')
+
+# Staining Request Search View
+class StainingRequestSearchView(ListView):
+    model = Request
+    template_name = 'requests_app/request_search.html'
+    context_object_name = 'requests'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = Request.objects.all()
+        
+        # Get search parameters
+        request_id = self.request.GET.get('request_id')
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        requestor = self.request.GET.get('requestor')
+        description = self.request.GET.get('description')
+        antibody = self.request.GET.get('antibody')
+        probe = self.request.GET.get('probe')
+        tissue = self.request.GET.get('tissue')
+        study = self.request.GET.get('study')
+        status = self.request.GET.get('status')
+        priority = self.request.GET.get('priority')
+        assigned_to = self.request.GET.get('assigned_to')
+        special_request = self.request.GET.get('special_request')
+        notes = self.request.GET.get('notes')
+        
+        # Apply filters
+        if request_id:
+            queryset = queryset.filter(key=request_id)
+        if date_from:
+            queryset = queryset.filter(created_at__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(created_at__lte=date_to)
+        if requestor:
+            queryset = queryset.filter(requestor=requestor)
+        if description:
+            queryset = queryset.filter(description__icontains=description)
+        if antibody:
+            queryset = queryset.filter(antibody=antibody)
+        if probe:
+            queryset = queryset.filter(probe=probe)
+        if tissue:
+            queryset = queryset.filter(tissue=tissue)
+        if study:
+            queryset = queryset.filter(study=study)
+        if status:
+            queryset = queryset.filter(status=status)
+        if priority:
+            queryset = queryset.filter(priority=priority)
+        if assigned_to:
+            queryset = queryset.filter(assigned_to=assigned_to)
+        if special_request:
+            queryset = queryset.filter(special_request__icontains=special_request)
+        if notes:
+            queryset = queryset.filter(notes__icontains=notes)
+
+        return queryset.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = StainingRequestSearchForm(self.request.GET)
+        context['search_performed'] = any(self.request.GET.get(field) for field in ['request_id', 'date_from', 'date_to', 'requestor', 'description', 'antibody', 'probe', 'tissue', 'study', 'status', 'priority', 'assigned_to', 'special_request', 'notes'])
+        return context
+
+# Staining Request Detail, Edit, Delete Views
+class StainingRequestDetailView(DetailView):
+    model = Request
+    template_name = 'requests_app/request_detail.html'
+    context_object_name = 'request'
+
+class StainingRequestEditView(UpdateView):
+    model = Request
+    form_class = RequestEditForm
+    template_name = 'requests_app/request_edit.html'
+    success_url = reverse_lazy('staining_requests')
+    
+    def form_valid(self, form):
+        # Get the original object before saving
+        original_obj = Request.objects.get(pk=self.object.pk)
+        
+        # Save the form
+        response = super().form_valid(form)
+        
+        # Determine what fields changed
+        changed_fields = []
+        for field in form.changed_data:
+            if hasattr(original_obj, field) and hasattr(self.object, field):
+                old_value = getattr(original_obj, field)
+                new_value = getattr(self.object, field)
+                if old_value != new_value:
+                    changed_fields.append(field)
+        
+        # Log the change if any fields were modified
+        if changed_fields:
+            StainingRequestChangeLog.log_change(
+                request=self.object,
+                change_type='updated',
+                changed_fields=changed_fields,
+                description=f'Updated fields: {", ".join(changed_fields)}'
+            )
+        
+        return response
+
+class StainingRequestDeleteView(DeleteView):
+    model = Request
+    template_name = 'requests_app/request_confirm_delete.html'
+    success_url = reverse_lazy('staining_requests')
+
+# Embedding Request Detail, Edit, Delete Views
+class EmbeddingRequestDetailView(DetailView):
+    model = EmbeddingRequest
+    template_name = 'requests_app/request_detail.html'
+    context_object_name = 'request'
+
+class EmbeddingRequestEditView(UpdateView):
+    model = EmbeddingRequest
+    form_class = EmbeddingRequestForm
+    template_name = 'requests_app/embedding_request_edit.html'
+    success_url = reverse_lazy('embedding_requests')
+    
+    def form_valid(self, form):
+        # Get the original object before saving
+        original_obj = EmbeddingRequest.objects.get(pk=self.object.pk)
+        
+        # Save the form
+        response = super().form_valid(form)
+        
+        # Determine what fields changed
+        changed_fields = []
+        for field in form.changed_data:
+            if hasattr(original_obj, field) and hasattr(self.object, field):
+                old_value = getattr(original_obj, field)
+                new_value = getattr(self.object, field)
+                if old_value != new_value:
+                    changed_fields.append(field)
+        
+        # Log the change if any fields were modified
+        if changed_fields:
+            EmbeddingRequestChangeLog.log_change(
+                request=self.object,
+                change_type='updated',
+                changed_fields=changed_fields,
+                description=f'Updated fields: {", ".join(changed_fields)}'
+            )
+        
+        return response
+
+class EmbeddingRequestDeleteView(DeleteView):
+    model = EmbeddingRequest
+    template_name = 'requests_app/request_confirm_delete.html'
+    success_url = reverse_lazy('embedding_requests')
+
+# Sectioning Request Detail, Edit, Delete Views
+class SectioningRequestDetailView(DetailView):
+    model = SectioningRequest
+    template_name = 'requests_app/request_detail.html'
+    context_object_name = 'request'
+
+class SectioningRequestEditView(UpdateView):
+    model = SectioningRequest
+    form_class = SectioningRequestForm
+    template_name = 'requests_app/sectioning_request_edit.html'
+    success_url = reverse_lazy('sectioning_requests')
+    
+    def form_valid(self, form):
+        # Get the original object before saving
+        original_obj = SectioningRequest.objects.get(pk=self.object.pk)
+        
+        # Save the form
+        response = super().form_valid(form)
+        
+        # Determine what fields changed
+        changed_fields = []
+        for field in form.changed_data:
+            if hasattr(original_obj, field) and hasattr(self.object, field):
+                old_value = getattr(original_obj, field)
+                new_value = getattr(self.object, field)
+                if old_value != new_value:
+                    changed_fields.append(field)
+        
+        # Log the change if any fields were modified
+        if changed_fields:
+            SectioningRequestChangeLog.log_change(
+                request=self.object,
+                change_type='updated',
+                changed_fields=changed_fields,
+                description=f'Updated fields: {", ".join(changed_fields)}'
+            )
+        
+        return response
+
+class SectioningRequestDeleteView(DeleteView):
+    model = SectioningRequest
+    template_name = 'requests_app/request_confirm_delete.html'
+    success_url = reverse_lazy('sectioning_requests')

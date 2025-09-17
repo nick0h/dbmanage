@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Requestor, Antibody, Study, Tissue, Request, Status, Assignee, Probe, Priority
+from .models import Requestor, Antibody, Study, Tissue, Request, Status, Assignee, Probe, Priority, EmbeddingRequest, SectioningRequest
 
 # Register your models here.
 admin.site.register(Requestor)
@@ -11,3 +11,5 @@ admin.site.register(Status)
 admin.site.register(Assignee)
 admin.site.register(Probe)
 admin.site.register(Priority)
+admin.site.register(EmbeddingRequest)
+admin.site.register(SectioningRequest)

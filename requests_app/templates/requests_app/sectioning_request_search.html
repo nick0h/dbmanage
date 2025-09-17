@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>
+            <i class="fas fa-cut text-info me-2"></i>Search Sectioning Requests
+        </h2>
+        <a href="{% url 'sectioning_requests' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Sectioning Requests
+        </a>
+    </div>
+    
+    <!-- Search Form -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-search me-2"></i>Search Criteria</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3" action="">
+                <!-- Basic Information -->
+                <div class="col-md-3">
+                    {{ form.request_id.label_tag }}
+                    {{ form.request_id }}
+                </div>
+                <div class="col-md-3">
+                    {{ form.date_from.label_tag }}
+                    {{ form.date_from }}
+                </div>
+                <div class="col-md-3">
+                    {{ form.date_to.label_tag }}
+                    {{ form.date_to }}
+                </div>
+                <div class="col-md-3">
+                    {{ form.requestor.label_tag }}
+                    {{ form.requestor }}
+                </div>
+                
+                <!-- Study and Tissue -->
+                <div class="col-md-6">
+                    {{ form.study.label_tag }}
+                    {{ form.study }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.tissues.label_tag }}
+                    {{ form.tissues }}
+                </div>
+                
+                <!-- Status and Assignment -->
+                <div class="col-md-4">
+                    {{ form.status.label_tag }}
+                    {{ form.status }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.assigned_to.label_tag }}
+                    {{ form.assigned_to }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.for_what.label_tag }}
+                    {{ form.for_what }}
+                </div>
+                
+                <!-- Sectioning-Specific Fields -->
+                <div class="col-md-3">
+                    {{ form.cut_surface_down.label_tag }}
+                    {{ form.cut_surface_down }}
+                </div>
+                <div class="col-md-3">
+                    {{ form.sections_per_slide.label_tag }}
+                    {{ form.sections_per_slide }}
+                </div>
+                <div class="col-md-3">
+                    {{ form.slides_per_block.label_tag }}
+                    {{ form.slides_per_block }}
+                </div>
+                <div class="col-md-3">
+                    {{ form.other.label_tag }}
+                    {{ form.other }}
+                </div>
+                
+                <!-- Special Request -->
+                <div class="col-md-12">
+                    {{ form.special_request.label_tag }}
+                    {{ form.special_request }}
+                </div>
+                
+                <div class="col-12">
+                    <button type="submit" class="btn btn-info">
+                        <i class="fas fa-search me-2"></i>Search
+                    </button>
+                    <a href="{% url 'sectioning_request_search' %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    {% if requests %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>Search Results ({{ requests|length }} found)
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Requestor</th>
+                            <th>Study</th>
+                            <th>Tissue</th>
+                            <th>For</th>
+                            <th>Cut Surface Down</th>
+                            <th>Sections/Slide</th>
+                            <th>Slides/Block</th>
+                            <th>Other</th>
+                            <th>Special Request</th>
+                            <th>Status</th>
+                            <th>Assigned To</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in requests %}
+                        <tr>
+                            <td>{{ request.key }}</td>
+                            <td>{{ request.requestor.name|truncatechars:15 }}</td>
+                            <td>{{ request.study.study_id|truncatechars:12 }}</td>
+                            <td>{{ request.tissues.name|truncatechars:15|default:"-" }}</td>
+                            <td>{{ request.for_what }}</td>
+                            <td>
+                                <span class="badge bg-{% if request.cut_surface_down %}success{% else %}secondary{% endif %}">
+                                    {% if request.cut_surface_down %}Yes{% else %}No{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ request.sections_per_slide|default:"-" }}</td>
+                            <td>{{ request.slides_per_block|default:"-" }}</td>
+                            <td>{{ request.other|truncatechars:20|default:"-" }}</td>
+                            <td>{{ request.special_request|truncatechars:25|default:"-" }}</td>
+                            <td>
+                                <span class="badge bg-secondary">{{ request.status.status }}</span>
+                            </td>
+                            <td>{{ request.assigned_to.name|truncatechars:15|default:"-" }}</td>
+                            <td>{{ request.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'sectioning_request_detail' request.pk %}" class="btn btn-sm btn-outline-primary" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'sectioning_request_edit' request.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if is_paginated %}
+            <nav aria-label="Sectioning requests pagination">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">&laquo; First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+        {% if request.GET %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>No sectioning requests found matching your search criteria.
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

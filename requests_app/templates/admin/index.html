@@ -1,0 +1,509 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block nav-sidebar %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="page-header mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h2 mb-2 text-primary">
+                    <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                </h1>
+                <p class="text-muted mb-0">Welcome back, <strong>{{ user.username }}</strong>! Manage your system data efficiently.</p>
+            </div>
+            <div>
+                <a href="{% url 'home' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-home me-2"></i>Back to Homepage
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-primary mb-2">
+                        <i class="fas fa-vial fa-2x"></i>
+                    </div>
+                    <h5 class="card-title text-primary">Staining</h5>
+                    <p class="card-text text-muted small">Manage staining requests and antibodies</p>
+                    <a href="{% url 'staining_requests' %}" class="btn btn-primary btn-sm">View Requests</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-success mb-2">
+                        <i class="fas fa-cube fa-2x"></i>
+                    </div>
+                    <h5 class="card-title text-success">Embedding</h5>
+                    <p class="card-text text-muted small">Manage embedding requests and processing</p>
+                    <a href="{% url 'embedding_requests' %}" class="btn btn-success btn-sm">View Requests</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-info mb-2">
+                        <i class="fas fa-cut fa-2x"></i>
+                    </div>
+                    <h5 class="card-title text-info">Sectioning</h5>
+                    <p class="card-text text-muted small">Manage sectioning requests and cutting</p>
+                    <a href="{% url 'sectioning_requests' %}" class="btn btn-info btn-sm">View Requests</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Database Management Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-database me-2"></i>Database Management
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Staining Related Databases -->
+                    <div class="border-bottom">
+                        <div class="bg-light p-3">
+                            <h6 class="mb-0 text-primary">
+                                <i class="fas fa-vial me-2"></i>Staining Related Databases
+                            </h6>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="border-0">
+                                            <i class="fas fa-table me-2 text-muted"></i>Table
+                                        </th>
+                                        <th class="border-0">
+                                            <i class="fas fa-info-circle me-2 text-muted"></i>Description
+                                        </th>
+                                        <th class="border-0 text-center">
+                                            <i class="fas fa-cogs me-2 text-muted"></i>Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                <!-- Antibodies -->
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-vial fa-sm"></i>
+                                            </div>
+                                            <div>
+                                                <strong>Antibodies</strong>
+                                                <br><small class="text-muted">Staining reagents</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">Manage antibodies used in staining requests</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'admin:requests_app_antibody_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'admin:requests_app_antibody_add' %}" class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Probes -->
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-dna fa-sm"></i>
+                                            </div>
+                                            <div>
+                                                <strong>Probes</strong>
+                                                <br><small class="text-muted">Molecular probes</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">Manage molecular probes for staining</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'admin:requests_app_probe_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'admin:requests_app_probe_add' %}" class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Staining Requests -->
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-vial fa-sm"></i>
+                                            </div>
+                                            <div>
+                                                <strong>Staining Requests</strong>
+                                                <br><small class="text-muted">IHC staining requests</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">Manage immunohistochemistry staining requests</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'admin:requests_app_request_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Embedding Related Databases -->
+                    <div class="border-bottom">
+                        <div class="bg-light p-3">
+                            <h6 class="mb-0 text-success">
+                                <i class="fas fa-cube me-2"></i>Embedding Related Databases
+                            </h6>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="border-0">
+                                            <i class="fas fa-table me-2 text-muted"></i>Table
+                                        </th>
+                                        <th class="border-0">
+                                            <i class="fas fa-info-circle me-2 text-muted"></i>Description
+                                        </th>
+                                        <th class="border-0 text-center">
+                                            <i class="fas fa-cogs me-2 text-muted"></i>Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                <!-- Embedding Requests -->
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-cube fa-sm"></i>
+                                            </div>
+                                            <div>
+                                                <strong>Embedding Requests</strong>
+                                                <br><small class="text-muted">Tissue embedding requests</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">Manage tissue embedding and processing requests</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'admin:requests_app_embeddingrequest_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Sectioning Related Databases -->
+                    <div class="border-bottom">
+                        <div class="bg-light p-3">
+                            <h6 class="mb-0 text-info">
+                                <i class="fas fa-cut me-2"></i>Sectioning Related Databases
+                            </h6>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="border-0">
+                                            <i class="fas fa-table me-2 text-muted"></i>Table
+                                        </th>
+                                        <th class="border-0">
+                                            <i class="fas fa-info-circle me-2 text-muted"></i>Description
+                                        </th>
+                                        <th class="border-0 text-center">
+                                            <i class="fas fa-cogs me-2 text-muted"></i>Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                <!-- Sectioning Requests -->
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-cut fa-sm"></i>
+                                            </div>
+                                            <div>
+                                                <strong>Sectioning Requests</strong>
+                                                <br><small class="text-muted">Tissue sectioning requests</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">Manage tissue sectioning and cutting requests</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'admin:requests_app_sectioningrequest_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Shared/System Databases -->
+                    <div>
+                        <div class="bg-light p-3">
+                            <h6 class="mb-0 text-secondary">
+                                <i class="fas fa-share-alt me-2"></i>Shared/System Databases
+                            </h6>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="border-0">
+                                            <i class="fas fa-table me-2 text-muted"></i>Table
+                                        </th>
+                                        <th class="border-0">
+                                            <i class="fas fa-info-circle me-2 text-muted"></i>Description
+                                        </th>
+                                        <th class="border-0 text-center">
+                                            <i class="fas fa-cogs me-2 text-muted"></i>Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                <!-- Requestors -->
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-users fa-sm"></i>
+                                            </div>
+                                            <div>
+                                                <strong>Requestors</strong>
+                                                <br><small class="text-muted">System users</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">Manage users who submit requests</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'admin:requests_app_requestor_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'admin:requests_app_requestor_add' %}" class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Tissues -->
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-microscope fa-sm"></i>
+                                            </div>
+                                            <div>
+                                                <strong>Tissues</strong>
+                                                <br><small class="text-muted">Sample types</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">Manage tissue types for processing</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'admin:requests_app_tissue_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'admin:requests_app_tissue_add' %}" class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Statuses -->
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-tasks fa-sm"></i>
+                                            </div>
+                                            <div>
+                                                <strong>Statuses</strong>
+                                                <br><small class="text-muted">Request states</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">Manage request status options</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'admin:requests_app_status_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'admin:requests_app_status_add' %}" class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Assignees -->
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-user-tie fa-sm"></i>
+                                            </div>
+                                            <div>
+                                                <strong>Assignees</strong>
+                                                <br><small class="text-muted">Staff members</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">Manage staff assigned to requests</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'admin:requests_app_assignee_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'admin:requests_app_assignee_add' %}" class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Studies -->
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-book fa-sm"></i>
+                                            </div>
+                                            <div>
+                                                <strong>Studies</strong>
+                                                <br><small class="text-muted">Research projects</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">Manage research studies and projects</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'admin:requests_app_study_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'admin:requests_app_study_add' %}" class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Priorities -->
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-flag fa-sm"></i>
+                                            </div>
+                                            <div>
+                                                <strong>Priorities</strong>
+                                                <br><small class="text-muted">Request urgency</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">Manage request priority levels</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'admin:requests_app_priority_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'admin:requests_app_priority_add' %}" class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="row mt-4">
+        <div class="col text-center">
+            <div class="text-muted">
+                <small>
+                    <i class="fas fa-shield-alt me-1"></i>
+                    Borealis Biosciences Admin Panel
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Font Awesome for icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+{% endblock %}

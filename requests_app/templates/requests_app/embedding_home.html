@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2">
+                    <i class="fas fa-cube text-success me-2"></i>Embedding Requests Home
+                </h1>
+                <div>
+                    <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Main Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h3 class="card-title text-success mb-4">
+                        <i class="fas fa-cube me-2"></i>Embedding Requests Management
+                    </h3>
+                    <p class="card-text mb-4">Manage tissue embedding requests for your research studies.</p>
+                    
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'embedding_request_create' %}" class="btn btn-success btn-lg">
+                            <i class="fas fa-plus-circle me-2"></i>Add Embedding Request
+                        </a>
+                        <a href="{% url 'embedding_request_search' %}" class="btn btn-outline-success btn-lg">
+                            <i class="fas fa-search me-2"></i>Search Embedding Requests
+                        </a>
+                        <a href="{% url 'embedding_requests' %}" class="btn btn-outline-success btn-lg">
+                            <i class="fas fa-list me-2"></i>View Embedding Requests
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

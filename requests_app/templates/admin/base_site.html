@@ -1,0 +1,314 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | Histopathology Requests Admin{% endblock %}
+
+{% block extrastyle %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+<link href="{% static 'css/borealis-theme.css' %}" rel="stylesheet">
+<style>
+    :root {
+        --primary: var(--borealis-blue);
+        --secondary: var(--borealis-teal);
+        --accent: var(--borealis-green);
+    }
+    
+    /* Hide the sidebar completely */
+    #nav-sidebar {
+        display: none !important;
+    }
+    
+    /* Hide the default Django admin header */
+    #header {
+        display: none !important;
+    }
+    
+    /* Hide the user tools (Welcome, admin. View site / Change password) */
+    #user-tools {
+        display: none !important;
+    }
+    
+    /* Adjust main content to take full width */
+    #content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+    
+    /* Ensure admin content starts right after our navigation */
+    .breadcrumbs {
+        margin-top: 0 !important;
+        padding-top: 15px !important;
+    }
+    
+    /* Hide the sidebar toggle button */
+    #nav-toggle {
+        display: none !important;
+    }
+    
+    
+    .module h2, .module caption, .inline-group h2 {
+        background: var(--borealis-blue);
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 5px 5px 0 0;
+    }
+    
+    .button, input[type=submit], input[type=button], .submit-row input, a.button {
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        text-decoration: none;
+        display: inline-block;
+        margin: 2px;
+    }
+    
+    .button:hover, input[type=submit]:hover, input[type=button]:hover, .submit-row input:hover, a.button:hover {
+        background: #0b5ed7;
+        color: #fff;
+        text-decoration: none;
+    }
+    
+    .button.default, input[type=submit].default, .submit-row input.default {
+        background: var(--accent);
+    }
+    
+    .button.default:hover, input[type=submit].default:hover, .submit-row input.default:hover {
+        background: #157347;
+    }
+    
+    .button.delete, input[type=submit].delete, .submit-row input.delete {
+        background: #dc3545;
+    }
+    
+    .button.delete:hover, input[type=submit].delete:hover, .submit-row input.delete:hover {
+        background: #bb2d3b;
+    }
+    
+    .object-tools a:link, .object-tools a:visited {
+        background: var(--primary);
+        color: #fff;
+        border-radius: 4px;
+        padding: 8px 16px;
+        text-decoration: none;
+    }
+    
+    .object-tools a:focus, .object-tools a:hover {
+        background: #0b5ed7;
+        color: #fff;
+        text-decoration: none;
+    }
+    
+    .breadcrumbs {
+        background: #f8f9fa;
+        padding: 10px 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .breadcrumbs a {
+        color: var(--primary);
+        text-decoration: none;
+    }
+    
+    .breadcrumbs a:hover {
+        color: #0b5ed7;
+        text-decoration: underline;
+    }
+    
+    .form-row {
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .form-row label {
+        font-weight: 500;
+        color: #495057;
+    }
+    
+    .form-row input, .form-row textarea, .form-row select {
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        padding: 6px 12px;
+        width: 100%;
+    }
+    
+    .form-row input:focus, .form-row textarea:focus, .form-row select:focus {
+        border-color: var(--primary);
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .submit-row {
+        background: #f8f9fa;
+        padding: 15px;
+        border-top: 1px solid #dee2e6;
+        text-align: right;
+    }
+    
+    .results {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+    }
+    
+    .results table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .results th {
+        background: #f8f9fa;
+        padding: 12px 8px;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+    }
+    
+    .results td {
+        padding: 12px 8px;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .results tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .paginator {
+        background: #f8f9fa;
+        padding: 15px;
+        border-top: 1px solid #dee2e6;
+        text-align: center;
+    }
+    
+    .paginator a {
+        color: var(--primary);
+        text-decoration: none;
+        padding: 5px 10px;
+        margin: 0 2px;
+        border: 1px solid #dee2e6;
+        border-radius: 3px;
+    }
+    
+    .paginator a:hover {
+        background: var(--primary);
+        color: #fff;
+    }
+    
+    .paginator .this-page {
+        background: var(--primary);
+        color: #fff;
+        padding: 5px 10px;
+        margin: 0 2px;
+        border: 1px solid var(--primary);
+        border-radius: 3px;
+    }
+    
+    .messagelist {
+        margin: 20px 0;
+    }
+    
+    .messagelist li {
+        padding: 12px 15px;
+        margin: 5px 0;
+        border-radius: 4px;
+        list-style: none;
+    }
+    
+    .messagelist .success {
+        background: #d1e7dd;
+        color: #0f5132;
+        border: 1px solid #badbcc;
+    }
+    
+    .messagelist .error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    .messagelist .warning {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+    
+    .messagelist .info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+    
+    /* Navigation Bar Styles */
+    .navbar-dark .navbar-nav .nav-link,
+    .navbar-dark .navbar-nav .nav-link:visited {
+        color: rgba(255, 255, 255, 0.9) !important;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        margin: 0 0.25rem;
+    }
+    
+    .navbar-dark .navbar-nav .nav-link:hover,
+    .navbar-dark .navbar-nav .nav-link:focus,
+    .navbar-dark .navbar-nav .nav-link.active {
+        color: white !important;
+        background-color: rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .navbar-dark .navbar-nav .nav-link-admin {
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white !important;
+        font-weight: 600;
+    }
+    
+    .navbar-dark .navbar-nav .nav-link-admin:hover,
+    .navbar-dark .navbar-nav .nav-link-admin:focus {
+        background-color: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.4);
+        color: white !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block header %}
+<!-- Completely replace Django admin header with homepage navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+            <img src="{% static 'images/borealis-logo.svg' %}" alt="Borealis Biosciences" class="navbar-logo me-3">
+            <span class="navbar-brand-text">Borealis Biosciences</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'home' %}">
+                        <i class="fas fa-home me-1"></i>Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link nav-link-admin" href="{% url 'admin:index' %}">
+                        <i class="fas fa-cogs me-1"></i>Admin
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block branding %}
+<!-- Empty branding block to prevent default admin branding -->
+{% endblock %}

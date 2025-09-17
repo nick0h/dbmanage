@@ -9,7 +9,6 @@ urlpatterns = [
     path('requests/', views.RequestHomeView.as_view(), name='requests_home'),
     path('requests_home/', views.SimpleRequestHomeView.as_view(), name='simple_requests_home'),
     path('requests/list/', views.RequestListView.as_view(), name='request_list'),
-    path('requests/create/', views.RequestCreateView.as_view(), name='request_create'),
     path('requests/<int:pk>/', views.RequestDetailView.as_view(), name='request_detail'),
     path('requests/<int:pk>/edit/', views.RequestUpdateView.as_view(), name='request_edit'),
     path('requests/<int:pk>/delete/', views.RequestDeleteView.as_view(), name='request_delete'),
@@ -70,4 +69,34 @@ urlpatterns = [
     # Import URLs
     path('data/studies/import/', views.import_studies_from_file, name='import_studies'),
     path('data/antibodies/import/', views.import_antibodies_from_file, name='import_antibodies'),
+    
+    # Request Type Specific URLs
+    path('staining/', views.StainingRequestsView.as_view(), name='staining_requests'),
+    path('embedding/', views.EmbeddingRequestsView.as_view(), name='embedding_requests'),
+    path('sectioning/', views.SectioningRequestsView.as_view(), name='sectioning_requests'),
+    
+    # Request Type Create URLs
+    path('staining/create/', views.StainingRequestCreateView.as_view(), name='staining_request_create'),
+    path('embedding/create/', views.EmbeddingRequestCreateView.as_view(), name='embedding_request_create'),
+    path('sectioning/create/', views.SectioningRequestCreateView.as_view(), name='sectioning_request_create'),
+    
+    # Request Type Detail URLs
+    path('staining/<int:pk>/', views.StainingRequestDetailView.as_view(), name='staining_request_detail'),
+    path('embedding/<int:pk>/', views.EmbeddingRequestDetailView.as_view(), name='embedding_request_detail'),
+    path('sectioning/<int:pk>/', views.SectioningRequestDetailView.as_view(), name='sectioning_request_detail'),
+    
+    # Request Type Edit URLs
+    path('staining/<int:pk>/edit/', views.StainingRequestEditView.as_view(), name='staining_request_edit'),
+    path('embedding/<int:pk>/edit/', views.EmbeddingRequestEditView.as_view(), name='embedding_request_edit'),
+    path('sectioning/<int:pk>/edit/', views.SectioningRequestEditView.as_view(), name='sectioning_request_edit'),
+    
+    # Request Type Delete URLs
+    path('staining/<int:pk>/delete/', views.StainingRequestDeleteView.as_view(), name='staining_request_delete'),
+    path('embedding/<int:pk>/delete/', views.EmbeddingRequestDeleteView.as_view(), name='embedding_request_delete'),
+    path('sectioning/<int:pk>/delete/', views.SectioningRequestDeleteView.as_view(), name='sectioning_request_delete'),
+    
+    # Request Type Search URLs
+    path('staining/search/', views.StainingRequestSearchView.as_view(), name='staining_request_search'),
+    path('embedding/search/', views.EmbeddingRequestSearchView.as_view(), name='embedding_request_search'),
+    path('sectioning/search/', views.SectioningRequestSearchView.as_view(), name='sectioning_request_search'),
 ] 
