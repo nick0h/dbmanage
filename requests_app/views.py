@@ -1457,7 +1457,7 @@ class StainingRequestDeleteView(DeleteView):
 # Embedding Request Detail, Edit, Delete Views
 class EmbeddingRequestDetailView(DetailView):
     model = EmbeddingRequest
-    template_name = 'requests_app/request_detail.html'
+    template_name = 'requests_app/embedding_request_detail.html'
     context_object_name = 'request'
 
 class EmbeddingRequestEditView(UpdateView):
@@ -1501,7 +1501,7 @@ class EmbeddingRequestDeleteView(DeleteView):
 # Sectioning Request Detail, Edit, Delete Views
 class SectioningRequestDetailView(DetailView):
     model = SectioningRequest
-    template_name = 'requests_app/request_detail.html'
+    template_name = 'requests_app/sectioning_request_detail.html'
     context_object_name = 'request'
 
 class SectioningRequestEditView(UpdateView):

@@ -1,136 +1,187 @@
 {% extends "base.html" %}
 {% load static %}
+{% load url_filters %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid mt-3">
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h2">
-                    <i class="fas fa-cube text-success me-2"></i>Embedding Request #{{ request.key }}
-                </h1>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Embedding Request Details - #{{ request.key }}</h2>
                 <div>
-                    <a href="{% url 'embedding_request_edit' request.pk %}" class="btn btn-outline-success me-2">
+                    <a href="{% url 'embedding_requests' %}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-list me-2"></i>Back to List
+                    </a>
+                    <a href="{% url 'embedding_request_edit' request.key %}" class="btn btn-warning me-2">
                         <i class="fas fa-edit me-2"></i>Edit
                     </a>
-                    <a href="{% url 'embedding_requests' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    <a href="{% url 'embedding_request_delete' request.key %}" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Delete
                     </a>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class="row">
-        <div class="col-lg-8">
-            <!-- Basic Information -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-info-circle me-2"></i>Basic Information
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Request ID:</label>
-                                <p class="form-control-plaintext">{{ request.key }}</p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Requestor:</label>
-                                <p class="form-control-plaintext">{{ request.requestor.name }}</p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Study:</label>
-                                <p class="form-control-plaintext">{{ request.study.study_id }}</p>
-                            </div>
+            <div class="row">
+                <!-- Basic Information -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Basic Information
+                            </h5>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Status:</label>
-                                <p class="form-control-plaintext">
-                                    <span class="badge bg-secondary">{{ request.status.status }}</span>
-                                </p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Assigned To:</label>
-                                <p class="form-control-plaintext">{{ request.assigned_to.name|default:"Not assigned" }}</p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Date Created:</label>
-                                <p class="form-control-plaintext">{{ request.created_at|date:"F d, Y \a\t g:i A" }}</p>
-                            </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="fw-bold" style="width: 30%;">Request ID:</td>
+                                    <td>{{ request.key }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Created:</td>
+                                    <td>{{ request.created_at|date:'Y-m-d H:i' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Last Updated:</td>
+                                    <td>{{ request.updated_at|date:'Y-m-d H:i' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Requestor:</td>
+                                    <td>{{ request.requestor.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Status:</td>
+                                    <td>
+                                        <span class="badge bg-{% if request.status.status == 'Submitted' %}primary{% elif request.status.status == 'Pending' %}warning{% elif request.status.status == 'Complete' %}success{% elif request.status.status == 'Awaiting Completion' %}info{% else %}secondary{% endif %}">
+                                            {{ request.status.status|title }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Assigned To:</td>
+                                    <td>
+                                        {% if request.assigned_to %}
+                                            {{ request.assigned_to.name }}
+                                            {% if request.assigned_to.email %}
+                                                <br><small class="text-muted">{{ request.assigned_to.email }}</small>
+                                            {% endif %}
+                                            {% if request.assigned_to.department %}
+                                                <br><small class="text-muted">{{ request.assigned_to.department }}</small>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">Not assigned</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Study Information -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-microscope me-2"></i>Study Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="fw-bold" style="width: 30%;">Study ID:</td>
+                                    <td>{{ request.study.study_id }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Study Title:</td>
+                                    <td>{{ request.study.title }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Tissues:</td>
+                                    <td>
+                                        {% if request.tissues %}
+                                            {{ request.tissues.name }}
+                                        {% else %}
+                                            <span class="text-muted">No tissues specified</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Tissues -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="fas fa-microscope me-2"></i>Tissues
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if request.tissues %}
-                        <span class="badge bg-success">{{ request.tissues.name }}</span>
-                    {% else %}
-                        <p class="text-muted">No tissue specified</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Embedding Specifications -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-cube me-2"></i>Embedding Specifications
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Number of Animals:</label>
-                                <p class="form-control-plaintext">{{ request.number_of_animals|default:"Not specified" }}</p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Take Down Date:</label>
-                                <p class="form-control-plaintext">
-                                    {% if request.take_down_date %}
-                                        {{ request.take_down_date|date:"F d, Y" }}
-                                    {% else %}
-                                        Not specified
-                                    {% endif %}
-                                </p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Currently In:</label>
-                                <p class="form-control-plaintext">
-                                    {% if request.currently_in %}
-                                        <span class="badge bg-success">Yes</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">No</span>
-                                    {% endif %}
-                                </p>
-                            </div>
+            <!-- Embedding-Specific Information -->
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-cube me-2"></i>Embedding Specifications
+                            </h5>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Date of Xylene-EtOH Change:</label>
-                                <p class="form-control-plaintext">
-                                    {% if request.date_of_xylene_etoh_change %}
-                                        {{ request.date_of_xylene_etoh_change|date:"F d, Y" }}
-                                    {% else %}
-                                        Not specified
-                                    {% endif %}
-                                </p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Length of Time in EtOH:</label>
-                                <p class="form-control-plaintext">{{ request.length_of_time_in_etoh|default:"Not specified" }}</p>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <td class="fw-bold" style="width: 40%;">Number of Animals:</td>
+                                            <td>
+                                                {% if request.number_of_animals %}
+                                                    {{ request.number_of_animals }}
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Take Down Date:</td>
+                                            <td>
+                                                {% if request.take_down_date %}
+                                                    {{ request.take_down_date|date:'Y-m-d' }}
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Currently In:</td>
+                                            <td>
+                                                {% if request.currently_in is not None %}
+                                                    <span class="badge bg-{% if request.currently_in %}success{% else %}secondary{% endif %}">
+                                                        {% if request.currently_in %}Yes{% else %}No{% endif %}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <td class="fw-bold" style="width: 40%;">Date of Xylene-EtOH Change:</td>
+                                            <td>
+                                                {% if request.date_of_xylene_etoh_change %}
+                                                    {{ request.date_of_xylene_etoh_change|date:'Y-m-d' }}
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Length of Time in EtOH:</td>
+                                            <td>
+                                                {% if request.length_of_time_in_etoh %}
+                                                    {{ request.length_of_time_in_etoh }}
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -139,106 +190,71 @@
 
             <!-- Special Requests -->
             {% if request.special_request %}
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="fas fa-comment me-2"></i>Special Requests
-                    </h5>
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-star me-2"></i>Special Requests
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-0">{{ request.special_request }}</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p class="form-control-plaintext">{{ request.special_request }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Change Log -->
+            {% if request.change_logs.all %}
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-history me-2"></i>Change History
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
+                                            <th>Changed Fields</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for log in request.change_logs.all %}
+                                        <tr>
+                                            <td>{{ log.changed_at|date:'Y-m-d H:i' }}</td>
+                                            <td>
+                                                <span class="badge bg-{% if log.change_type == 'created' %}success{% elif log.change_type == 'updated' %}warning{% else %}danger{% endif %}">
+                                                    {{ log.change_type|title }}
+                                                </span>
+                                            </td>
+                                            <td>{{ log.description|default:"No description" }}</td>
+                                            <td>
+                                                {% if log.changed_fields %}
+                                                    {{ log.changed_fields|join:", " }}
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             {% endif %}
         </div>
-
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Quick Actions -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light">
-                    <h6 class="mb-0">
-                        <i class="fas fa-bolt me-2"></i>Quick Actions
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'embedding_request_edit' request.pk %}" class="btn btn-success">
-                            <i class="fas fa-edit me-2"></i>Edit Request
-                        </a>
-                        <a href="{% url 'embedding_request_delete' request.pk %}" class="btn btn-outline-danger">
-                            <i class="fas fa-trash me-2"></i>Delete Request
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Request Timeline -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h6 class="mb-0">
-                        <i class="fas fa-clock me-2"></i>Request Timeline
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-marker bg-success"></div>
-                            <div class="timeline-content">
-                                <h6 class="timeline-title">Request Created</h6>
-                                <p class="timeline-text small text-muted">{{ request.created_at|date:"M d, Y \a\t g:i A" }}</p>
-                            </div>
-                        </div>
-                        {% if request.updated_at != request.created_at %}
-                        <div class="timeline-item">
-                            <div class="timeline-marker bg-secondary"></div>
-                            <div class="timeline-content">
-                                <h6 class="timeline-title">Last Updated</h6>
-                                <p class="timeline-text small text-muted">{{ request.updated_at|date:"M d, Y \a\t g:i A" }}</p>
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
-
-<style>
-.timeline {
-    position: relative;
-    padding-left: 30px;
-}
-
-.timeline-item {
-    position: relative;
-    margin-bottom: 20px;
-}
-
-.timeline-marker {
-    position: absolute;
-    left: -8px;
-    top: 5px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid #fff;
-    box-shadow: 0 0 0 2px #dee2e6;
-}
-
-.timeline-content {
-    padding-left: 10px;
-}
-
-.timeline-title {
-    margin-bottom: 5px;
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-.timeline-text {
-    margin-bottom: 0;
-}
-</style>
 {% endblock %}
