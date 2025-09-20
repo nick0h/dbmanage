@@ -95,11 +95,11 @@ class EmbeddingRequestForm(forms.ModelForm):
     
     class Meta:
         model = EmbeddingRequest
-        fields = ['requestor', 'study', 'tissues', 'special_request', 'assigned_to', 'currently_in', 'take_down_date', 'length_of_time_in_etoh', 'number_of_animals', 'date_of_xylene_etoh_change']
+        fields = ['requestor', 'study', 'special_request', 'assigned_to', 'currently_in', 'take_down_date', 'length_of_time_in_etoh', 'number_of_animals', 'date_of_xylene_etoh_change']
+        exclude = ['tissues']
         widgets = {
             'requestor': forms.Select(attrs={'class': 'form-control'}),
             'study': forms.Select(attrs={'class': 'form-control'}),
-            'tissues': forms.SelectMultiple(attrs={'class': 'form-control'}),
             'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
             'assigned_to': forms.Select(attrs={'class': 'form-control'}),
             'currently_in': forms.Select(attrs={'class': 'form-control'}, choices=[(True, 'Yes'), (False, 'No')]),
@@ -113,12 +113,17 @@ class EmbeddingRequestForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['requestor'].queryset = Requestor.objects.all().order_by('name')
         self.fields['study'].queryset = Study.objects.all().order_by('study_id')
-        self.fields['tissues'].queryset = Tissue.objects.all().order_by('name')
         self.fields['assigned_to'].queryset = Assignee.objects.all().order_by('name')
         self.fields['assigned_to'].required = False
-        self.fields['tissues'].required = False
         self.fields['take_down_date'].required = False
         self.fields['length_of_time_in_etoh'].required = False
+        self.fields['currently_in'].required = False
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            instance.save()
+        return instance
 
 # Sectioning Request Form
 class SectioningRequestForm(forms.ModelForm):
@@ -126,11 +131,11 @@ class SectioningRequestForm(forms.ModelForm):
     
     class Meta:
         model = SectioningRequest
-        fields = ['requestor', 'study', 'tissues', 'special_request', 'assigned_to', 'cut_surface_down', 'sections_per_slide', 'slides_per_block', 'other', 'for_what']
+        fields = ['requestor', 'study', 'special_request', 'assigned_to', 'cut_surface_down', 'sections_per_slide', 'slides_per_block', 'other', 'for_what']
+        exclude = ['tissues']
         widgets = {
             'requestor': forms.Select(attrs={'class': 'form-control'}),
             'study': forms.Select(attrs={'class': 'form-control'}),
-            'tissues': forms.SelectMultiple(attrs={'class': 'form-control'}),
             'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
             'assigned_to': forms.Select(attrs={'class': 'form-control'}),
             'cut_surface_down': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -144,13 +149,77 @@ class SectioningRequestForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['requestor'].queryset = Requestor.objects.all().order_by('name')
         self.fields['study'].queryset = Study.objects.all().order_by('study_id')
-        self.fields['tissues'].queryset = Tissue.objects.all().order_by('name')
         self.fields['assigned_to'].queryset = Assignee.objects.all().order_by('name')
         self.fields['assigned_to'].required = False
-        self.fields['tissues'].required = False
         self.fields['sections_per_slide'].required = False
         self.fields['slides_per_block'].required = False
         self.fields['other'].required = False
+        self.fields['for_what'].required = False
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            instance.save()
+        return instance
+
+class EmbeddingRequestEditForm(forms.ModelForm):
+    special_request = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}), required=False, max_length=256)
+    
+    class Meta:
+        model = EmbeddingRequest
+        fields = ['status', 'requestor', 'study', 'special_request', 'assigned_to', 'currently_in', 'take_down_date', 'length_of_time_in_etoh', 'number_of_animals', 'date_of_xylene_etoh_change']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'requestor': forms.Select(attrs={'class': 'form-control'}),
+            'study': forms.Select(attrs={'class': 'form-control'}),
+            'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
+            'assigned_to': forms.Select(attrs={'class': 'form-control'}),
+            'currently_in': forms.Select(attrs={'class': 'form-control'}, choices=[(True, 'Yes'), (False, 'No')]),
+            'take_down_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'length_of_time_in_etoh': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 40}),
+            'number_of_animals': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Number of Animals'}),
+            'date_of_xylene_etoh_change': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['status'].queryset = Status.objects.all().order_by('status')
+        self.fields['requestor'].queryset = Requestor.objects.all().order_by('name')
+        self.fields['study'].queryset = Study.objects.all().order_by('study_id')
+        self.fields['assigned_to'].queryset = Assignee.objects.all().order_by('name')
+        self.fields['assigned_to'].required = False
+        self.fields['currently_in'].required = False
+
+class SectioningRequestEditForm(forms.ModelForm):
+    special_request = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}), required=False, max_length=256)
+    
+    class Meta:
+        model = SectioningRequest
+        fields = ['status', 'requestor', 'study', 'special_request', 'assigned_to', 'cut_surface_down', 'sections_per_slide', 'slides_per_block', 'other', 'for_what']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'requestor': forms.Select(attrs={'class': 'form-control'}),
+            'study': forms.Select(attrs={'class': 'form-control'}),
+            'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
+            'assigned_to': forms.Select(attrs={'class': 'form-control'}),
+            'cut_surface_down': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'sections_per_slide': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'slides_per_block': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'other': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'maxlength': 256}),
+            'for_what': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['status'].queryset = Status.objects.all().order_by('status')
+        self.fields['requestor'].queryset = Requestor.objects.all().order_by('name')
+        self.fields['study'].queryset = Study.objects.all().order_by('study_id')
+        self.fields['assigned_to'].queryset = Assignee.objects.all().order_by('name')
+        self.fields['assigned_to'].required = False
+        self.fields['sections_per_slide'].required = False
+        self.fields['slides_per_block'].required = False
+        self.fields['other'].required = False
+        self.fields['for_what'].required = False
 
 # Staining Request Search Form
 class StainingRequestSearchForm(forms.Form):
@@ -239,18 +308,32 @@ class EmbeddingRequestSearchForm(forms.Form):
         self.fields['assigned_to'].empty_label = "Select Assignee"
 
 class StudyEditForm(forms.ModelForm):
+    archived = forms.ChoiceField(
+        choices=[(False, 'No'), (True, 'Yes')],
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        initial=False,
+        required=False
+    )
+    
     class Meta:
         model = Study
-        fields = ['study_id', 'title']
+        fields = ['study_id', 'title', 'archived']
         widgets = {
             'study_id': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
             'title': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
         }
 
 class AntibodyForm(forms.ModelForm):
+    archived = forms.ChoiceField(
+        choices=[(False, 'No'), (True, 'Yes')],
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        initial=False,
+        required=False
+    )
+    
     class Meta:
         model = Antibody
-        fields = ['name', 'description', 'antigen', 'species', 'recognizes', 'vendor']
+        fields = ['name', 'description', 'antigen', 'species', 'recognizes', 'vendor', 'archived']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
@@ -305,9 +388,16 @@ class PriorityForm(forms.ModelForm):
         }
 
 class ProbeForm(forms.ModelForm):
+    archived = forms.ChoiceField(
+        choices=[(False, 'No'), (True, 'Yes')],
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        initial=False,
+        required=False
+    )
+    
     class Meta:
         model = Probe
-        fields = ['name', 'description', 'sequence', 'target_gene', 'vendor', 'catalog_number', 'platform', 'target_region', 'number_of_pairs']
+        fields = ['name', 'description', 'sequence', 'target_gene', 'vendor', 'catalog_number', 'platform', 'target_region', 'number_of_pairs', 'archived']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),

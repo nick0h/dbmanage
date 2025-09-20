@@ -105,6 +105,9 @@ urlpatterns = [
     path('embedding/search/', views.EmbeddingRequestSearchView.as_view(), name='embedding_request_search'),
     path('sectioning/search/', views.SectioningRequestSearchView.as_view(), name='sectioning_request_search'),
     
+    # Request Log Selection URL
+    path('logs/', views.RequestLogSelectionView.as_view(), name='request_log_selection'),
+    
     # Request History URLs
     path('staining/<int:pk>/history/', views.StainingRequestHistoryView.as_view(), name='staining_request_history'),
     path('embedding/<int:pk>/history/', views.EmbeddingRequestHistoryView.as_view(), name='embedding_request_history'),

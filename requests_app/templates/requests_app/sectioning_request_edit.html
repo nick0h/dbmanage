@@ -73,28 +73,60 @@
                                     <div class="text-danger small mt-1">{{ form.assigned_to.errors.0 }}</div>
                                 {% endif %}
                             </div>
-                        </div>
-
-                        <!-- Tissues -->
-                        <div class="row mb-3">
-                            <div class="col-12">
-                                <label for="{{ form.tissues.id_for_label }}" class="form-label">
-                                    <i class="fas fa-microscope me-1"></i>Tissues
+                            <div class="col-md-6">
+                                <label for="{{ form.status.id_for_label }}" class="form-label">
+                                    <i class="fas fa-flag me-1"></i>Status <span class="text-danger">*</span>
                                 </label>
-                                <div class="row">
-                                    <div class="col-md-10">
-                                        {{ form.tissues }}
-                                    </div>
-                                    <div class="col-md-2">
-                                        <button type="button" class="btn btn-outline-info w-100" id="addTissueBtn">Add Tissue</button>
-                                    </div>
-                                </div>
-                                <div id="tissueList" class="mt-2"></div>
-                                {% if form.tissues.errors %}
-                                    <div class="text-danger small mt-1">{{ form.tissues.errors.0 }}</div>
+                                {{ form.status }}
+                                {% if form.status.errors %}
+                                    <div class="text-danger small mt-1">{{ form.status.errors.0 }}</div>
                                 {% endif %}
                             </div>
                         </div>
+                        </div>
+
+                        <!-- Tissues (Read-Only) -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label class="form-label">
+                                    <i class="fas fa-microscope me-1"></i>Primary Tissue:
+                                </label>
+                                <div class="form-control-plaintext bg-light p-3 border rounded">
+                                    {% if object.tissues.first %}
+                                        <span class="badge bg-info fs-6">{{ object.tissues.first.name }}</span>
+                                    {% else %}
+                                        <span class="text-muted">No primary tissue selected</span>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">Primary tissue cannot be modified after request creation</small>
+                            </div>
+                        </div>
+
+                        {% if object.tissues.count > 1 %}
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label class="form-label">Additional Tissues ({{ object.tissues.count|add:-1 }}):</label>
+                                <div class="alert alert-info">
+                                    <ul class="list-unstyled mb-0">
+                                        {% for tissue in object.tissues.all %}
+                                            {% if not forloop.first %}
+                                                <li><i class="fas fa-tag me-2"></i>{{ tissue.name|truncatechars:40 }}</li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <small class="text-muted">Total tissues for this request: {{ object.tissues.count }}</small>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="alert alert-light">
+                                    <small class="text-muted">No additional tissues specified for this request.</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
 
                         <!-- Sectioning-Specific Fields -->
                         <div class="row mb-4">
@@ -200,42 +232,4 @@
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('sectioningRequestForm');
-    const addTissueBtn = document.getElementById('addTissueBtn');
-    const tissueList = document.getElementById('tissueList');
-    let tissueCount = 0;
-
-    // Add tissue dropdown
-    addTissueBtn.addEventListener('click', function() {
-        if (tissueCount < 10) { // Limit to 10 additional tissues
-            const tissueSelect = document.createElement('select');
-            tissueSelect.className = 'form-control mt-2';
-            tissueSelect.name = 'tissue_' + tissueCount;
-            
-            // Add default option
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.textContent = 'Select a tissue...';
-            tissueSelect.appendChild(defaultOption);
-            
-            // Clone the original tissue select options
-            const originalSelect = document.getElementById('id_tissues');
-            const options = originalSelect.querySelectorAll('option');
-            options.forEach(function(option) {
-                if (option.value !== '') { // Skip the default option
-                    const newOption = document.createElement('option');
-                    newOption.value = option.value;
-                    newOption.textContent = option.textContent;
-                    tissueSelect.appendChild(newOption);
-                }
-            });
-            
-            tissueList.appendChild(tissueSelect);
-            tissueCount++;
-        }
-    });
-});
-</script>
 {% endblock %}

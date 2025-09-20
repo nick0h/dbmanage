@@ -369,7 +369,7 @@ class EmbeddingRequestChangeLog(BaseChangeLog):
             'length_of_time_in_etoh': request.length_of_time_in_etoh,
         }
         
-        return cls.objects.create(
+        changelog = cls.objects.create(
             request=request,
             change_type=change_type,
             description=description,
@@ -377,7 +377,6 @@ class EmbeddingRequestChangeLog(BaseChangeLog):
             data=data,
             requestor=request.requestor,
             study=request.study,
-            tissues=request.tissues,
             status=request.status,
             assigned_to=request.assigned_to,
             special_request=request.special_request,
@@ -387,6 +386,11 @@ class EmbeddingRequestChangeLog(BaseChangeLog):
             date_of_xylene_etoh_change=request.date_of_xylene_etoh_change,
             length_of_time_in_etoh=request.length_of_time_in_etoh,
         )
+        
+        # Handle ManyToMany field separately
+        changelog.tissues.set(request.tissues.all())
+        
+        return changelog
 
 
 class SectioningRequestChangeLog(BaseChangeLog):
@@ -432,7 +436,7 @@ class SectioningRequestChangeLog(BaseChangeLog):
             'for_what': request.for_what,
         }
         
-        return cls.objects.create(
+        changelog = cls.objects.create(
             request=request,
             change_type=change_type,
             description=description,
@@ -440,7 +444,6 @@ class SectioningRequestChangeLog(BaseChangeLog):
             data=data,
             requestor=request.requestor,
             study=request.study,
-            tissues=request.tissues,
             status=request.status,
             assigned_to=request.assigned_to,
             special_request=request.special_request,
@@ -450,3 +453,8 @@ class SectioningRequestChangeLog(BaseChangeLog):
             other=request.other,
             for_what=request.for_what,
         )
+        
+        # Handle ManyToMany field separately
+        changelog.tissues.set(request.tissues.all())
+        
+        return changelog

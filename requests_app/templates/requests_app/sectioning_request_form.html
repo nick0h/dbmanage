@@ -75,21 +75,23 @@
                         <!-- Tissues -->
                         <div class="row mb-3">
                             <div class="col-12">
-                                <label for="{{ form.tissues.id_for_label }}" class="form-label">
-                                    <i class="fas fa-microscope me-1"></i>Tissues
+                                <label class="form-label">
+                                    <i class="fas fa-microscope me-1"></i>Tissue:
                                 </label>
                                 <div class="row">
                                     <div class="col-md-10">
-                                        {{ form.tissues }}
+                                        <select class="form-control" id="id_tissue" name="tissue">
+                                            <option value="">Select a tissue...</option>
+                                            {% for tissue in tissues %}
+                                                <option value="{{ tissue.pk }}">{{ tissue.name }}</option>
+                                            {% endfor %}
+                                        </select>
                                     </div>
                                     <div class="col-md-2">
                                         <button type="button" class="btn btn-outline-info w-100" id="addTissueBtn">Add Tissue</button>
                                     </div>
                                 </div>
                                 <div id="tissueList" class="mt-2"></div>
-                                {% if form.tissues.errors %}
-                                    <div class="text-danger small mt-1">{{ form.tissues.errors.0 }}</div>
-                                {% endif %}
                             </div>
                         </div>
 
@@ -218,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
             tissueSelect.appendChild(defaultOption);
             
             // Clone the original tissue select options
-            const originalSelect = document.getElementById('id_tissues');
+            const originalSelect = document.getElementById('id_tissue');
             const options = originalSelect.querySelectorAll('option');
             options.forEach(function(option) {
                 if (option.value !== '') { // Skip the default option

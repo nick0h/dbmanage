@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>
+                    <i class="fas fa-history me-2"></i>Request History - #{{ request.key }}
+                </h2>
+                <div>
+                    <a href="{% url 'request_log_selection' %}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-list me-2"></i>Back to Request Selection
+                    </a>
+                    <a href="{% url request_type|add:'_requests' %}" class="btn btn-outline-info me-2">
+                        <i class="fas fa-list me-2"></i>All {{ request_type|title }} Requests
+                    </a>
+                    <a href="{% url request_type|add:'_request_detail' request.pk %}" class="btn btn-primary">
+                        <i class="fas fa-eye me-2"></i>View Current Request
+                    </a>
+                </div>
+            </div>
+
+            {% if request %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>Request Information
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <strong>Request ID:</strong><br>
+                                        <span class="badge bg-primary fs-6">{{ request.key }}</span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Request Type:</strong><br>
+                                        <span class="badge bg-info fs-6">{{ request_type|title }}</span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Current Status:</strong><br>
+                                        <span class="badge bg-warning fs-6">{{ request.status }}</span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Requestor:</strong><br>
+                                        <span class="fs-6">{{ request.requestor }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-clock me-2"></i>All Snapshots for Request #{{ request.key }}
+                                <span class="badge bg-secondary ms-2">{{ change_logs|length }} snapshots</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if change_logs %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Version</th>
+                                                <th>Change Type</th>
+                                                <th>Description</th>
+                                                <th>Changed Fields</th>
+                                                <th>Date/Time</th>
+                                                <th>Status</th>
+                                                <th>Requestor</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for log in change_logs %}
+                                            <tr>
+                                                <td>
+                                                    <span class="badge bg-secondary">v{{ forloop.counter }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge {% if log.change_type == 'created' %}bg-success{% elif log.change_type == 'updated' %}bg-warning{% else %}bg-info{% endif %}">
+                                                        {{ log.change_type|title }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ log.description }}</td>
+                                                <td>
+                                                    {% if log.changed_fields %}
+                                                        {% for field in log.changed_fields %}
+                                                            <span class="badge bg-light text-dark me-1">{{ field }}</span>
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        <span class="text-muted">-</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ log.changed_at|date:'Y-m-d H:i' }}</td>
+                                                <td>{{ log.status }}</td>
+                                                <td>{{ log.requestor }}</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#versionModal{{ log.pk }}">
+                                                        <i class="fas fa-eye"></i> View
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Version Detail Modals -->
+                                {% for log in change_logs %}
+                                <div class="modal fade" id="versionModal{{ log.pk }}" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">
+                                                    Version {{ forloop.counter }} - {{ log.change_type|title }}
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <h6>Change Information</h6>
+                                                        <table class="table table-sm">
+                                                            <tr>
+                                                                <td><strong>Change Type:</strong></td>
+                                                                <td>{{ log.change_type|title }}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><strong>Description:</strong></td>
+                                                                <td>{{ log.description }}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><strong>Changed Fields:</strong></td>
+                                                                <td>
+                                                                    {% if log.changed_fields %}
+                                                                        {% for field in log.changed_fields %}
+                                                                            <span class="badge bg-light text-dark me-1">{{ field }}</span>
+                                                                        {% endfor %}
+                                                                    {% else %}
+                                                                        <span class="text-muted">None</span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><strong>Date/Time:</strong></td>
+                                                                <td>{{ log.changed_at|date:'Y-m-d H:i:s' }}</td>
+                                                            </tr>
+                                                        </table>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <h6>Request State at This Version</h6>
+                                                        <table class="table table-sm">
+                                                            <tr>
+                                                                <td><strong>Status:</strong></td>
+                                                                <td>{{ log.status }}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><strong>Requestor:</strong></td>
+                                                                <td>{{ log.requestor }}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><strong>Study:</strong></td>
+                                                                <td>{{ log.study }}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><strong>Assigned To:</strong></td>
+                                                                <td>{{ log.assigned_to }}</td>
+                                                            </tr>
+                                                            {% if request_type == 'staining' %}
+                                                            <tr>
+                                                                <td><strong>Antibody:</strong></td>
+                                                                <td>{{ log.antibody }}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><strong>Probe:</strong></td>
+                                                                <td>{{ log.probe }}</td>
+                                                            </tr>
+                                                            {% elif request_type == 'embedding' %}
+                                                            <tr>
+                                                                <td><strong>Number of Animals:</strong></td>
+                                                                <td>{{ log.number_of_animals }}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><strong>Currently In:</strong></td>
+                                                                <td>{{ log.currently_in }}</td>
+                                                            </tr>
+                                                            {% elif request_type == 'sectioning' %}
+                                                            <tr>
+                                                                <td><strong>Sections per Slide:</strong></td>
+                                                                <td>{{ log.sections_per_slide }}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><strong>Slides per Block:</strong></td>
+                                                                <td>{{ log.slides_per_block }}</td>
+                                                            </tr>
+                                                            {% endif %}
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">No Version History Available</h5>
+                                    <p class="text-muted">This request has no recorded changes yet.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

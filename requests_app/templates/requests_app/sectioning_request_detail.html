@@ -96,17 +96,27 @@
                                     <td>{{ request.study.title }}</td>
                                 </tr>
                                 <tr>
-                                    <td class="fw-bold">Tissues:</td>
+                                    <td class="fw-bold">Primary Tissue:</td>
                                     <td>
-                                        {% if request.tissues.all %}
-                                            {% for tissue in request.tissues.all %}
-                                                <span class="badge bg-info me-1">{{ tissue.name }}</span>
-                                            {% endfor %}
+                                        {% if request.tissues.first %}
+                                            <span class="badge bg-info fs-6">{{ request.tissues.first.name }}</span>
                                         {% else %}
-                                            <span class="text-muted">No tissues specified</span>
+                                            <span class="text-muted">No primary tissue specified</span>
                                         {% endif %}
                                     </td>
                                 </tr>
+                                {% if request.tissues.count > 1 %}
+                                <tr>
+                                    <td class="fw-bold">Additional Tissues:</td>
+                                    <td>
+                                        {% for tissue in request.tissues.all %}
+                                            {% if not forloop.first %}
+                                                <span class="badge bg-secondary me-1">{{ tissue.name }}</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                                {% endif %}
                             </table>
                         </div>
                     </div>
