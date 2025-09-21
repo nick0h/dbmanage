@@ -6,7 +6,7 @@ class RequestForm(forms.ModelForm):
     
     class Meta:
         model = Request
-        fields = ['requestor', 'antibody', 'probe', 'study', 'description', 'tissue', 'priority', 'special_request', 'assigned_to']
+        fields = ['requestor', 'antibody', 'probe', 'study', 'description', 'tissue', 'priority', 'special_request', 'assigned_to', 'links']
         widgets = {
             'requestor': forms.Select(attrs={'class': 'form-control'}),
             'antibody': forms.Select(attrs={'class': 'form-control'}),
@@ -95,7 +95,7 @@ class EmbeddingRequestForm(forms.ModelForm):
     
     class Meta:
         model = EmbeddingRequest
-        fields = ['requestor', 'study', 'special_request', 'assigned_to', 'currently_in', 'take_down_date', 'length_of_time_in_etoh', 'number_of_animals', 'date_of_xylene_etoh_change']
+        fields = ['requestor', 'study', 'special_request', 'assigned_to', 'currently_in', 'take_down_date', 'length_of_time_in_etoh', 'number_of_animals', 'date_of_xylene_etoh_change', 'links']
         exclude = ['tissues']
         widgets = {
             'requestor': forms.Select(attrs={'class': 'form-control'}),
@@ -131,14 +131,14 @@ class SectioningRequestForm(forms.ModelForm):
     
     class Meta:
         model = SectioningRequest
-        fields = ['requestor', 'study', 'special_request', 'assigned_to', 'cut_surface_down', 'sections_per_slide', 'slides_per_block', 'other', 'for_what']
+        fields = ['requestor', 'study', 'special_request', 'assigned_to', 'cut_surface_down', 'sections_per_slide', 'slides_per_block', 'other', 'for_what', 'links']
         exclude = ['tissues']
         widgets = {
             'requestor': forms.Select(attrs={'class': 'form-control'}),
             'study': forms.Select(attrs={'class': 'form-control'}),
             'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
             'assigned_to': forms.Select(attrs={'class': 'form-control'}),
-            'cut_surface_down': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'cut_surface_down': forms.Select(attrs={'class': 'form-control'}, choices=[(True, 'Yes'), (False, 'No')]),
             'sections_per_slide': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'slides_per_block': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'other': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'maxlength': 256}),
@@ -202,7 +202,7 @@ class SectioningRequestEditForm(forms.ModelForm):
             'study': forms.Select(attrs={'class': 'form-control'}),
             'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
             'assigned_to': forms.Select(attrs={'class': 'form-control'}),
-            'cut_surface_down': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'cut_surface_down': forms.Select(attrs={'class': 'form-control'}, choices=[(True, 'Yes'), (False, 'No')]),
             'sections_per_slide': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'slides_per_block': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'other': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'maxlength': 256}),

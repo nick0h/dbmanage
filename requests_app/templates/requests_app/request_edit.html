@@ -137,6 +137,41 @@
                     </div>
                 </div>
 
+                <!-- Links -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <label class="form-label">
+                            <i class="fas fa-link me-1"></i>Links
+                        </label>
+                        
+                        <!-- Display existing links -->
+                        {% if request_obj.links %}
+                        <div class="mb-3">
+                            <h6 class="text-primary">Current Links:</h6>
+                            {% for link in request_obj.links %}
+                            <div class="form-control mt-2 d-flex align-items-center">
+                                <a href="{{ link }}" target="_blank" class="text-decoration-none me-2">{{ link }}</a>
+                                <button type="button" class="btn btn-sm btn-outline-danger ms-auto" onclick="removeExistingLink(this)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-10">
+                                <input type="url" class="form-control" id="id_link" name="link" placeholder="Enter a link (e.g., https://example.com)" maxlength="255">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-outline-primary w-100" id="addLinkBtn">Add Link</button>
+                            </div>
+                        </div>
+                        <div id="linkList" class="mt-2"></div>
+                        <small class="text-muted">Add up to 10 links to relevant resources</small>
+                    </div>
+                </div>
+
                 <div class="row">
                     <div class="col-12">
                         <button type="submit" class="btn btn-primary">Save Changes</button>
@@ -147,4 +182,67 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addLinkBtn = document.getElementById('addLinkBtn');
+    const linkList = document.getElementById('linkList');
+    let linkCount = 0;
+    
+    // Count existing links to set proper counter
+    const existingLinks = document.querySelectorAll('.form-control.mt-2.d-flex.align-items-center');
+    linkCount = existingLinks.length;
+
+    // Add link functionality
+    addLinkBtn.addEventListener('click', function() {
+        const linkInput = document.getElementById('id_link');
+        const linkValue = linkInput.value.trim();
+        
+        if (linkValue && linkCount < 10) {
+            // Create a div to hold the link
+            const linkDiv = document.createElement('div');
+            linkDiv.className = 'form-control mt-2 d-flex align-items-center';
+            
+            // Create a hidden input for the link value
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'link_' + linkCount;
+            hiddenInput.value = linkValue;
+            
+            // Create a clickable link
+            const linkElement = document.createElement('a');
+            linkElement.href = linkValue;
+            linkElement.target = '_blank';
+            linkElement.className = 'text-decoration-none me-2';
+            linkElement.textContent = linkValue;
+            
+            // Create a remove button
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-sm btn-outline-danger ms-auto';
+            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            removeBtn.onclick = function() {
+                linkDiv.remove();
+                linkCount--;
+            };
+            
+            linkDiv.appendChild(hiddenInput);
+            linkDiv.appendChild(linkElement);
+            linkDiv.appendChild(removeBtn);
+            linkList.appendChild(linkDiv);
+            
+            // Clear the input and increment counter
+            linkInput.value = '';
+            linkCount++;
+        }
+    });
+    
+    // Function to remove existing links
+    window.removeExistingLink = function(button) {
+        const linkDiv = button.closest('.form-control');
+        linkDiv.remove();
+        linkCount--;
+    };
+});
+</script>
 {% endblock %} 

@@ -169,6 +169,7 @@ class Request(models.Model):
         max_length=20,
     )
     status_timestamp = models.DateTimeField(default=timezone.now, verbose_name="Status Set At")
+    links = models.JSONField(blank=True, null=True, verbose_name="Links")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -195,6 +196,7 @@ class EmbeddingRequest(models.Model):
     currently_in = models.BooleanField(choices=[(True, "Yes"), (False, "No")], default=False, verbose_name="Currently In?")
     date_of_xylene_etoh_change = models.DateField(blank=True, null=True, verbose_name="Date of Xylene-EtOH Change")
     length_of_time_in_etoh = models.CharField(blank=True, max_length=40, null=True, verbose_name="Length of Time in EtOH")
+    links = models.JSONField(blank=True, null=True, verbose_name="Links")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status_timestamp = models.DateTimeField(default=timezone.now, verbose_name="Status Set At")
@@ -224,6 +226,7 @@ class SectioningRequest(models.Model):
     sections_per_slide = models.IntegerField(blank=True, null=True, verbose_name="# of Sections/Slide")
     slides_per_block = models.IntegerField(blank=True, null=True, verbose_name="# of Slides/Block")
     for_what = models.CharField(choices=[("H&E", "H&E"), ("Special stain", "Special stain"), ("IHC", "IHC"), ("ISH", "ISH"), ("other", "Other")], default="H&E", max_length=20, verbose_name="For")
+    links = models.JSONField(blank=True, null=True, verbose_name="Links")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status_timestamp = models.DateTimeField(default=timezone.now, verbose_name="Status Set At")

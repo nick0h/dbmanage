@@ -73,6 +73,20 @@
             <textarea class="form-control" id="id_special_request" name="special_request" rows="3" maxlength="256"></textarea>
         </div>
 
+        <div class="form-group mb-3">
+            <label for="id_link">Links:</label>
+            <div class="row">
+                <div class="col-md-10">
+                    <input type="url" class="form-control" id="id_link" name="link" placeholder="Enter a link (e.g., https://example.com)" maxlength="255">
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-outline-primary w-100" id="addLinkBtn">Add Link</button>
+                </div>
+            </div>
+            <div id="linkList" class="mt-2"></div>
+            <small class="text-muted">Add up to 10 links to relevant resources</small>
+        </div>
+
         <div class="form-group">
             <button type="submit" class="btn btn-primary">Submit</button>
             <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
@@ -87,6 +101,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelBtn = document.getElementById('cancelBtn');
     const tissueList = document.getElementById('tissueList');
     let tissueCount = 0;
+    
+    const addLinkBtn = document.getElementById('addLinkBtn');
+    const linkList = document.getElementById('linkList');
+    let linkCount = 0;
 
     // Set today's date if not already set
     const dateField = document.getElementById('id_date');
@@ -125,11 +143,57 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Add link functionality
+    addLinkBtn.addEventListener('click', function() {
+        const linkInput = document.getElementById('id_link');
+        const linkValue = linkInput.value.trim();
+        
+        if (linkValue && linkCount < 10) {
+            // Create a div to hold the link
+            const linkDiv = document.createElement('div');
+            linkDiv.className = 'form-control mt-2 d-flex align-items-center';
+            
+            // Create a hidden input for the link value
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'link_' + linkCount;
+            hiddenInput.value = linkValue;
+            
+            // Create a clickable link
+            const linkElement = document.createElement('a');
+            linkElement.href = linkValue;
+            linkElement.target = '_blank';
+            linkElement.className = 'text-decoration-none me-2';
+            linkElement.textContent = linkValue;
+            
+            // Create a remove button
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-sm btn-outline-danger ms-auto';
+            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            removeBtn.onclick = function() {
+                linkDiv.remove();
+                linkCount--;
+            };
+            
+            linkDiv.appendChild(hiddenInput);
+            linkDiv.appendChild(linkElement);
+            linkDiv.appendChild(removeBtn);
+            linkList.appendChild(linkDiv);
+            
+            // Clear the input and increment counter
+            linkInput.value = '';
+            linkCount++;
+        }
+    });
+
     // Cancel button
     cancelBtn.addEventListener('click', function() {
         form.reset();
         tissueList.innerHTML = '';
         tissueCount = 0;
+        linkList.innerHTML = '';
+        linkCount = 0;
         // Reset date to today
         const today = new Date();
         document.getElementById('id_date').value = today.toISOString().split('T')[0];

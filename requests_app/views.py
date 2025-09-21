@@ -90,13 +90,24 @@ class RequestCreateView(FormView):
                 except (ValueError, Tissue.DoesNotExist):
                     pass
         
+        # Collect links from form data
+        links = []
+        for key, value in self.request.POST.items():
+            if key.startswith('link_') and value:  # link_0, link_1, etc.
+                links.append(value)
+        
         # Populate the data JSONField with form data
         request_obj.data = {
             'date': self.request.POST.get('date'),
             'description': form.cleaned_data.get('description'),
             'special_request': form.cleaned_data.get('special_request'),
             'tissues': additional_tissues,
+            'links': links,
         }
+        
+        # Store links in the links field
+        if links:
+            request_obj.links = links
         
         request_obj.save()
         return super().form_valid(form)
@@ -187,6 +198,16 @@ class EmbeddingRequestCreateView(FormView):
         if additional_tissues:
             request_obj.tissues.add(*additional_tissues)
         
+        # Handle links
+        links = []
+        for key, value in self.request.POST.items():
+            if key.startswith('link_') and value:  # link_0, link_1, etc.
+                links.append(value)
+        
+        if links:
+            request_obj.links = links
+            request_obj.save()
+        
         # Log the creation
         EmbeddingRequestChangeLog.log_change(
             request=request_obj,
@@ -233,6 +254,16 @@ class SectioningRequestCreateView(FormView):
         if additional_tissues:
             request_obj.tissues.add(*additional_tissues)
         
+        # Handle links
+        links = []
+        for key, value in self.request.POST.items():
+            if key.startswith('link_') and value:  # link_0, link_1, etc.
+                links.append(value)
+        
+        if links:
+            request_obj.links = links
+            request_obj.save()
+        
         # Log the creation
         SectioningRequestChangeLog.log_change(
             request=request_obj,
@@ -258,6 +289,33 @@ class RequestUpdateView(UpdateView):
         context['assignees'] = Assignee.objects.all().order_by('name')
         context['probes'] = Probe.objects.all().order_by('name')
         return context
+    
+    def form_valid(self, form):
+        print("DEBUG: RequestUpdateView form_valid called")
+        # Get the original object before saving
+        original_obj = Request.objects.get(pk=self.object.pk)
+        
+        # Debug: print all POST data
+        print(f"DEBUG: All POST keys: {list(self.request.POST.keys())}")
+        
+        # Handle links
+        links = []
+        for key, value in self.request.POST.items():
+            if key.startswith('link_') and value:  # link_0, link_1, etc.
+                links.append(value)
+        
+        # Debug: print what we're collecting
+        print(f"DEBUG: Collected links: {links}")
+        print(f"DEBUG: POST data with 'link': {[k for k in self.request.POST.keys() if 'link' in k]}")
+        
+        # Always update links (even if empty to handle removals)
+        self.object.links = links
+        self.object.save()
+        print(f"DEBUG: Saved links to database: {self.object.links}")
+        
+        # Save the form
+        response = super().form_valid(form)
+        return response
 
 class RequestDeleteView(DeleteView):
     model = Request
@@ -1484,8 +1542,27 @@ class StainingRequestEditView(UpdateView):
         return context
     
     def form_valid(self, form):
+        print("DEBUG: StainingRequestEditView form_valid called")
         # Get the original object before saving
         original_obj = Request.objects.get(pk=self.object.pk)
+        
+        # Debug: print all POST data
+        print(f"DEBUG: All POST keys: {list(self.request.POST.keys())}")
+        
+        # Handle links
+        links = []
+        for key, value in self.request.POST.items():
+            if key.startswith('link_') and value:  # link_0, link_1, etc.
+                links.append(value)
+        
+        # Debug: print what we're collecting
+        print(f"DEBUG: Collected links: {links}")
+        print(f"DEBUG: POST data with 'link': {[k for k in self.request.POST.keys() if 'link' in k]}")
+        
+        # Always update links (even if empty to handle removals)
+        self.object.links = links
+        self.object.save()
+        print(f"DEBUG: Saved links to database: {self.object.links}")
         
         # Save the form
         response = super().form_valid(form)
@@ -1537,8 +1614,27 @@ class EmbeddingRequestEditView(UpdateView):
         return context
     
     def form_valid(self, form):
+        print("DEBUG: EmbeddingRequestEditView form_valid called")
         # Get the original object before saving
         original_obj = EmbeddingRequest.objects.get(pk=self.object.pk)
+        
+        # Debug: print all POST data
+        print(f"DEBUG: All POST keys: {list(self.request.POST.keys())}")
+        
+        # Handle links
+        links = []
+        for key, value in self.request.POST.items():
+            if key.startswith('link_') and value:  # link_0, link_1, etc.
+                links.append(value)
+        
+        # Debug: print what we're collecting
+        print(f"DEBUG: Collected links: {links}")
+        print(f"DEBUG: POST data with 'link': {[k for k in self.request.POST.keys() if 'link' in k]}")
+        
+        # Always update links (even if empty to handle removals)
+        self.object.links = links
+        self.object.save()
+        print(f"DEBUG: Saved links to database: {self.object.links}")
         
         # Save the form
         response = super().form_valid(form)
@@ -1590,8 +1686,27 @@ class SectioningRequestEditView(UpdateView):
         return context
     
     def form_valid(self, form):
+        print("DEBUG: SectioningRequestEditView form_valid called")
         # Get the original object before saving
         original_obj = SectioningRequest.objects.get(pk=self.object.pk)
+        
+        # Debug: print all POST data
+        print(f"DEBUG: All POST keys: {list(self.request.POST.keys())}")
+        
+        # Handle links
+        links = []
+        for key, value in self.request.POST.items():
+            if key.startswith('link_') and value:  # link_0, link_1, etc.
+                links.append(value)
+        
+        # Debug: print what we're collecting
+        print(f"DEBUG: Collected links: {links}")
+        print(f"DEBUG: POST data with 'link': {[k for k in self.request.POST.keys() if 'link' in k]}")
+        
+        # Always update links (even if empty to handle removals)
+        self.object.links = links
+        self.object.save()
+        print(f"DEBUG: Saved links to database: {self.object.links}")
         
         # Save the form
         response = super().form_valid(form)
