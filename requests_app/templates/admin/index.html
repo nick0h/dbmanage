@@ -79,6 +79,83 @@
         </div>
     </div>
 
+    <!-- Delete Requests Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trash me-2"></i>Delete Requests
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Staining Delete Section -->
+                    <div class="border-bottom">
+                        <div class="bg-light p-3">
+                            <h6 class="mb-0 text-primary">
+                                <i class="fas fa-vial me-2"></i>Staining Requests
+                            </h6>
+                        </div>
+                        <div class="p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="text-muted">Delete staining requests permanently</span>
+                                </div>
+                                <div>
+                                    <a href="{% url 'staining_requests_delete' %}" class="btn btn-danger">
+                                        <i class="fas fa-trash me-2"></i>Delete Staining Requests
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Embedding Delete Section -->
+                    <div class="border-bottom">
+                        <div class="bg-light p-3">
+                            <h6 class="mb-0 text-success">
+                                <i class="fas fa-cube me-2"></i>Embedding Requests
+                            </h6>
+                        </div>
+                        <div class="p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="text-muted">Delete embedding requests permanently</span>
+                                </div>
+                                <div>
+                                    <a href="{% url 'embedding_requests_delete' %}" class="btn btn-danger">
+                                        <i class="fas fa-trash me-2"></i>Delete Embedding Requests
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sectioning Delete Section -->
+                    <div>
+                        <div class="bg-light p-3">
+                            <h6 class="mb-0 text-info">
+                                <i class="fas fa-cut me-2"></i>Sectioning Requests
+                            </h6>
+                        </div>
+                        <div class="p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="text-muted">Delete sectioning requests permanently</span>
+                                </div>
+                                <div>
+                                    <a href="{% url 'sectioning_requests_delete' %}" class="btn btn-danger">
+                                        <i class="fas fa-trash me-2"></i>Delete Sectioning Requests
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Database Management Section -->
     <div class="row">
         <div class="col-12">

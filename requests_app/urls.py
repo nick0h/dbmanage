@@ -105,6 +105,11 @@ urlpatterns = [
     path('embedding/search/', views.EmbeddingRequestSearchView.as_view(), name='embedding_request_search'),
     path('sectioning/search/', views.SectioningRequestSearchView.as_view(), name='sectioning_request_search'),
     
+    # Request Type Delete List URLs
+    path('staining/delete/', views.StainingRequestsDeleteView.as_view(), name='staining_requests_delete'),
+    path('embedding/delete/', views.EmbeddingRequestsDeleteView.as_view(), name='embedding_requests_delete'),
+    path('sectioning/delete/', views.SectioningRequestsDeleteView.as_view(), name='sectioning_requests_delete'),
+    
     # Request Log Selection URL
     path('logs/', views.RequestLogSelectionView.as_view(), name='request_log_selection'),
     

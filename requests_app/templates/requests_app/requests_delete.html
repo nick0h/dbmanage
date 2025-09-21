@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Delete Staining Requests</h2>
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-home me-2"></i>Back to Homepage
+        </a>
+    </div>
+    
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Warning:</strong> Deleting requests is permanent and cannot be undone. Please review each request carefully before deletion.
+    </div>
+    
+    {% if requests %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-trash me-2"></i>Select Requests to Delete
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post" id="deleteForm">
+                {% csrf_token %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>
+                                    <input type="checkbox" id="selectAll" class="form-check-input">
+                                </th>
+                                <th>ID</th>
+                                <th>Requestor</th>
+                                <th>Antibody</th>
+                                <th>Study</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in requests %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="request_ids" value="{{ request.pk }}" class="form-check-input request-checkbox">
+                                </td>
+                                <td>{{ request.pk }}</td>
+                                <td>{{ request.requestor.name }}</td>
+                                <td>{{ request.antibody.name }}</td>
+                                <td>{{ request.study.study_id }}</td>
+                                <td>
+                                    <span class="badge bg-{{ request.status.status|lower }}">{{ request.status.status }}</span>
+                                </td>
+                                <td>{{ request.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'request_detail' request.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'request_delete' request.pk %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this request?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-danger" id="deleteSelectedBtn" disabled>
+                        <i class="fas fa-trash me-2"></i>Delete Selected Requests
+                    </button>
+                    <span class="ms-3 text-muted" id="selectedCount">0 requests selected</span>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">&laquo; First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">No Staining Requests Found</h4>
+            <p class="text-muted">There are no staining requests to delete.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const requestCheckboxes = document.querySelectorAll('.request-checkbox');
+    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    // Select all functionality
+    selectAllCheckbox.addEventListener('change', function() {
+        requestCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateDeleteButton();
+    });
+    
+    // Individual checkbox change
+    requestCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateSelectAll();
+            updateDeleteButton();
+        });
+    });
+    
+    function updateSelectAll() {
+        const checkedCount = document.querySelectorAll('.request-checkbox:checked').length;
+        selectAllCheckbox.checked = checkedCount === requestCheckboxes.length;
+        selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < requestCheckboxes.length;
+    }
+    
+    function updateDeleteButton() {
+        const checkedCount = document.querySelectorAll('.request-checkbox:checked').length;
+        deleteSelectedBtn.disabled = checkedCount === 0;
+        selectedCount.textContent = `${checkedCount} request${checkedCount !== 1 ? 's' : ''} selected`;
+    }
+    
+    // Delete form submission
+    document.getElementById('deleteForm').addEventListener('submit', function(e) {
+        const checkedCount = document.querySelectorAll('.request-checkbox:checked').length;
+        if (checkedCount === 0) {
+            e.preventDefault();
+            alert('Please select at least one request to delete.');
+            return;
+        }
+        
+        if (!confirm(`Are you sure you want to delete ${checkedCount} request${checkedCount !== 1 ? 's' : ''}? This action cannot be undone.`)) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

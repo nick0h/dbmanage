@@ -277,7 +277,7 @@ class RequestUpdateView(UpdateView):
     model = Request
     form_class = RequestEditForm
     template_name = 'requests_app/request_edit.html'
-    success_url = reverse_lazy('request_list')
+    success_url = reverse_lazy('staining_requests')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1734,6 +1734,34 @@ class SectioningRequestDeleteView(DeleteView):
     model = SectioningRequest
     template_name = 'requests_app/request_confirm_delete.html'
     success_url = reverse_lazy('sectioning_requests')
+
+# Delete Request Views - List all requests with delete buttons
+class StainingRequestsDeleteView(ListView):
+    model = Request
+    template_name = 'requests_app/requests_delete.html'
+    context_object_name = 'requests'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return Request.objects.all().order_by('-created_at')
+
+class EmbeddingRequestsDeleteView(ListView):
+    model = EmbeddingRequest
+    template_name = 'requests_app/embedding_requests_delete.html'
+    context_object_name = 'requests'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return EmbeddingRequest.objects.all().order_by('-created_at')
+
+class SectioningRequestsDeleteView(ListView):
+    model = SectioningRequest
+    template_name = 'requests_app/sectioning_requests_delete.html'
+    context_object_name = 'requests'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return SectioningRequest.objects.all().order_by('-created_at')
 
 
 # Current Requests Views (Filtered - Exclude Complete)
