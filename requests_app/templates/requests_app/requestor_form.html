@@ -10,12 +10,18 @@
     </a>
 </div>
 <div class="mb-3">
-    <label for="id_name" class="form-label">Name:</label>
-    <input type="text" class="form-control" id="id_name" name="name" required maxlength="256">
+    {{ form.name.label_tag }}
+    {{ form.name }}
+    {% if form.name.errors %}
+        <div class="text-danger">{{ form.name.errors }}</div>
+    {% endif %}
 </div>
 <div class="mb-3">
-    <label for="id_priority" class="form-label">Priority</label>
-    {{ form.priority }}
-    <div class="form-text">1 = Low, 5 = High</div>
+    {{ form.email.label_tag }}
+    {{ form.email }}
+    {% if form.email.errors %}
+        <div class="text-danger">{{ form.email.errors }}</div>
+    {% endif %}
+    <div class="form-text">Optional email address for the requestor</div>
 </div>
 {% endblock %} 

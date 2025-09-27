@@ -5,9 +5,14 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Edit Request #{{ request_obj.key }}</h2>
-        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-home me-2"></i>Back to Homepage
-        </a>
+        <div>
+            <a href="{% url 'staining_request_detail' request_obj.pk %}" class="btn btn-outline-primary me-2">
+                <i class="fas fa-eye me-2"></i>View Details
+            </a>
+            <a href="{% url 'staining_requests' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-list me-2"></i>Back to Staining Requests
+            </a>
+        </div>
     </div>
     
     <div class="card mb-4">
@@ -175,7 +180,7 @@
                 <div class="row">
                     <div class="col-12">
                         <button type="submit" class="btn btn-primary">Save Changes</button>
-                        <a href="{% url 'request_search' %}" class="btn btn-secondary">Cancel</a>
+                        <a href="{% url 'staining_request_search' %}" class="btn btn-secondary">Cancel</a>
                     </div>
                 </div>
             </form>

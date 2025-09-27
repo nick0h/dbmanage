@@ -15,6 +15,7 @@ PRIORITY_CHOICES = [
 class Requestor(models.Model):
     key = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
+    email = models.EmailField(blank=True, null=True, help_text="Email address for notifications")
 
     def __str__(self):
         return self.name
@@ -396,6 +397,76 @@ class EmbeddingRequestChangeLog(BaseChangeLog):
         return changelog
 
 
+# Notification Settings Model
+class NotificationSettings(models.Model):
+    """Model to store notification preferences for different request types and statuses"""
+    
+    REQUEST_TYPE_CHOICES = [
+        ('staining', 'Staining Request'),
+        ('embedding', 'Embedding Request'),
+        ('sectioning', 'Sectioning Request'),
+    ]
+    
+    request_type = models.CharField(
+        max_length=20,
+        choices=REQUEST_TYPE_CHOICES,
+        help_text="Type of request for these notification settings"
+    )
+    status = models.ForeignKey(
+        Status,
+        on_delete=models.CASCADE,
+        help_text="Status that triggers notifications"
+    )
+    notify_enabled = models.BooleanField(
+        default=True,
+        help_text="Whether to send notifications for this status"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['request_type', 'status']
+        verbose_name = "Notification Setting"
+        verbose_name_plural = "Notification Settings"
+        ordering = ['request_type', 'status__status']
+    
+    def __str__(self):
+        return f"{self.get_request_type_display()} - {self.status.status} ({'Enabled' if self.notify_enabled else 'Disabled'})"
+    
+    @classmethod
+    def get_settings_for_request_type(cls, request_type):
+        """Get all notification settings for a specific request type"""
+        return cls.objects.filter(request_type=request_type)
+    
+    @classmethod
+    def is_notification_enabled(cls, request_type, status):
+        """Check if notifications are enabled for a specific request type and status"""
+        try:
+            setting = cls.objects.get(request_type=request_type, status=status)
+            return setting.notify_enabled
+        except cls.DoesNotExist:
+            return False  # Default to disabled if no setting exists
+    
+    @classmethod
+    def update_settings(cls, request_type, status_settings):
+        """Update notification settings for a request type
+        
+        Args:
+            request_type (str): The type of request (staining, embedding, sectioning)
+            status_settings (dict): Dictionary mapping status IDs to enabled/disabled
+        """
+        for status_id, enabled in status_settings.items():
+            status = Status.objects.get(pk=status_id)
+            setting, created = cls.objects.get_or_create(
+                request_type=request_type,
+                status=status,
+                defaults={'notify_enabled': enabled}
+            )
+            if not created:
+                setting.notify_enabled = enabled
+                setting.save()
+
+
 class SectioningRequestChangeLog(BaseChangeLog):
     """Change log for SectioningRequest"""
     request = models.ForeignKey(SectioningRequest, on_delete=models.CASCADE, related_name='change_logs')
@@ -461,3 +532,73 @@ class SectioningRequestChangeLog(BaseChangeLog):
         changelog.tissues.set(request.tissues.all())
         
         return changelog
+
+
+# Notification Settings Model
+class NotificationSettings(models.Model):
+    """Model to store notification preferences for different request types and statuses"""
+    
+    REQUEST_TYPE_CHOICES = [
+        ('staining', 'Staining Request'),
+        ('embedding', 'Embedding Request'),
+        ('sectioning', 'Sectioning Request'),
+    ]
+    
+    request_type = models.CharField(
+        max_length=20,
+        choices=REQUEST_TYPE_CHOICES,
+        help_text="Type of request for these notification settings"
+    )
+    status = models.ForeignKey(
+        Status,
+        on_delete=models.CASCADE,
+        help_text="Status that triggers notifications"
+    )
+    notify_enabled = models.BooleanField(
+        default=True,
+        help_text="Whether to send notifications for this status"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['request_type', 'status']
+        verbose_name = "Notification Setting"
+        verbose_name_plural = "Notification Settings"
+        ordering = ['request_type', 'status__status']
+    
+    def __str__(self):
+        return f"{self.get_request_type_display()} - {self.status.status} ({'Enabled' if self.notify_enabled else 'Disabled'})"
+    
+    @classmethod
+    def get_settings_for_request_type(cls, request_type):
+        """Get all notification settings for a specific request type"""
+        return cls.objects.filter(request_type=request_type)
+    
+    @classmethod
+    def is_notification_enabled(cls, request_type, status):
+        """Check if notifications are enabled for a specific request type and status"""
+        try:
+            setting = cls.objects.get(request_type=request_type, status=status)
+            return setting.notify_enabled
+        except cls.DoesNotExist:
+            return False  # Default to disabled if no setting exists
+    
+    @classmethod
+    def update_settings(cls, request_type, status_settings):
+        """Update notification settings for a request type
+        
+        Args:
+            request_type (str): The type of request (staining, embedding, sectioning)
+            status_settings (dict): Dictionary mapping status IDs to enabled/disabled
+        """
+        for status_id, enabled in status_settings.items():
+            status = Status.objects.get(pk=status_id)
+            setting, created = cls.objects.get_or_create(
+                request_type=request_type,
+                status=status,
+                defaults={'notify_enabled': enabled}
+            )
+            if not created:
+                setting.notify_enabled = enabled
+                setting.save()

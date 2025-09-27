@@ -5,16 +5,6 @@ urlpatterns = [
     # Home page
     path('', views.home, name='home'),
     
-    # Request URLs
-    path('requests/', views.RequestHomeView.as_view(), name='requests_home'),
-    path('requests_home/', views.SimpleRequestHomeView.as_view(), name='simple_requests_home'),
-    path('requests/list/', views.RequestListView.as_view(), name='request_list'),
-    path('requests/<int:pk>/', views.RequestDetailView.as_view(), name='request_detail'),
-    path('requests/<int:pk>/edit/', views.RequestUpdateView.as_view(), name='request_edit'),
-    path('requests/<int:pk>/delete/', views.RequestDeleteView.as_view(), name='request_delete'),
-    path('requests/search/', views.RequestSearchView.as_view(), name='request_search'),
-
-    
     # Study URLs
     path('data/studies/<int:pk>/edit/', views.StudyUpdateView.as_view(), name='study_edit'),
     path('data/studies/<int:pk>/delete/', views.StudyDeleteView.as_view(), name='study_delete'),
@@ -69,6 +59,7 @@ urlpatterns = [
     # Import URLs
     path('data/studies/import/', views.import_studies_from_file, name='import_studies'),
     path('data/antibodies/import/', views.import_antibodies_from_file, name='import_antibodies'),
+    path('data/probes/import/', views.import_probes_from_file, name='import_probes'),
     
     # Request Type Specific URLs (All Requests)
     path('staining/', views.StainingRequestsView.as_view(), name='staining_requests'),
@@ -117,4 +108,12 @@ urlpatterns = [
     path('staining/<int:pk>/history/', views.StainingRequestHistoryView.as_view(), name='staining_request_history'),
     path('embedding/<int:pk>/history/', views.EmbeddingRequestHistoryView.as_view(), name='embedding_request_history'),
     path('sectioning/<int:pk>/history/', views.SectioningRequestHistoryView.as_view(), name='sectioning_request_history'),
+    
+        # Notification Configuration URLs
+        path('notifications/staining/', views.StainingNotificationConfigView.as_view(), name='staining_notification_config'),
+        path('notifications/embedding/', views.EmbeddingNotificationConfigView.as_view(), name='embedding_notification_config'),
+        path('notifications/sectioning/', views.SectioningNotificationConfigView.as_view(), name='sectioning_notification_config'),
+        
+        # Email Test URL
+        path('email-test/', views.EmailTestView.as_view(), name='email_test'),
 ] 

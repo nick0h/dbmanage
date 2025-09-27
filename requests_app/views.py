@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import FormView, ListView, UpdateView, DetailView, DeleteView, TemplateView
 from django.urls import reverse_lazy
-from .forms import RequestForm, RequestEditForm, RequestSearchForm, StudyEditForm, AntibodyForm, RequestorForm, TissueForm, StatusForm, AssigneeForm, ProbeForm, PriorityForm, SectioningRequestSearchForm, EmbeddingRequestSearchForm, EmbeddingRequestForm, SectioningRequestForm, StainingRequestSearchForm, EmbeddingRequestEditForm, SectioningRequestEditForm
-from .models import Request, Status, Study, Requestor, Antibody, Tissue, Assignee, Probe, Priority, StainingRequest, EmbeddingRequest, SectioningRequest, StainingRequestChangeLog, EmbeddingRequestChangeLog, SectioningRequestChangeLog
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils.decorators import method_decorator
+from .forms import RequestForm, RequestEditForm, RequestSearchForm, StudyEditForm, AntibodyForm, RequestorForm, TissueForm, StatusForm, AssigneeForm, ProbeForm, PriorityForm, SectioningRequestSearchForm, EmbeddingRequestSearchForm, EmbeddingRequestForm, SectioningRequestForm, StainingRequestSearchForm, EmbeddingRequestEditForm, SectioningRequestEditForm, StainingNotificationConfigForm, EmbeddingNotificationConfigForm, SectioningNotificationConfigForm
+from .models import Request, Status, Study, Requestor, Antibody, Tissue, Assignee, Probe, Priority, StainingRequest, EmbeddingRequest, SectioningRequest, StainingRequestChangeLog, EmbeddingRequestChangeLog, SectioningRequestChangeLog, NotificationSettings
 from django.http import JsonResponse
 from django.db.models import Q
 from datetime import datetime
@@ -14,6 +16,9 @@ import openpyxl
 import os
 
 # Create your views here.
+
+def is_staff_user(user):
+    return user.is_authenticated and user.is_staff
 
 def home(request):
     return render(request, 'requests_app/home.html')
@@ -1195,6 +1200,118 @@ def import_antibodies_from_file(request):
     
     return redirect('antibody_list')
 
+def import_probes_from_file(request):
+    if request.method == 'POST':
+        if 'file' not in request.FILES:
+            messages.error(request, 'No file was uploaded.')
+            return redirect('probe_list')
+        
+        uploaded_file = request.FILES['file']
+        
+        # Check file extension
+        if not uploaded_file.name.endswith('.xlsx'):
+            messages.error(request, 'Please upload an Excel file (.xlsx)')
+            return redirect('probe_list')
+        
+        try:
+            # Read the Excel file
+            workbook = openpyxl.load_workbook(uploaded_file)
+            sheet = workbook.active
+            
+            # Check if the first row contains the expected headers
+            first_row = [cell.value for cell in sheet[1]]
+            if len(first_row) < 6:
+                messages.error(request, 'File formatting is incorrect for probe')
+                return redirect('probe_list')
+            
+            # Check for required headers (case insensitive)
+            first_row_lower = [str(cell).lower().strip() if cell else '' for cell in first_row]
+            name_index = None
+            description_index = None
+            target_gene_index = None
+            vendor_index = None
+            platform_index = None
+            number_of_pairs_index = None
+            
+            for i, header in enumerate(first_row_lower):
+                if 'name' in header:
+                    name_index = i
+                elif 'description' in header:
+                    description_index = i
+                elif 'target gene' in header:
+                    target_gene_index = i
+                elif 'vendor' in header:
+                    vendor_index = i
+                elif 'platform' in header:
+                    platform_index = i
+                elif 'number of pairs' in header:
+                    number_of_pairs_index = i
+            
+            if (name_index is None or description_index is None or
+                target_gene_index is None or vendor_index is None or 
+                platform_index is None or number_of_pairs_index is None):
+                messages.error(request, 'File formatting is incorrect for probe')
+                return redirect('probe_list')
+            
+            # Process each row starting from the second row
+            imported_count = 0
+            for row_num in range(2, sheet.max_row + 1):
+                name_cell = sheet.cell(row=row_num, column=name_index + 1)
+                description_cell = sheet.cell(row=row_num, column=description_index + 1)
+                target_gene_cell = sheet.cell(row=row_num, column=target_gene_index + 1)
+                vendor_cell = sheet.cell(row=row_num, column=vendor_index + 1)
+                platform_cell = sheet.cell(row=row_num, column=platform_index + 1)
+                number_of_pairs_cell = sheet.cell(row=row_num, column=number_of_pairs_index + 1)
+                
+                name = name_cell.value
+                description = description_cell.value
+                target_gene = target_gene_cell.value
+                vendor = vendor_cell.value
+                platform = platform_cell.value
+                number_of_pairs = number_of_pairs_cell.value
+                
+                # Skip empty rows (name is required)
+                if not name:
+                    continue
+                
+                # Clean and validate the data
+                name = str(name).strip()
+                description = str(description).strip() if description else ''
+                target_gene = str(target_gene).strip() if target_gene else ''
+                vendor = str(vendor).strip() if vendor else ''
+                platform = str(platform).strip() if platform else ''
+                
+                # Convert number_of_pairs to integer, default to 0 if not valid
+                try:
+                    number_of_pairs = int(number_of_pairs) if number_of_pairs else 0
+                except (ValueError, TypeError):
+                    number_of_pairs = 0
+                
+                if validate_import_input(name):
+                    # Check if probe already exists
+                    if not Probe.objects.filter(name=name).exists():
+                        Probe.objects.create(
+                            name=name,
+                            description=description,
+                            target_gene=target_gene,
+                            vendor=vendor,
+                            platform=platform,
+                            number_of_pairs=number_of_pairs
+                        )
+                        imported_count += 1
+            
+            if imported_count > 0:
+                messages.success(request, f'Successfully imported {imported_count} probes.')
+            else:
+                messages.warning(request, 'No new probes were imported.')
+                
+        except Exception as e:
+            messages.error(request, f'Error processing file: {str(e)}')
+        
+        return redirect('probe_list')
+    
+    return redirect('probe_list')
+
 # Staining Request Views
 class StainingRequestsView(ListView):
     model = StainingRequest
@@ -1736,6 +1853,7 @@ class SectioningRequestDeleteView(DeleteView):
     success_url = reverse_lazy('sectioning_requests')
 
 # Delete Request Views - List all requests with delete buttons
+@method_decorator(user_passes_test(is_staff_user), name='dispatch')
 class StainingRequestsDeleteView(ListView):
     model = Request
     template_name = 'requests_app/requests_delete.html'
@@ -1977,4 +2095,142 @@ class SectioningRequestHistoryView(ListView):
         except SectioningRequest.DoesNotExist:
             context['request'] = None
         return context
+
+
+# Notification Configuration Views
+@method_decorator(user_passes_test(is_staff_user), name='dispatch')
+class StainingNotificationConfigView(FormView):
+    """Admin-only view for configuring staining request notification settings"""
+    template_name = 'requests_app/notification_config.html'
+    form_class = StainingNotificationConfigForm
+    success_url = reverse_lazy('admin:index')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['statuses'] = Status.objects.all().order_by('status')
+        context['request_type'] = 'staining'
+        context['request_type_title'] = 'Staining Request'
+        context['request_type_icon'] = 'fas fa-vial'
+        context['request_type_color'] = 'primary'
+        
+        # Load existing settings
+        existing_settings = NotificationSettings.get_settings_for_request_type('staining')
+        context['existing_settings'] = {setting.status.key: setting.notify_enabled for setting in existing_settings}
+        
+        return context
+    
+    def form_valid(self, form):
+        # Extract notification settings from form data
+        status_settings = {}
+        for key, value in self.request.POST.items():
+            if key.startswith('notify_') and value == 'on':
+                status_id = key.replace('notify_', '')
+                status_settings[status_id] = True
+        
+        # Update settings in database
+        NotificationSettings.update_settings('staining', status_settings)
+        
+        messages.success(self.request, 'Staining request notification settings updated successfully!')
+        return super().form_valid(form)
+
+
+@method_decorator(user_passes_test(is_staff_user), name='dispatch')
+class EmbeddingNotificationConfigView(FormView):
+    """Admin-only view for configuring embedding request notification settings"""
+    template_name = 'requests_app/notification_config.html'
+    form_class = EmbeddingNotificationConfigForm
+    success_url = reverse_lazy('admin:index')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['statuses'] = Status.objects.all().order_by('status')
+        context['request_type'] = 'embedding'
+        context['request_type_title'] = 'Embedding Request'
+        context['request_type_icon'] = 'fas fa-cube'
+        context['request_type_color'] = 'success'
+        
+        # Load existing settings
+        existing_settings = NotificationSettings.get_settings_for_request_type('embedding')
+        context['existing_settings'] = {setting.status.key: setting.notify_enabled for setting in existing_settings}
+        
+        return context
+    
+    def form_valid(self, form):
+        # Extract notification settings from form data
+        status_settings = {}
+        for key, value in self.request.POST.items():
+            if key.startswith('notify_') and value == 'on':
+                status_id = key.replace('notify_', '')
+                status_settings[status_id] = True
+        
+        # Update settings in database
+        NotificationSettings.update_settings('embedding', status_settings)
+        
+        messages.success(self.request, 'Embedding request notification settings updated successfully!')
+        return super().form_valid(form)
+
+
+@method_decorator(user_passes_test(is_staff_user), name='dispatch')
+class SectioningNotificationConfigView(FormView):
+    """Admin-only view for configuring sectioning request notification settings"""
+    template_name = 'requests_app/notification_config.html'
+    form_class = SectioningNotificationConfigForm
+    success_url = reverse_lazy('admin:index')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['statuses'] = Status.objects.all().order_by('status')
+        context['request_type'] = 'sectioning'
+        context['request_type_title'] = 'Sectioning Request'
+        context['request_type_icon'] = 'fas fa-cut'
+        context['request_type_color'] = 'info'
+        
+        # Load existing settings
+        existing_settings = NotificationSettings.get_settings_for_request_type('sectioning')
+        context['existing_settings'] = {setting.status.key: setting.notify_enabled for setting in existing_settings}
+        
+        return context
+    
+    def form_valid(self, form):
+        # Extract notification settings from form data
+        status_settings = {}
+        for key, value in self.request.POST.items():
+            if key.startswith('notify_') and value == 'on':
+                status_id = key.replace('notify_', '')
+                status_settings[status_id] = True
+        
+        # Update settings in database
+        NotificationSettings.update_settings('sectioning', status_settings)
+        
+        messages.success(self.request, 'Sectioning request notification settings updated successfully!')
+        return super().form_valid(form)
+
+
+# Email Test View
+@method_decorator(user_passes_test(is_staff_user), name='dispatch')
+class EmailTestView(TemplateView):
+    """Admin-only view for testing email configuration"""
+    template_name = 'requests_app/email_test.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['admin_email'] = 'n30h.300@gmail.com'
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        """Send a test email"""
+        from .email_notifications import send_test_email
+        
+        recipient_email = request.POST.get('email', 'n30h.300@gmail.com')
+        
+        try:
+            success = send_test_email(recipient_email)
+            if success:
+                messages.success(request, f'Test email sent successfully to {recipient_email}!')
+            else:
+                messages.error(request, 'Failed to send test email. Check the logs for details.')
+        except Exception as e:
+            messages.error(request, f'Error sending test email: {str(e)}')
+        
+        return redirect('email_test')
 

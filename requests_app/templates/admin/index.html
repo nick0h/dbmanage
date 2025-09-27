@@ -40,10 +40,14 @@
                     </div>
                     <h5 class="card-title text-primary">Staining</h5>
                     <p class="card-text text-muted small">Manage staining requests and antibodies</p>
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'staining_requests_current' %}" class="btn btn-primary btn-sm">View Current Requests</a>
-                        <a href="{% url 'staining_requests' %}" class="btn btn-outline-primary btn-sm">View All Requests</a>
-                    </div>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'staining_requests_current' %}" class="btn btn-primary btn-sm">View Current Requests</a>
+                    <a href="{% url 'staining_requests' %}" class="btn btn-outline-primary btn-sm">View All Requests</a>
+                    <a href="{% url 'staining_requests_delete' %}" class="btn btn-sm" style="background-color: #6a0dad; border-color: #6a0dad; color: white;">Delete Requests</a>
+                    <a href="{% url 'staining_notification_config' %}" class="btn btn-sm" style="background-color: #28a745; border-color: #28a745; color: white;">
+                        <i class="fas fa-bell me-1"></i>Configure Notifications
+                    </a>
+                </div>
                 </div>
             </div>
         </div>
@@ -58,6 +62,10 @@
                     <div class="d-grid gap-2">
                         <a href="{% url 'embedding_requests_current' %}" class="btn btn-success btn-sm">View Current Requests</a>
                         <a href="{% url 'embedding_requests' %}" class="btn btn-outline-success btn-sm">View All Requests</a>
+                        <a href="{% url 'embedding_requests_delete' %}" class="btn btn-sm" style="background-color: #1e3a8a; border-color: #1e3a8a; color: white;">Delete Requests</a>
+                        <a href="{% url 'embedding_notification_config' %}" class="btn btn-sm" style="background-color: #28a745; border-color: #28a745; color: white;">
+                            <i class="fas fa-bell me-1"></i>Configure Notifications
+                        </a>
                     </div>
                 </div>
             </div>
@@ -73,88 +81,16 @@
                     <div class="d-grid gap-2">
                         <a href="{% url 'sectioning_requests_current' %}" class="btn btn-info btn-sm">View Current Requests</a>
                         <a href="{% url 'sectioning_requests' %}" class="btn btn-outline-info btn-sm">View All Requests</a>
+                        <a href="{% url 'sectioning_requests_delete' %}" class="btn btn-sm" style="background-color: #581c87; border-color: #581c87; color: white;">Delete Requests</a>
+                        <a href="{% url 'sectioning_notification_config' %}" class="btn btn-sm" style="background-color: #28a745; border-color: #28a745; color: white;">
+                            <i class="fas fa-bell me-1"></i>Configure Notifications
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Delete Requests Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-danger text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-trash me-2"></i>Delete Requests
-                    </h5>
-                </div>
-                <div class="card-body p-0">
-                    <!-- Staining Delete Section -->
-                    <div class="border-bottom">
-                        <div class="bg-light p-3">
-                            <h6 class="mb-0 text-primary">
-                                <i class="fas fa-vial me-2"></i>Staining Requests
-                            </h6>
-                        </div>
-                        <div class="p-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <span class="text-muted">Delete staining requests permanently</span>
-                                </div>
-                                <div>
-                                    <a href="{% url 'staining_requests_delete' %}" class="btn btn-danger">
-                                        <i class="fas fa-trash me-2"></i>Delete Staining Requests
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Embedding Delete Section -->
-                    <div class="border-bottom">
-                        <div class="bg-light p-3">
-                            <h6 class="mb-0 text-success">
-                                <i class="fas fa-cube me-2"></i>Embedding Requests
-                            </h6>
-                        </div>
-                        <div class="p-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <span class="text-muted">Delete embedding requests permanently</span>
-                                </div>
-                                <div>
-                                    <a href="{% url 'embedding_requests_delete' %}" class="btn btn-danger">
-                                        <i class="fas fa-trash me-2"></i>Delete Embedding Requests
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Sectioning Delete Section -->
-                    <div>
-                        <div class="bg-light p-3">
-                            <h6 class="mb-0 text-info">
-                                <i class="fas fa-cut me-2"></i>Sectioning Requests
-                            </h6>
-                        </div>
-                        <div class="p-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <span class="text-muted">Delete sectioning requests permanently</span>
-                                </div>
-                                <div>
-                                    <a href="{% url 'sectioning_requests_delete' %}" class="btn btn-danger">
-                                        <i class="fas fa-trash me-2"></i>Delete Sectioning Requests
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Database Management Section -->
     <div class="row">
@@ -213,6 +149,9 @@
                                             <a href="{% url 'admin:requests_app_antibody_add' %}" class="btn btn-outline-success btn-sm">
                                                 <i class="fas fa-plus"></i>
                                             </a>
+                                            <button class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#importAntibodyModal">
+                                                <i class="fas fa-file-import"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -241,6 +180,9 @@
                                             <a href="{% url 'admin:requests_app_probe_add' %}" class="btn btn-outline-success btn-sm">
                                                 <i class="fas fa-plus"></i>
                                             </a>
+                                            <button class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#importProbeModal">
+                                                <i class="fas fa-file-import"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -613,6 +555,9 @@
                                             <a href="{% url 'admin:requests_app_study_add' %}" class="btn btn-outline-success btn-sm">
                                                 <i class="fas fa-plus"></i>
                                             </a>
+                                            <button class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#importStudyModal">
+                                                <i class="fas fa-file-import"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -667,4 +612,91 @@
 
 <!-- Add Font Awesome for icons -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
+<!-- Import Antibody Modal -->
+<div class="modal fade" id="importAntibodyModal" tabindex="-1" aria-labelledby="importAntibodyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importAntibodyModalLabel">Import Antibodies from Excel File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'import_antibodies' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="antibodyFile" class="form-label">Select Excel File (.xlsx)</label>
+                        <input type="file" class="form-control" id="antibodyFile" name="file" accept=".xlsx" required>
+                        <div class="form-text">
+                            The file should have columns with headers "Name", "Description", "Antigen", "Species", "Recognizes", and "Vendor" (case insensitive).
+                            The first row should contain the headers, and data should start from the second row.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Import Antibodies</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Import Study Modal -->
+<div class="modal fade" id="importStudyModal" tabindex="-1" aria-labelledby="importStudyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importStudyModalLabel">Import Studies from Excel File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'import_studies' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="studyFile" class="form-label">Select Excel File (.xlsx)</label>
+                        <input type="file" class="form-control" id="studyFile" name="file" accept=".xlsx" required>
+                        <div class="form-text">
+                            The file should have columns with headers "Study ID" and "Title" (case insensitive).
+                            The first row should contain the headers, and data should start from the second row.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Import Studies</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Import Probe Modal -->
+<div class="modal fade" id="importProbeModal" tabindex="-1" aria-labelledby="importProbeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importProbeModalLabel">Import Probes from Excel File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'import_probes' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="probeFile" class="form-label">Select Excel File (.xlsx)</label>
+                        <input type="file" class="form-control" id="probeFile" name="file" accept=".xlsx" required>
+                        <div class="form-text">
+                            The file should have columns with headers "Name", "Description", "Target Gene", "Vendor", "Platform", and "Number of Pairs" (case insensitive).
+                            The first row should contain the headers, and data should start from the second row.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Import Probes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ request_type.title }} Request Status Updated</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #17a2b8;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 0 0 5px 5px;
+        }
+        .request-info {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #17a2b8;
+        }
+        .status-change {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+        .status-old {
+            background-color: #6c757d;
+            color: white;
+        }
+        .status-new {
+            background-color: #28a745;
+            color: white;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ request_type.title }} Request Status Updated</h1>
+        <p>Request ID: #{{ request.key }} | Type: {{ request_type.title }}</p>
+    </div>
+    
+    <div class="content">
+        <div class="status-change">
+            <h3>Status Change</h3>
+            <p><strong>From:</strong> <span class="status-badge status-old">{{ old_status.status }}</span></p>
+            <p><strong>To:</strong> <span class="status-badge status-new">{{ new_status.status }}</span></p>
+            <p><strong>Updated:</strong> {{ request.status_timestamp|date:"F d, Y \a\t g:i A" }}</p>
+        </div>
+        
+        <div class="request-info">
+            <h3>Request Details</h3>
+            <p><strong>Request ID:</strong> #{{ request.key }}</p>
+            <p><strong>Request Type:</strong> {{ request_type.title }}</p>
+            <p><strong>Requestor:</strong> {{ requestor.name }}</p>
+            
+            {% if request.description %}
+            <p><strong>Description:</strong> {{ request.description }}</p>
+            {% endif %}
+            
+            {% if request.special_request %}
+            <p><strong>Special Request:</strong> {{ request.special_request }}</p>
+            {% endif %}
+            
+            {% if request.assigned_to %}
+            <p><strong>Assigned To:</strong> {{ request.assigned_to.name }}</p>
+            {% endif %}
+            
+            {% if request.priority %}
+            <p><strong>Priority:</strong> {{ request.priority.priority }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="request-info" style="background-color: #e8f5e8; border-left: 4px solid #4caf50;">
+            <h3>🔗 Quick Actions</h3>
+            <p><strong>View Request:</strong> <a href="{{ request_url }}" style="color: #2e7d32; text-decoration: none;">Click here to view full request details</a></p>
+            <p><strong>Request Type:</strong> {{ request_type.title }} Request</p>
+            <p><strong>Change Made:</strong> Status changed from "{{ old_status.status }}" to "{{ new_status.status }}"</p>
+        </div>
+        
+        <p>This is an automated notification that the status of your {{ request_type }} request has been updated.</p>
+        
+        <p>You can view the full request details by clicking the link above or logging into the system.</p>
+    </div>
+    
+    <div class="footer">
+        <p>Histopathology Requests System</p>
+        <p>This is an automated message. Please do not reply to this email.</p>
+    </div>
+</body>
+</html>

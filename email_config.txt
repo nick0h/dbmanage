@@ -1,0 +1,26 @@
+# Email Configuration Instructions
+# 
+# To set up email notifications, create a .env file in the project root with the following variables:
+#
+# EMAIL_HOST_USER=your-email@gmail.com
+# EMAIL_HOST_PASSWORD=your-app-password
+# ADMIN_EMAIL=admin@example.com
+#
+# For Gmail:
+# 1. Enable 2-factor authentication on your Gmail account
+# 2. Generate an "App Password" for this application
+# 3. Use the app password (not your regular password) in EMAIL_HOST_PASSWORD
+#
+# The system will send notifications to:
+# - Requestor email (if provided in their profile)
+# - Assigned user email (if request is assigned)
+# - Admin email (as fallback)
+#
+# Notification triggers:
+# - New request creation (if "Submitted" status notifications are enabled)
+# - Status changes (if the new status has notifications enabled)
+#
+# Configure which notifications to send via the admin panel:
+# - Go to /admin/
+# - Click "Configure Notifications" for each request type
+# - Check/uncheck the statuses you want to trigger notifications

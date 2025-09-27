@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Email Test - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="page-header mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h2 mb-2 text-info">
+                    <i class="fas fa-envelope me-2"></i>Email Configuration Test
+                </h1>
+                <p class="text-muted mb-0">Test the email notification system</p>
+            </div>
+            <div>
+                <a href="{% url 'admin:index' %}" class="btn btn-outline-info">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Admin
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Test Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-paper-plane me-2"></i>Send Test Email
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <h6 class="text-muted">
+                                    Send a test email to verify email configuration is working
+                                </h6>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Recipient Email</label>
+                                <input type="email" 
+                                       class="form-control" 
+                                       id="email" 
+                                       name="email" 
+                                       value="{{ admin_email }}"
+                                       required>
+                                <div class="form-text">Enter the email address to send the test email to</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'admin:index' %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-info">
+                                        <i class="fas fa-paper-plane me-2"></i>Send Test Email
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Configuration Info -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Email Configuration
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Current Configuration:</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>SMTP Host:</strong> smtp.gmail.com</li>
+                                <li><strong>Port:</strong> 587</li>
+                                <li><strong>TLS:</strong> Enabled</li>
+                                <li><strong>From Email:</strong> borealisemails@gmail.com</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Notification Features:</h6>
+                            <ul class="list-unstyled">
+                                <li>✅ New request creation notifications</li>
+                                <li>✅ Status change notifications</li>
+                                <li>✅ Configurable per request type</li>
+                                <li>✅ HTML email templates</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Add Font Awesome for icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+{% endblock %}

@@ -346,9 +346,10 @@ class AntibodyForm(forms.ModelForm):
 class RequestorForm(forms.ModelForm):
     class Meta:
         model = Requestor
-        fields = ['name']
+        fields = ['name', 'email']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'maxlength': 256}),
         }
 
 class TissueForm(forms.ModelForm):
@@ -409,3 +410,44 @@ class ProbeForm(forms.ModelForm):
             'target_region': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
             'number_of_pairs': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
         }
+
+
+class BaseNotificationConfigForm(forms.Form):
+    """Base form for configuring notification settings for different request statuses"""
+    
+    def __init__(self, request_type=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.request_type = request_type
+        
+        # Get all statuses
+        statuses = Status.objects.all().order_by('status')
+        
+        # Create a checkbox field for each status
+        for status in statuses:
+            field_name = f'notify_{status.key}'
+            self.fields[field_name] = forms.BooleanField(
+                required=False,
+                label=f'Notify when {request_type or "request"} status changes to "{status.status}"',
+                widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+            )
+
+
+class StainingNotificationConfigForm(BaseNotificationConfigForm):
+    """Form for configuring staining request notifications"""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(request_type="staining", *args, **kwargs)
+
+
+class EmbeddingNotificationConfigForm(BaseNotificationConfigForm):
+    """Form for configuring embedding request notifications"""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(request_type="embedding", *args, **kwargs)
+
+
+class SectioningNotificationConfigForm(BaseNotificationConfigForm):
+    """Form for configuring sectioning request notifications"""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(request_type="sectioning", *args, **kwargs)
