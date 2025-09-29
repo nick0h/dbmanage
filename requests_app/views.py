@@ -14,6 +14,8 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 import openpyxl
 import os
+import pandas as pd
+import io
 
 # Create your views here.
 
@@ -77,7 +79,7 @@ class RequestCreateView(FormView):
         context['tissues'] = Tissue.objects.all().order_by('name')
         context['max_tissues'] = 10
         context['assignees'] = Assignee.objects.all().order_by('name')
-        context['probes'] = Probe.objects.all().order_by('name')
+        context['probes'] = Probe.objects.filter(archived=False).order_by('name')
         return context
 
     def form_valid(self, form):
@@ -129,7 +131,7 @@ class StainingRequestCreateView(FormView):
         context['tissues'] = Tissue.objects.all().order_by('name')
         context['max_tissues'] = 10
         context['assignees'] = Assignee.objects.all().order_by('name')
-        context['probes'] = Probe.objects.all().order_by('name')
+        context['probes'] = Probe.objects.filter(archived=False).order_by('name')
         return context
 
     def form_valid(self, form):
@@ -287,12 +289,12 @@ class RequestUpdateView(UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['request_obj'] = self.object
-        context['antibodies'] = Antibody.objects.all().order_by('name')
+        context['antibodies'] = Antibody.objects.filter(archived=False).order_by('name')
         context['studies'] = Study.objects.all().order_by('study_id')
         context['tissues'] = Tissue.objects.all().order_by('name')
         context['statuses'] = Status.objects.exclude(status='submitted').order_by('status')
         context['assignees'] = Assignee.objects.all().order_by('name')
-        context['probes'] = Probe.objects.all().order_by('name')
+        context['probes'] = Probe.objects.filter(archived=False).order_by('name')
         return context
     
     def form_valid(self, form):
@@ -342,8 +344,8 @@ class RequestSearchView(ListView):
         context['form'] = form
         context['tissues'] = Tissue.objects.all().order_by('name')
         context['assignees'] = Assignee.objects.all().order_by('name')
-        context['antibodies'] = Antibody.objects.all().order_by('name')
-        context['probes'] = Probe.objects.all().order_by('name')
+        context['antibodies'] = Antibody.objects.filter(archived=False).order_by('name')
+        context['probes'] = Probe.objects.filter(archived=False).order_by('name')
         context['studies'] = Study.objects.all().order_by('study_id')
         context['statuses'] = Status.objects.exclude(status='submitted').order_by('status')
         context['priorities'] = Priority.objects.all().order_by('value')
@@ -1649,12 +1651,12 @@ class StainingRequestEditView(UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['request_obj'] = self.object
-        context['antibodies'] = Antibody.objects.all().order_by('name')
+        context['antibodies'] = Antibody.objects.filter(archived=False).order_by('name')
         context['studies'] = Study.objects.all().order_by('study_id')
         context['tissues'] = Tissue.objects.all().order_by('name')
         context['statuses'] = Status.objects.exclude(status='submitted').order_by('status')
         context['assignees'] = Assignee.objects.all().order_by('name')
-        context['probes'] = Probe.objects.all().order_by('name')
+        context['probes'] = Probe.objects.filter(archived=False).order_by('name')
         context['priorities'] = Priority.objects.all().order_by('value')
         return context
     
@@ -2233,4 +2235,216 @@ class EmailTestView(TemplateView):
             messages.error(request, f'Error sending test email: {str(e)}')
         
         return redirect('email_test')
+
+
+# Import Views
+@method_decorator(user_passes_test(is_staff_user), name='dispatch')
+class ImportAntibodiesView(TemplateView):
+    """View for importing antibodies from Excel file"""
+    template_name = 'requests_app/import_antibodies.html'
+    
+    def post(self, request, *args, **kwargs):
+        """Handle file upload and import"""
+        if 'file' not in request.FILES:
+            messages.error(request, 'No file uploaded.')
+            return redirect('admin:index')
+        
+        file = request.FILES['file']
+        
+        # Check file extension
+        if not file.name.endswith('.xlsx'):
+            messages.error(request, 'Please upload an Excel file (.xlsx).')
+            return redirect('admin:index')
+        
+        try:
+            # Read Excel file
+            df = pd.read_excel(file)
+            
+            # Expected columns (case insensitive)
+            expected_columns = ['name', 'description', 'antigen', 'species', 'recognizes', 'vendor']
+            
+            # Normalize column names to lowercase
+            df.columns = df.columns.str.lower().str.strip()
+            
+            # Check if all required columns exist
+            missing_columns = [col for col in expected_columns if col not in df.columns]
+            if missing_columns:
+                messages.error(request, f'Missing required columns: {", ".join(missing_columns)}')
+                return redirect('admin:index')
+            
+            # Import antibodies
+            imported_count = 0
+            skipped_count = 0
+            
+            for index, row in df.iterrows():
+                try:
+                    # Check if antibody already exists
+                    if Antibody.objects.filter(name=row['name']).exists():
+                        skipped_count += 1
+                        continue
+                    
+                    # Create new antibody
+                    Antibody.objects.create(
+                        name=row['name'],
+                        description=row['description'] if pd.notna(row['description']) else '',
+                        antigen=row['antigen'] if pd.notna(row['antigen']) else '',
+                        species=row['species'] if pd.notna(row['species']) else '',
+                        recognizes=row['recognizes'] if pd.notna(row['recognizes']) else '',
+                        vendor=row['vendor'] if pd.notna(row['vendor']) else ''
+                    )
+                    imported_count += 1
+                    
+                except Exception as e:
+                    messages.warning(request, f'Error importing row {index + 2}: {str(e)}')
+                    continue
+            
+            if imported_count > 0:
+                messages.success(request, f'Successfully imported {imported_count} antibodies.')
+            if skipped_count > 0:
+                messages.info(request, f'Skipped {skipped_count} antibodies that already exist.')
+            
+        except Exception as e:
+            messages.error(request, f'Error processing file: {str(e)}')
+        
+        return redirect('admin:index')
+
+
+@method_decorator(user_passes_test(is_staff_user), name='dispatch')
+class ImportStudiesView(TemplateView):
+    """View for importing studies from Excel file"""
+    template_name = 'requests_app/import_studies.html'
+    
+    def post(self, request, *args, **kwargs):
+        """Handle file upload and import"""
+        if 'file' not in request.FILES:
+            messages.error(request, 'No file uploaded.')
+            return redirect('admin:index')
+        
+        file = request.FILES['file']
+        
+        # Check file extension
+        if not file.name.endswith('.xlsx'):
+            messages.error(request, 'Please upload an Excel file (.xlsx).')
+            return redirect('admin:index')
+        
+        try:
+            # Read Excel file
+            df = pd.read_excel(file)
+            
+            # Expected columns (case insensitive)
+            expected_columns = ['study_id', 'title']
+            
+            # Normalize column names to lowercase
+            df.columns = df.columns.str.lower().str.strip()
+            
+            # Check if all required columns exist
+            missing_columns = [col for col in expected_columns if col not in df.columns]
+            if missing_columns:
+                messages.error(request, f'Missing required columns: {", ".join(missing_columns)}')
+                return redirect('admin:index')
+            
+            # Import studies
+            imported_count = 0
+            skipped_count = 0
+            
+            for index, row in df.iterrows():
+                try:
+                    # Check if study already exists
+                    if Study.objects.filter(study_id=row['study_id']).exists():
+                        skipped_count += 1
+                        continue
+                    
+                    # Create new study
+                    Study.objects.create(
+                        study_id=row['study_id'],
+                        title=row['title'] if pd.notna(row['title']) else ''
+                    )
+                    imported_count += 1
+                    
+                except Exception as e:
+                    messages.warning(request, f'Error importing row {index + 2}: {str(e)}')
+                    continue
+            
+            if imported_count > 0:
+                messages.success(request, f'Successfully imported {imported_count} studies.')
+            if skipped_count > 0:
+                messages.info(request, f'Skipped {skipped_count} studies that already exist.')
+            
+        except Exception as e:
+            messages.error(request, f'Error processing file: {str(e)}')
+        
+        return redirect('admin:index')
+
+
+@method_decorator(user_passes_test(is_staff_user), name='dispatch')
+class ImportProbesView(TemplateView):
+    """View for importing probes from Excel file"""
+    template_name = 'requests_app/import_probes.html'
+    
+    def post(self, request, *args, **kwargs):
+        """Handle file upload and import"""
+        if 'file' not in request.FILES:
+            messages.error(request, 'No file uploaded.')
+            return redirect('admin:index')
+        
+        file = request.FILES['file']
+        
+        # Check file extension
+        if not file.name.endswith('.xlsx'):
+            messages.error(request, 'Please upload an Excel file (.xlsx).')
+            return redirect('admin:index')
+        
+        try:
+            # Read Excel file
+            df = pd.read_excel(file)
+            
+            # Expected columns (case insensitive)
+            expected_columns = ['name', 'description', 'target_gene', 'vendor', 'platform', 'number_of_pairs']
+            
+            # Normalize column names to lowercase
+            df.columns = df.columns.str.lower().str.strip()
+            
+            # Check if all required columns exist
+            missing_columns = [col for col in expected_columns if col not in df.columns]
+            if missing_columns:
+                messages.error(request, f'Missing required columns: {", ".join(missing_columns)}')
+                return redirect('admin:index')
+            
+            # Import probes
+            imported_count = 0
+            skipped_count = 0
+            
+            for index, row in df.iterrows():
+                try:
+                    # Check if probe already exists
+                    if Probe.objects.filter(name=row['name']).exists():
+                        skipped_count += 1
+                        continue
+                    
+                    # Create new probe
+                    Probe.objects.create(
+                        name=row['name'],
+                        description=row['description'] if pd.notna(row['description']) else '',
+                        target_gene=row['target_gene'] if pd.notna(row['target_gene']) else '',
+                        vendor=row['vendor'] if pd.notna(row['vendor']) else '',
+                        platform=row['platform'] if pd.notna(row['platform']) else '',
+                        number_of_pairs=int(row['number_of_pairs']) if pd.notna(row['number_of_pairs']) else None
+                    )
+                    imported_count += 1
+                    
+                except Exception as e:
+                    messages.warning(request, f'Error importing row {index + 2}: {str(e)}')
+                    continue
+            
+            if imported_count > 0:
+                messages.success(request, f'Successfully imported {imported_count} probes.')
+            if skipped_count > 0:
+                messages.info(request, f'Skipped {skipped_count} probes that already exist.')
+            
+        except Exception as e:
+            messages.error(request, f'Error processing file: {str(e)}')
+        
+        return redirect('admin:index')
+
+
 

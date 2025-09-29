@@ -113,3 +113,4 @@ def send_test_email():
         logger.error(f"Failed to send test email: {str(e)}")
         return False
 
+

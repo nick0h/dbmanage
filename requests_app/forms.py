@@ -22,9 +22,9 @@ class RequestForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['requestor'].queryset = Requestor.objects.all().order_by('name')
-        self.fields['antibody'].queryset = Antibody.objects.all().order_by('name')
+        self.fields['antibody'].queryset = Antibody.objects.filter(archived=False).order_by('name')
         self.fields['antibody'].label_from_instance = lambda obj: f"{obj.name} - {obj.description}"
-        self.fields['probe'].queryset = Probe.objects.all().order_by('name')
+        self.fields['probe'].queryset = Probe.objects.filter(archived=False).order_by('name')
         self.fields['probe'].label_from_instance = lambda obj: f"{obj.name} - {obj.description}"
         self.fields['study'].queryset = Study.objects.all().order_by('study_id')
         self.fields['tissue'].queryset = Tissue.objects.all().order_by('name')
@@ -62,8 +62,8 @@ class RequestSearchForm(forms.Form):
     date_to = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
     requestor = forms.ModelChoiceField(queryset=Requestor.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
     description = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Description'}))
-    antibody = forms.ModelChoiceField(queryset=Antibody.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
-    probe = forms.ModelChoiceField(queryset=Probe.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    antibody = forms.ModelChoiceField(queryset=Antibody.objects.filter(archived=False).order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    probe = forms.ModelChoiceField(queryset=Probe.objects.filter(archived=False).order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
     tissue = forms.ModelChoiceField(queryset=Tissue.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
     study = forms.ModelChoiceField(queryset=Study.objects.all().order_by('study_id'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
     status = forms.ModelChoiceField(queryset=Status.objects.all().order_by('status'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
@@ -228,8 +228,8 @@ class StainingRequestSearchForm(forms.Form):
     date_to = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
     requestor = forms.ModelChoiceField(queryset=Requestor.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
     description = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Description'}))
-    antibody = forms.ModelChoiceField(queryset=Antibody.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
-    probe = forms.ModelChoiceField(queryset=Probe.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    antibody = forms.ModelChoiceField(queryset=Antibody.objects.filter(archived=False).order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    probe = forms.ModelChoiceField(queryset=Probe.objects.filter(archived=False).order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
     tissue = forms.ModelChoiceField(queryset=Tissue.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
     study = forms.ModelChoiceField(queryset=Study.objects.all().order_by('study_id'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
     status = forms.ModelChoiceField(queryset=Status.objects.all().order_by('status'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))

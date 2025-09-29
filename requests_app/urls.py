@@ -57,9 +57,9 @@ urlpatterns = [
     path('data/priorities/<int:pk>/delete/', views.PriorityDeleteView.as_view(), name='priority_delete'),
     
     # Import URLs
-    path('data/studies/import/', views.import_studies_from_file, name='import_studies'),
-    path('data/antibodies/import/', views.import_antibodies_from_file, name='import_antibodies'),
-    path('data/probes/import/', views.import_probes_from_file, name='import_probes'),
+    path('data/studies/import/', views.ImportStudiesView.as_view(), name='import_studies'),
+    path('data/antibodies/import/', views.ImportAntibodiesView.as_view(), name='import_antibodies'),
+    path('data/probes/import/', views.ImportProbesView.as_view(), name='import_probes'),
     
     # Request Type Specific URLs (All Requests)
     path('staining/', views.StainingRequestsView.as_view(), name='staining_requests'),
