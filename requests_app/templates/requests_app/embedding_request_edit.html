@@ -225,7 +225,13 @@
                                     <h6 class="text-success">Current Links:</h6>
                                     {% for link in request_obj.links %}
                                     <div class="form-control mt-2 d-flex align-items-center">
-                                        <a href="{{ link }}" target="_blank" class="text-decoration-none me-2">{{ link }}</a>
+                                        {% if link.url %}
+                                            <a href="{{ link.url }}" target="_blank" class="text-decoration-none me-2">
+                                                {% if link.description %}{{ link.description }} ({{ link.url }}){% else %}{{ link.url }}{% endif %}
+                                            </a>
+                                        {% else %}
+                                            <a href="{{ link }}" target="_blank" class="text-decoration-none me-2">{{ link }}</a>
+                                        {% endif %}
                                         <button type="button" class="btn btn-sm btn-outline-danger ms-auto" onclick="removeExistingLink(this)">
                                             <i class="fas fa-times"></i>
                                         </button>
@@ -234,16 +240,19 @@
                                 </div>
                                 {% endif %}
                                 
-                                <div class="row">
-                                    <div class="col-md-10">
+                                <div class="row mb-2">
+                                    <div class="col-md-5">
                                         <input type="url" class="form-control" id="id_link" name="link" placeholder="Enter a link (e.g., https://example.com)" maxlength="255">
                                     </div>
-                                    <div class="col-md-2">
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" id="id_link_description" name="link_description" placeholder="Link description (optional)" maxlength="100">
+                                    </div>
+                                    <div class="col-md-3">
                                         <button type="button" class="btn btn-outline-success w-100" id="addLinkBtn">Add Link</button>
                                     </div>
                                 </div>
                                 <div id="linkList" class="mt-2"></div>
-                                <small class="text-muted">Add up to 10 links to relevant resources</small>
+                                <small class="text-muted">Add up to 10 links to relevant resources with optional descriptions</small>
                             </div>
                         </div>
 
@@ -280,25 +289,32 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add link functionality
     addLinkBtn.addEventListener('click', function() {
         const linkInput = document.getElementById('id_link');
+        const descriptionInput = document.getElementById('id_link_description');
         const linkValue = linkInput.value.trim();
+        const descriptionValue = descriptionInput.value.trim();
         
         if (linkValue && linkCount < 10) {
             // Create a div to hold the link
             const linkDiv = document.createElement('div');
             linkDiv.className = 'form-control mt-2 d-flex align-items-center';
             
-            // Create a hidden input for the link value
-            const hiddenInput = document.createElement('input');
-            hiddenInput.type = 'hidden';
-            hiddenInput.name = 'link_' + linkCount;
-            hiddenInput.value = linkValue;
+            // Create hidden inputs for the link value and description
+            const hiddenLinkInput = document.createElement('input');
+            hiddenLinkInput.type = 'hidden';
+            hiddenLinkInput.name = 'link_' + linkCount;
+            hiddenLinkInput.value = linkValue;
             
-            // Create a clickable link
+            const hiddenDescInput = document.createElement('input');
+            hiddenDescInput.type = 'hidden';
+            hiddenDescInput.name = 'link_description_' + linkCount;
+            hiddenDescInput.value = descriptionValue;
+            
+            // Create a clickable link with description
             const linkElement = document.createElement('a');
             linkElement.href = linkValue;
             linkElement.target = '_blank';
             linkElement.className = 'text-decoration-none me-2';
-            linkElement.textContent = linkValue;
+            linkElement.textContent = descriptionValue ? `${descriptionValue} (${linkValue})` : linkValue;
             
             // Create a remove button
             const removeBtn = document.createElement('button');
@@ -310,13 +326,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 linkCount--;
             };
             
-            linkDiv.appendChild(hiddenInput);
+            linkDiv.appendChild(hiddenLinkInput);
+            linkDiv.appendChild(hiddenDescInput);
             linkDiv.appendChild(linkElement);
             linkDiv.appendChild(removeBtn);
             linkList.appendChild(linkDiv);
             
-            // Clear the input and increment counter
+            // Clear the inputs and increment counter
             linkInput.value = '';
+            descriptionInput.value = '';
             linkCount++;
         }
     });

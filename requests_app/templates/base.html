@@ -13,6 +13,75 @@
     <link href="{% static 'css/responsive_tables.css' %}" rel="stylesheet">
     <!-- Borealis Theme CSS -->
     <link href="{% static 'css/borealis-theme.css' %}" rel="stylesheet">
+    <style>
+        /* Grey navigation bar styling - same as admin */
+        .navbar-dark {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 50%, #343a40 100%) !important;
+            border-bottom: 3px solid #212529;
+        }
+        
+        /* Larger logo for main site */
+        .navbar-logo {
+            height: 70px;
+            width: auto;
+            max-width: 320px;
+        }
+        
+        @media (max-width: 768px) {
+            .navbar-logo {
+                height: 60px;
+                max-width: 260px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .navbar-logo {
+                height: 55px;
+                max-width: 220px;
+            }
+        }
+        
+        /* User dropdown styling */
+        .navbar-dark .navbar-nav .dropdown-toggle {
+            color: rgba(255, 255, 255, 0.9) !important;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            margin: 0 0.25rem;
+        }
+        
+        .navbar-dark .navbar-nav .dropdown-toggle:hover,
+        .navbar-dark .navbar-nav .dropdown-toggle:focus {
+            color: white !important;
+            background-color: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .navbar-dark .navbar-nav .dropdown-menu {
+            background-color: white;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 0.5rem;
+        }
+        
+        .navbar-dark .navbar-nav .dropdown-item {
+            color: #495057;
+            padding: 0.5rem 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .navbar-dark .navbar-nav .dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        
+        .navbar-dark .navbar-nav .dropdown-item i {
+            color: var(--borealis-blue);
+            width: 16px;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
@@ -36,6 +105,28 @@
                             <i class="fas fa-cogs me-1"></i>Admin
                         </a>
                     </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user me-1"></i>{{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'admin:index' %}">
+                                    <i class="fas fa-cogs me-2"></i>Admin Panel
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'admin:logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin:login' %}">
+                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                            </a>
+                        </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

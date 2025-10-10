@@ -39,7 +39,7 @@ class RequestEditForm(forms.ModelForm):
     
     class Meta:
         model = Request
-        fields = ['status', 'notes', 'description', 'special_request', 'priority', 'assigned_to']
+        fields = ['status', 'notes', 'description', 'special_request', 'priority', 'assigned_to', 'antibody']
         widgets = {
             'status': forms.Select(attrs={'class': 'form-control'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'maxlength': 256}),
@@ -47,6 +47,7 @@ class RequestEditForm(forms.ModelForm):
             'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
             'priority': forms.Select(attrs={'class': 'form-control'}),
             'assigned_to': forms.Select(attrs={'class': 'form-control'}),
+            'antibody': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -55,6 +56,8 @@ class RequestEditForm(forms.ModelForm):
         self.fields['priority'].queryset = Priority.objects.all().order_by('value')
         self.fields['assigned_to'].queryset = Assignee.objects.all().order_by('name')
         self.fields['assigned_to'].required = False
+        self.fields['antibody'].queryset = Antibody.objects.filter(archived=False).order_by('name')
+        self.fields['antibody'].label_from_instance = lambda obj: f"{obj.name} - {obj.description}"
 
 class RequestSearchForm(forms.Form):
     request_id = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Request ID'}))
@@ -102,7 +105,7 @@ class EmbeddingRequestForm(forms.ModelForm):
             'study': forms.Select(attrs={'class': 'form-control'}),
             'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
             'assigned_to': forms.Select(attrs={'class': 'form-control'}),
-            'currently_in': forms.Select(attrs={'class': 'form-control'}, choices=[(True, 'Yes'), (False, 'No')]),
+            'currently_in': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Currently In'}),
             'take_down_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'length_of_time_in_etoh': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 40}),
             'number_of_animals': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Number of Animals'}),
@@ -174,7 +177,7 @@ class EmbeddingRequestEditForm(forms.ModelForm):
             'study': forms.Select(attrs={'class': 'form-control'}),
             'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
             'assigned_to': forms.Select(attrs={'class': 'form-control'}),
-            'currently_in': forms.Select(attrs={'class': 'form-control'}, choices=[(True, 'Yes'), (False, 'No')]),
+            'currently_in': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Currently In'}),
             'take_down_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'length_of_time_in_etoh': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 40}),
             'number_of_animals': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Number of Animals'}),
@@ -294,7 +297,7 @@ class EmbeddingRequestSearchForm(forms.Form):
     special_request = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Special Request'}))
     number_of_animals = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Number of Animals'}))
     take_down_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
-    currently_in = forms.ChoiceField(required=False, choices=[('', 'All'), (True, 'Yes'), (False, 'No')], widget=forms.Select(attrs={'class': 'form-control'}))
+    currently_in = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Currently In'}))
     date_of_xylene_etoh_change = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
     length_of_time_in_etoh = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Length of Time in EtOH'}))
 

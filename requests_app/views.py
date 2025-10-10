@@ -5,7 +5,8 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.decorators import method_decorator
 from .forms import RequestForm, RequestEditForm, RequestSearchForm, StudyEditForm, AntibodyForm, RequestorForm, TissueForm, StatusForm, AssigneeForm, ProbeForm, PriorityForm, SectioningRequestSearchForm, EmbeddingRequestSearchForm, EmbeddingRequestForm, SectioningRequestForm, StainingRequestSearchForm, EmbeddingRequestEditForm, SectioningRequestEditForm, StainingNotificationConfigForm, EmbeddingNotificationConfigForm, SectioningNotificationConfigForm
 from .models import Request, Status, Study, Requestor, Antibody, Tissue, Assignee, Probe, Priority, StainingRequest, EmbeddingRequest, SectioningRequest, StainingRequestChangeLog, EmbeddingRequestChangeLog, SectioningRequestChangeLog, NotificationSettings
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
+from django.template.loader import render_to_string
 from django.db.models import Q
 from datetime import datetime
 import re
@@ -68,11 +69,9 @@ class RequestDetailView(DetailView):
     template_name = 'requests_app/request_detail.html'
     context_object_name = 'request'
 
-class RequestCreateView(FormView):
+class RequestCreateView(TemplateView):
     template_name = 'requests_app/request_form.html'
-    form_class = RequestForm
-    success_url = reverse_lazy('request_list')
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['today_date'] = datetime.now().date()
@@ -80,51 +79,113 @@ class RequestCreateView(FormView):
         context['max_tissues'] = 10
         context['assignees'] = Assignee.objects.all().order_by('name')
         context['probes'] = Probe.objects.filter(archived=False).order_by('name')
+        
+        # Check if we have pre-filled form data from URL parameters
+        if self.request.GET.get('success'):
+            context['success_message'] = "Request submitted successfully! Form has been pre-filled for creating another similar request."
+            # Create form with pre-filled data
+            initial_data = {}
+            for field in ['requestor', 'antibody', 'probe', 'study', 'tissue', 'description', 'special_request', 'priority', 'assigned_to']:
+                value = self.request.GET.get(field)
+                if value:
+                    initial_data[field] = value
+            context['form'] = RequestForm(initial=initial_data)
+        else:
+            context['form'] = RequestForm()
+        
         return context
-
-    def form_valid(self, form):
-        request_obj = form.save(commit=False)
-        request_obj.status = Status.get_default_status()
+    
+    def post(self, request, *args, **kwargs):
+        # Debug: Print all POST data
+        print(f"DEBUG: All POST keys: {list(request.POST.keys())}")
+        print(f"DEBUG: submit_and_copy value: {request.POST.get('submit_and_copy')}")
         
-        # Collect additional tissues from form data
-        additional_tissues = []
-        for key, value in self.request.POST.items():
-            if key.startswith('tissue_') and value:  # tissue_0, tissue_1, etc.
-                try:
-                    tissue_id = int(value)
-                    tissue = Tissue.objects.get(pk=tissue_id)
-                    additional_tissues.append(tissue.name)
-                except (ValueError, Tissue.DoesNotExist):
-                    pass
+        form = RequestForm(request.POST)
+        if form.is_valid():
+            request_obj = form.save(commit=False)
+            request_obj.status = Status.get_default_status()
+            
+            # Collect additional tissues from form data
+            additional_tissues = []
+            for key, value in request.POST.items():
+                if key.startswith('tissue_') and value:  # tissue_0, tissue_1, etc.
+                    try:
+                        tissue_id = int(value)
+                        tissue = Tissue.objects.get(pk=tissue_id)
+                        additional_tissues.append(tissue.name)
+                    except (ValueError, Tissue.DoesNotExist):
+                        pass
+            
+            # Collect links from form data
+            links = []
+            link_descriptions = {}
+            
+            # First collect all link descriptions
+            for key, value in request.POST.items():
+                if key.startswith('link_description_') and value:
+                    link_index = key.replace('link_description_', '')
+                    link_descriptions[link_index] = value
+            
+            # Then collect links and pair them with descriptions
+            for key, value in request.POST.items():
+                if key.startswith('link_') and not key.startswith('link_description_') and value:
+                    link_index = key.replace('link_', '')
+                    link_obj = {
+                        'url': value,
+                        'description': link_descriptions.get(link_index, '')
+                    }
+                    links.append(link_obj)
+            
+            # Populate the data JSONField with form data
+            request_obj.data = {
+                'date': request.POST.get('date'),
+                'description': form.cleaned_data.get('description'),
+                'special_request': form.cleaned_data.get('special_request'),
+                'tissues': additional_tissues,
+                'links': links,
+            }
+            
+            # Store links in the links field
+            if links:
+                request_obj.links = links
+            
+            request_obj.save()
+            
+            # Check if this is a "submit and copy" action
+            print(f"DEBUG: Checking submit_and_copy: {request.POST.get('submit_and_copy')}")
+            if request.POST.get('submit_and_copy'):
+                print("DEBUG: Submit and copy detected! Creating redirect...")
+                # Redirect to the same page with form data pre-filled
+                form_data = {}
+                for field in ['requestor', 'antibody', 'probe', 'study', 'tissue', 'description', 'special_request', 'priority', 'assigned_to']:
+                    value = form.cleaned_data.get(field)
+                    if value:
+                        if hasattr(value, 'id'):
+                            form_data[field] = value.id
+                        else:
+                            form_data[field] = value
+                print(f"DEBUG: Form data for redirect: {form_data}")
+                # Create URL with form data as query parameters
+                from urllib.parse import urlencode
+                query_params = urlencode(form_data)
+                redirect_url = f"{request.path}?{query_params}&success=1"
+                print(f"DEBUG: Redirecting to: {redirect_url}")
+                return HttpResponseRedirect(redirect_url)
+            else:
+                print("DEBUG: Regular submit detected, redirecting to list")
+            
+            # Regular submit - redirect to success URL
+            return HttpResponseRedirect(reverse_lazy('request_list'))
         
-        # Collect links from form data
-        links = []
-        for key, value in self.request.POST.items():
-            if key.startswith('link_') and value:  # link_0, link_1, etc.
-                links.append(value)
-        
-        # Populate the data JSONField with form data
-        request_obj.data = {
-            'date': self.request.POST.get('date'),
-            'description': form.cleaned_data.get('description'),
-            'special_request': form.cleaned_data.get('special_request'),
-            'tissues': additional_tissues,
-            'links': links,
-        }
-        
-        # Store links in the links field
-        if links:
-            request_obj.links = links
-        
-        request_obj.save()
-        return super().form_valid(form)
+        # Form is invalid, return with errors
+        context = self.get_context_data()
+        context['form'] = form
+        return self.render_to_response(context)
 
 # Staining Request Create View
-class StainingRequestCreateView(FormView):
+class StainingRequestCreateView(TemplateView):
     template_name = 'requests_app/request_form.html'
-    form_class = RequestForm
-    success_url = reverse_lazy('staining_requests')
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['today_date'] = datetime.now().date()
@@ -132,7 +193,96 @@ class StainingRequestCreateView(FormView):
         context['max_tissues'] = 10
         context['assignees'] = Assignee.objects.all().order_by('name')
         context['probes'] = Probe.objects.filter(archived=False).order_by('name')
+        
+        # Check if we have pre-filled form data from URL parameters
+        if self.request.GET.get('success'):
+            context['success_message'] = "Request submitted successfully! Form has been pre-filled for creating another similar request."
+            # Create form with pre-filled data
+            initial_data = {}
+            for field in ['requestor', 'antibody', 'probe', 'study', 'tissue', 'description', 'special_request', 'priority', 'assigned_to']:
+                value = self.request.GET.get(field)
+                if value:
+                    initial_data[field] = value
+            context['form'] = RequestForm(initial=initial_data)
+        else:
+            context['form'] = RequestForm()
+        
         return context
+    
+    def post(self, request, *args, **kwargs):
+        # Debug: Print all POST data
+        print(f"DEBUG: All POST keys: {list(request.POST.keys())}")
+        print(f"DEBUG: submit_and_copy value: {request.POST.get('submit_and_copy')}")
+        
+        form = RequestForm(request.POST)
+        if form.is_valid():
+            request_obj = form.save(commit=False)
+            request_obj.status = Status.get_default_status()
+            
+            # Collect additional tissues from form data
+            additional_tissues = []
+            for key, value in request.POST.items():
+                if key.startswith('tissue_') and value:  # tissue_0, tissue_1, etc.
+                    try:
+                        tissue_id = int(value)
+                        tissue = Tissue.objects.get(pk=tissue_id)
+                        additional_tissues.append(tissue.name)
+                    except (ValueError, Tissue.DoesNotExist):
+                        pass
+            
+            # Collect links from form data
+            links = []
+            link_descriptions = {}
+            
+            # First collect all link descriptions
+            for key, value in request.POST.items():
+                if key.startswith('link_description_') and value:
+                    link_index = key.replace('link_description_', '')
+                    link_descriptions[link_index] = value
+            
+            # Then collect links and pair them with descriptions
+            for key, value in request.POST.items():
+                if key.startswith('link_') and not key.startswith('link_description_') and value:
+                    link_index = key.replace('link_', '')
+                    link_obj = {
+                        'url': value,
+                        'description': link_descriptions.get(link_index, '')
+                    }
+                    links.append(link_obj)
+            
+            # Populate the data JSONField with form data
+            request_obj.data = {
+                'date': request.POST.get('date'),
+                'description': form.cleaned_data.get('description'),
+                'special_request': form.cleaned_data.get('special_request'),
+                'tissues': additional_tissues,
+                'links': links,
+            }
+            
+            # Store links in the links field
+            if links:
+                request_obj.links = links
+            
+            request_obj.save()
+            
+            # Check if this is a "submit and copy" action
+            print(f"DEBUG: Checking submit_and_copy: {request.POST.get('submit_and_copy')}")
+            if request.POST.get('submit_and_copy'):
+                print("DEBUG: Submit and copy detected! Returning JSON response...")
+                # Return JSON response for AJAX request
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Request submitted successfully! Form is ready for creating another similar request.'
+                })
+            else:
+                print("DEBUG: Regular submit detected, redirecting to list")
+                # Regular submit - redirect to success URL
+                return HttpResponseRedirect(reverse_lazy('staining_requests'))
+        
+        # Form is invalid, return with errors
+        context = self.get_context_data()
+        context['form'] = form
+        return self.render_to_response(context)
 
     def form_valid(self, form):
         request_obj = form.save(commit=False)
@@ -169,116 +319,174 @@ class StainingRequestCreateView(FormView):
         return super().form_valid(form)
 
 # Embedding Request Create View
-class EmbeddingRequestCreateView(FormView):
+class EmbeddingRequestCreateView(TemplateView):
     template_name = 'requests_app/embedding_request_form.html'
-    form_class = EmbeddingRequestForm
-    success_url = reverse_lazy('embedding_requests')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['tissues'] = Tissue.objects.all().order_by('name')
+        context['form'] = EmbeddingRequestForm()
         return context
 
-    def form_valid(self, form):
-        request_obj = form.save(commit=False)
-        request_obj.save()
-        
-        # Handle tissues exactly like staining request
-        # Primary tissue from form
-        primary_tissue_id = self.request.POST.get('tissue')
-        if primary_tissue_id:
-            primary_tissue = Tissue.objects.get(pk=primary_tissue_id)
-            request_obj.tissues.add(primary_tissue)
-        
-        # Additional tissues from JavaScript-created fields
-        additional_tissues = []
-        for key, value in self.request.POST.items():
-            if key.startswith('tissue_') and value:  # tissue_0, tissue_1, etc.
-                try:
-                    tissue_id = int(value)
-                    tissue = Tissue.objects.get(pk=tissue_id)
-                    additional_tissues.append(tissue)
-                except (ValueError, Tissue.DoesNotExist):
-                    pass
-        
-        # Add additional tissues
-        if additional_tissues:
-            request_obj.tissues.add(*additional_tissues)
-        
-        # Handle links
-        links = []
-        for key, value in self.request.POST.items():
-            if key.startswith('link_') and value:  # link_0, link_1, etc.
-                links.append(value)
-        
-        if links:
-            request_obj.links = links
+    def post(self, request, *args, **kwargs):
+        form = EmbeddingRequestForm(request.POST)
+        if form.is_valid():
+            request_obj = form.save(commit=False)
             request_obj.save()
+            
+            # Handle tissues exactly like staining request
+            # Primary tissue from form
+            primary_tissue_id = request.POST.get('tissue')
+            if primary_tissue_id:
+                primary_tissue = Tissue.objects.get(pk=primary_tissue_id)
+                request_obj.tissues.add(primary_tissue)
+            
+            # Additional tissues from JavaScript-created fields
+            additional_tissues = []
+            for key, value in request.POST.items():
+                if key.startswith('tissue_') and value:  # tissue_0, tissue_1, etc.
+                    try:
+                        tissue_id = int(value)
+                        tissue = Tissue.objects.get(pk=tissue_id)
+                        additional_tissues.append(tissue)
+                    except (ValueError, Tissue.DoesNotExist):
+                        pass
+            
+            # Add additional tissues
+            if additional_tissues:
+                request_obj.tissues.add(*additional_tissues)
+            
+            # Handle links
+            links = []
+            link_descriptions = {}
+            
+            # First collect all link descriptions
+            for key, value in request.POST.items():
+                if key.startswith('link_description_') and value:
+                    link_index = key.replace('link_description_', '')
+                    link_descriptions[link_index] = value
+            
+            # Then collect links and pair them with descriptions
+            for key, value in request.POST.items():
+                if key.startswith('link_') and not key.startswith('link_description_') and value:
+                    link_index = key.replace('link_', '')
+                    link_obj = {
+                        'url': value,
+                        'description': link_descriptions.get(link_index, '')
+                    }
+                    links.append(link_obj)
+            
+            if links:
+                request_obj.links = links
+                request_obj.save()
+            
+            # Log the creation
+            EmbeddingRequestChangeLog.log_change(
+                request=request_obj,
+                change_type='created',
+                description='Embedding request created'
+            )
+            
+            # Check if this is a "submit and copy" action
+            if request.POST.get('submit_and_copy'):
+                # Return JSON response for AJAX request
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Embedding request submitted successfully! Form is ready for creating another similar request.'
+                })
+            else:
+                # Regular submit - redirect to success URL
+                return HttpResponseRedirect(reverse_lazy('embedding_requests'))
         
-        # Log the creation
-        EmbeddingRequestChangeLog.log_change(
-            request=request_obj,
-            change_type='created',
-            description='Embedding request created'
-        )
-        
-        return super().form_valid(form)
+        # Form is invalid, return with errors
+        context = self.get_context_data()
+        context['form'] = form
+        return self.render_to_response(context)
 
 # Sectioning Request Create View
-class SectioningRequestCreateView(FormView):
+class SectioningRequestCreateView(TemplateView):
     template_name = 'requests_app/sectioning_request_form.html'
-    form_class = SectioningRequestForm
-    success_url = reverse_lazy('sectioning_requests')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['tissues'] = Tissue.objects.all().order_by('name')
+        context['form'] = SectioningRequestForm()
         return context
 
-    def form_valid(self, form):
-        request_obj = form.save(commit=False)
-        request_obj.save()
-        
-        # Handle tissues exactly like staining request
-        # Primary tissue from form
-        primary_tissue_id = self.request.POST.get('tissue')
-        if primary_tissue_id:
-            primary_tissue = Tissue.objects.get(pk=primary_tissue_id)
-            request_obj.tissues.add(primary_tissue)
-        
-        # Additional tissues from JavaScript-created fields
-        additional_tissues = []
-        for key, value in self.request.POST.items():
-            if key.startswith('tissue_') and value:  # tissue_0, tissue_1, etc.
-                try:
-                    tissue_id = int(value)
-                    tissue = Tissue.objects.get(pk=tissue_id)
-                    additional_tissues.append(tissue)
-                except (ValueError, Tissue.DoesNotExist):
-                    pass
-        
-        # Add additional tissues
-        if additional_tissues:
-            request_obj.tissues.add(*additional_tissues)
-        
-        # Handle links
-        links = []
-        for key, value in self.request.POST.items():
-            if key.startswith('link_') and value:  # link_0, link_1, etc.
-                links.append(value)
-        
-        if links:
-            request_obj.links = links
+    def post(self, request, *args, **kwargs):
+        form = SectioningRequestForm(request.POST)
+        if form.is_valid():
+            request_obj = form.save(commit=False)
             request_obj.save()
+            
+            # Handle tissues exactly like staining request
+            # Primary tissue from form
+            primary_tissue_id = request.POST.get('tissue')
+            if primary_tissue_id:
+                primary_tissue = Tissue.objects.get(pk=primary_tissue_id)
+                request_obj.tissues.add(primary_tissue)
+            
+            # Additional tissues from JavaScript-created fields
+            additional_tissues = []
+            for key, value in request.POST.items():
+                if key.startswith('tissue_') and value:  # tissue_0, tissue_1, etc.
+                    try:
+                        tissue_id = int(value)
+                        tissue = Tissue.objects.get(pk=tissue_id)
+                        additional_tissues.append(tissue)
+                    except (ValueError, Tissue.DoesNotExist):
+                        pass
+            
+            # Add additional tissues
+            if additional_tissues:
+                request_obj.tissues.add(*additional_tissues)
+            
+            # Handle links
+            links = []
+            link_descriptions = {}
+            
+            # First collect all link descriptions
+            for key, value in request.POST.items():
+                if key.startswith('link_description_') and value:
+                    link_index = key.replace('link_description_', '')
+                    link_descriptions[link_index] = value
+            
+            # Then collect links and pair them with descriptions
+            for key, value in request.POST.items():
+                if key.startswith('link_') and not key.startswith('link_description_') and value:
+                    link_index = key.replace('link_', '')
+                    link_obj = {
+                        'url': value,
+                        'description': link_descriptions.get(link_index, '')
+                    }
+                    links.append(link_obj)
+            
+            if links:
+                request_obj.links = links
+                request_obj.save()
+            
+            # Log the creation
+            SectioningRequestChangeLog.log_change(
+                request=request_obj,
+                change_type='created',
+                description='Sectioning request created'
+            )
+            
+            # Check if this is a "submit and copy" action
+            if request.POST.get('submit_and_copy'):
+                # Return JSON response for AJAX request
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Sectioning request submitted successfully! Form is ready for creating another similar request.'
+                })
+            else:
+                # Regular submit - redirect to success URL
+                return HttpResponseRedirect(reverse_lazy('sectioning_requests'))
         
-        # Log the creation
-        SectioningRequestChangeLog.log_change(
-            request=request_obj,
-            change_type='created',
-            description='Sectioning request created'
-        )
-        
-        return super().form_valid(form)
+        # Form is invalid, return with errors
+        context = self.get_context_data()
+        context['form'] = form
+        return self.render_to_response(context)
 
 class RequestUpdateView(UpdateView):
     model = Request
@@ -305,18 +513,38 @@ class RequestUpdateView(UpdateView):
         # Debug: print all POST data
         print(f"DEBUG: All POST keys: {list(self.request.POST.keys())}")
         
-        # Handle links
-        links = []
+        # Handle links - preserve existing links and add new ones
+        existing_links = self.object.links or []
+        new_links = []
+        link_descriptions = {}
+        
+        # First collect all link descriptions
         for key, value in self.request.POST.items():
-            if key.startswith('link_') and value:  # link_0, link_1, etc.
-                links.append(value)
+            if key.startswith('link_description_') and value:
+                link_index = key.replace('link_description_', '')
+                link_descriptions[link_index] = value
+        
+        # Then collect new links and pair them with descriptions
+        for key, value in self.request.POST.items():
+            if key.startswith('link_') and not key.startswith('link_description_') and value:
+                link_index = key.replace('link_', '')
+                link_obj = {
+                    'url': value,
+                    'description': link_descriptions.get(link_index, '')
+                }
+                new_links.append(link_obj)
+        
+        # Combine existing links with new links
+        all_links = existing_links + new_links
         
         # Debug: print what we're collecting
-        print(f"DEBUG: Collected links: {links}")
+        print(f"DEBUG: Existing links: {existing_links}")
+        print(f"DEBUG: New links: {new_links}")
+        print(f"DEBUG: All links: {all_links}")
         print(f"DEBUG: POST data with 'link': {[k for k in self.request.POST.keys() if 'link' in k]}")
         
-        # Always update links (even if empty to handle removals)
-        self.object.links = links
+        # Update links
+        self.object.links = all_links
         self.object.save()
         print(f"DEBUG: Saved links to database: {self.object.links}")
         
@@ -1453,8 +1681,8 @@ class EmbeddingRequestSearchView(ListView):
                 queryset = queryset.filter(number_of_animals=number_of_animals)
             if take_down_date:
                 queryset = queryset.filter(take_down_date=take_down_date)
-            if currently_in != '':
-                queryset = queryset.filter(currently_in=currently_in)
+            if currently_in:
+                queryset = queryset.filter(currently_in__icontains=currently_in)
             if date_of_xylene_etoh_change:
                 queryset = queryset.filter(date_of_xylene_etoh_change=date_of_xylene_etoh_change)
             if length_of_time_in_etoh:
@@ -1668,18 +1896,38 @@ class StainingRequestEditView(UpdateView):
         # Debug: print all POST data
         print(f"DEBUG: All POST keys: {list(self.request.POST.keys())}")
         
-        # Handle links
-        links = []
+        # Handle links - preserve existing links and add new ones
+        existing_links = self.object.links or []
+        new_links = []
+        link_descriptions = {}
+        
+        # First collect all link descriptions
         for key, value in self.request.POST.items():
-            if key.startswith('link_') and value:  # link_0, link_1, etc.
-                links.append(value)
+            if key.startswith('link_description_') and value:
+                link_index = key.replace('link_description_', '')
+                link_descriptions[link_index] = value
+        
+        # Then collect new links and pair them with descriptions
+        for key, value in self.request.POST.items():
+            if key.startswith('link_') and not key.startswith('link_description_') and value:
+                link_index = key.replace('link_', '')
+                link_obj = {
+                    'url': value,
+                    'description': link_descriptions.get(link_index, '')
+                }
+                new_links.append(link_obj)
+        
+        # Combine existing links with new links
+        all_links = existing_links + new_links
         
         # Debug: print what we're collecting
-        print(f"DEBUG: Collected links: {links}")
+        print(f"DEBUG: Existing links: {existing_links}")
+        print(f"DEBUG: New links: {new_links}")
+        print(f"DEBUG: All links: {all_links}")
         print(f"DEBUG: POST data with 'link': {[k for k in self.request.POST.keys() if 'link' in k]}")
         
-        # Always update links (even if empty to handle removals)
-        self.object.links = links
+        # Update links
+        self.object.links = all_links
         self.object.save()
         print(f"DEBUG: Saved links to database: {self.object.links}")
         
@@ -1740,18 +1988,38 @@ class EmbeddingRequestEditView(UpdateView):
         # Debug: print all POST data
         print(f"DEBUG: All POST keys: {list(self.request.POST.keys())}")
         
-        # Handle links
-        links = []
+        # Handle links - preserve existing links and add new ones
+        existing_links = self.object.links or []
+        new_links = []
+        link_descriptions = {}
+        
+        # First collect all link descriptions
         for key, value in self.request.POST.items():
-            if key.startswith('link_') and value:  # link_0, link_1, etc.
-                links.append(value)
+            if key.startswith('link_description_') and value:
+                link_index = key.replace('link_description_', '')
+                link_descriptions[link_index] = value
+        
+        # Then collect new links and pair them with descriptions
+        for key, value in self.request.POST.items():
+            if key.startswith('link_') and not key.startswith('link_description_') and value:
+                link_index = key.replace('link_', '')
+                link_obj = {
+                    'url': value,
+                    'description': link_descriptions.get(link_index, '')
+                }
+                new_links.append(link_obj)
+        
+        # Combine existing links with new links
+        all_links = existing_links + new_links
         
         # Debug: print what we're collecting
-        print(f"DEBUG: Collected links: {links}")
+        print(f"DEBUG: Existing links: {existing_links}")
+        print(f"DEBUG: New links: {new_links}")
+        print(f"DEBUG: All links: {all_links}")
         print(f"DEBUG: POST data with 'link': {[k for k in self.request.POST.keys() if 'link' in k]}")
         
-        # Always update links (even if empty to handle removals)
-        self.object.links = links
+        # Update links
+        self.object.links = all_links
         self.object.save()
         print(f"DEBUG: Saved links to database: {self.object.links}")
         
@@ -1812,18 +2080,38 @@ class SectioningRequestEditView(UpdateView):
         # Debug: print all POST data
         print(f"DEBUG: All POST keys: {list(self.request.POST.keys())}")
         
-        # Handle links
-        links = []
+        # Handle links - preserve existing links and add new ones
+        existing_links = self.object.links or []
+        new_links = []
+        link_descriptions = {}
+        
+        # First collect all link descriptions
         for key, value in self.request.POST.items():
-            if key.startswith('link_') and value:  # link_0, link_1, etc.
-                links.append(value)
+            if key.startswith('link_description_') and value:
+                link_index = key.replace('link_description_', '')
+                link_descriptions[link_index] = value
+        
+        # Then collect new links and pair them with descriptions
+        for key, value in self.request.POST.items():
+            if key.startswith('link_') and not key.startswith('link_description_') and value:
+                link_index = key.replace('link_', '')
+                link_obj = {
+                    'url': value,
+                    'description': link_descriptions.get(link_index, '')
+                }
+                new_links.append(link_obj)
+        
+        # Combine existing links with new links
+        all_links = existing_links + new_links
         
         # Debug: print what we're collecting
-        print(f"DEBUG: Collected links: {links}")
+        print(f"DEBUG: Existing links: {existing_links}")
+        print(f"DEBUG: New links: {new_links}")
+        print(f"DEBUG: All links: {all_links}")
         print(f"DEBUG: POST data with 'link': {[k for k in self.request.POST.keys() if 'link' in k]}")
         
-        # Always update links (even if empty to handle removals)
-        self.object.links = links
+        # Update links
+        self.object.links = all_links
         self.object.save()
         print(f"DEBUG: Saved links to database: {self.object.links}")
         

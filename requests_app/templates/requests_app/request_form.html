@@ -5,11 +5,18 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>New Request</h2>
-        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+        <a href="{% url 'home' %}" class="btn btn-outline-primary">
             <i class="fas fa-home me-2"></i>Back to Homepage
         </a>
     </div>
-    <form method="post" id="requestForm">
+    
+    {% if success_message %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>{{ success_message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+    <form method="post" id="requestForm" action="{% url 'staining_request_create' %}">
         {% csrf_token %}
         
         <div class="form-group mb-3">
@@ -75,21 +82,25 @@
 
         <div class="form-group mb-3">
             <label for="id_link">Links:</label>
-            <div class="row">
-                <div class="col-md-10">
+            <div class="row mb-2">
+                <div class="col-md-6">
                     <input type="url" class="form-control" id="id_link" name="link" placeholder="Enter a link (e.g., https://example.com)" maxlength="255">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" id="id_link_description" name="link_description" placeholder="Link description (optional)" maxlength="100">
                 </div>
                 <div class="col-md-2">
                     <button type="button" class="btn btn-outline-primary w-100" id="addLinkBtn">Add Link</button>
                 </div>
             </div>
             <div id="linkList" class="mt-2"></div>
-            <small class="text-muted">Add up to 10 links to relevant resources</small>
+            <small class="text-muted">Add up to 10 links to relevant resources with optional descriptions</small>
         </div>
 
         <div class="form-group">
             <button type="submit" class="btn btn-primary">Submit</button>
-            <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+            <button type="button" id="submitAndCopyBtn" class="btn btn-success">Submit and Copy</button>
+            <button type="button" class="btn btn-outline-primary" id="cancelBtn">Cancel</button>
         </div>
     </form>
 </div>
@@ -146,25 +157,32 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add link functionality
     addLinkBtn.addEventListener('click', function() {
         const linkInput = document.getElementById('id_link');
+        const descriptionInput = document.getElementById('id_link_description');
         const linkValue = linkInput.value.trim();
+        const descriptionValue = descriptionInput.value.trim();
         
         if (linkValue && linkCount < 10) {
             // Create a div to hold the link
             const linkDiv = document.createElement('div');
             linkDiv.className = 'form-control mt-2 d-flex align-items-center';
             
-            // Create a hidden input for the link value
-            const hiddenInput = document.createElement('input');
-            hiddenInput.type = 'hidden';
-            hiddenInput.name = 'link_' + linkCount;
-            hiddenInput.value = linkValue;
+            // Create hidden inputs for the link value and description
+            const hiddenLinkInput = document.createElement('input');
+            hiddenLinkInput.type = 'hidden';
+            hiddenLinkInput.name = 'link_' + linkCount;
+            hiddenLinkInput.value = linkValue;
             
-            // Create a clickable link
+            const hiddenDescInput = document.createElement('input');
+            hiddenDescInput.type = 'hidden';
+            hiddenDescInput.name = 'link_description_' + linkCount;
+            hiddenDescInput.value = descriptionValue;
+            
+            // Create a clickable link with description
             const linkElement = document.createElement('a');
             linkElement.href = linkValue;
             linkElement.target = '_blank';
             linkElement.className = 'text-decoration-none me-2';
-            linkElement.textContent = linkValue;
+            linkElement.textContent = descriptionValue ? `${descriptionValue} (${linkValue})` : linkValue;
             
             // Create a remove button
             const removeBtn = document.createElement('button');
@@ -176,13 +194,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 linkCount--;
             };
             
-            linkDiv.appendChild(hiddenInput);
+            linkDiv.appendChild(hiddenLinkInput);
+            linkDiv.appendChild(hiddenDescInput);
             linkDiv.appendChild(linkElement);
             linkDiv.appendChild(removeBtn);
             linkList.appendChild(linkDiv);
             
-            // Clear the input and increment counter
+            // Clear the inputs and increment counter
             linkInput.value = '';
+            descriptionInput.value = '';
             linkCount++;
         }
     });
@@ -194,10 +214,108 @@ document.addEventListener('DOMContentLoaded', function() {
         tissueCount = 0;
         linkList.innerHTML = '';
         linkCount = 0;
+        document.getElementById('id_link_description').value = '';
         // Reset date to today
         const today = new Date();
         document.getElementById('id_date').value = today.toISOString().split('T')[0];
     });
+
+    // Handle Submit and Copy button
+    const submitAndCopyBtn = document.getElementById('submitAndCopyBtn');
+    if (submitAndCopyBtn) {
+        submitAndCopyBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent normal form submission
+            console.log('Submit and Copy button clicked!');
+            
+            // Show loading message
+            const originalText = submitAndCopyBtn.innerHTML;
+            submitAndCopyBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+            submitAndCopyBtn.disabled = true;
+            
+            // Prepare form data
+            const formData = new FormData(form);
+            formData.append('submit_and_copy', 'true');
+            
+            // Submit via AJAX
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showSuccessMessage('Request submitted successfully! Form is ready for creating another similar request.');
+                    // Reset button
+                    submitAndCopyBtn.innerHTML = originalText;
+                    submitAndCopyBtn.disabled = false;
+                } else {
+                    // Show error message
+                    showErrorMessage('Error submitting request: ' + (data.error || 'Unknown error'));
+                    // Reset button
+                    submitAndCopyBtn.innerHTML = originalText;
+                    submitAndCopyBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorMessage('Error submitting request. Please try again.');
+                // Reset button
+                submitAndCopyBtn.innerHTML = originalText;
+                submitAndCopyBtn.disabled = false;
+            });
+        });
+    }
+    
+    // Function to show success message
+    function showSuccessMessage(message) {
+        // Remove any existing alerts
+        const existingAlert = document.querySelector('.alert');
+        if (existingAlert) {
+            existingAlert.remove();
+        }
+        
+        // Create success alert
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-success alert-dismissible fade show';
+        alertDiv.innerHTML = `
+            <i class="fas fa-check-circle me-2"></i>${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        // Insert at the top of the form
+        form.parentNode.insertBefore(alertDiv, form);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+    
+    // Function to show error message
+    function showErrorMessage(message) {
+        // Remove any existing alerts
+        const existingAlert = document.querySelector('.alert');
+        if (existingAlert) {
+            existingAlert.remove();
+        }
+        
+        // Create error alert
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+        alertDiv.innerHTML = `
+            <i class="fas fa-exclamation-circle me-2"></i>${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        // Insert at the top of the form
+        form.parentNode.insertBefore(alertDiv, form);
+    }
 });
 </script>
 {% endblock %} 

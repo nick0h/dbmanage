@@ -42,9 +42,9 @@
 
 /* Logo Styling */
 .navbar-logo {
-  height: 55px;
+  height: 70px;
   width: auto;
-  max-width: 280px;
+  max-width: 320px;
 }
 
 .navbar-brand-text {
@@ -55,8 +55,8 @@
 
 @media (max-width: 768px) {
   .navbar-logo {
-    height: 45px;
-    max-width: 220px;
+    height: 60px;
+    max-width: 260px;
   }
   
   .navbar-brand-text {
@@ -66,8 +66,8 @@
 
 @media (max-width: 576px) {
   .navbar-logo {
-    height: 40px;
-    max-width: 180px;
+    height: 55px;
+    max-width: 220px;
   }
   
   .navbar-brand-text {
@@ -77,8 +77,8 @@
 
 /* Navbar Styling */
 .navbar-dark {
-  background: linear-gradient(135deg, var(--borealis-purple) 0%, var(--borealis-blue) 50%, var(--borealis-teal) 100%) !important;
-  border-bottom: 3px solid var(--borealis-dark-blue);
+  background: linear-gradient(135deg, #6c757d 0%, #495057 50%, #343a40 100%) !important;
+  border-bottom: 3px solid #212529;
 }
 
 .navbar-brand:hover {

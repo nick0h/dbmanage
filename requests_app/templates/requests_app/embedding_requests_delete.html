@@ -62,9 +62,11 @@
                                 <td>{{ request.number_of_animals|default:"-" }}</td>
                                 <td>{{ request.take_down_date|date:"M d, Y"|default:"-" }}</td>
                                 <td>
-                                    <span class="badge bg-{% if request.currently_in %}success{% else %}secondary{% endif %}">
-                                        {% if request.currently_in %}Yes{% else %}No{% endif %}
-                                    </span>
+                                    {% if request.currently_in %}
+                                        <span class="badge bg-info">{{ request.currently_in }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
                                 </td>
                                 <td>{{ request.date_of_xylene_etoh_change|date:"M d, Y"|default:"-" }}</td>
                                 <td>{{ request.length_of_time_in_etoh|truncatechars:15|default:"-" }}</td>

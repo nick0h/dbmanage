@@ -1,7 +1,17 @@
 {% extends "admin/base_site.html" %}
 {% load i18n static %}
 
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">
+<style>
+    /* Ensure white text on all colored buttons */
+    .btn-primary, .btn-success, .btn-info, .btn-warning, .btn-danger, .btn-secondary, .btn-dark {
+        color: white !important;
+    }
+    .btn-primary:hover, .btn-success:hover, .btn-info:hover, .btn-warning:hover, .btn-danger:hover, .btn-secondary:hover, .btn-dark:hover {
+        color: white !important;
+    }
+</style>
+{% endblock %}
 
 {% block coltype %}colMS{% endblock %}
 
@@ -42,9 +52,9 @@
                     <p class="card-text text-muted small">Manage staining requests and antibodies</p>
                 <div class="d-grid gap-2">
                     <a href="{% url 'staining_requests_current' %}" class="btn btn-primary btn-sm">View Current Requests</a>
-                    <a href="{% url 'staining_requests' %}" class="btn btn-outline-primary btn-sm">View All Requests</a>
-                    <a href="{% url 'staining_requests_delete' %}" class="btn btn-sm" style="background-color: #6a0dad; border-color: #6a0dad; color: white;">Delete Requests</a>
-                    <a href="{% url 'staining_notification_config' %}" class="btn btn-sm" style="background-color: #28a745; border-color: #28a745; color: white;">
+                    <a href="{% url 'staining_requests' %}" class="btn btn-primary btn-sm">View All Requests</a>
+                    <a href="{% url 'staining_requests_delete' %}" class="btn btn-primary btn-sm">Delete Requests</a>
+                    <a href="{% url 'staining_notification_config' %}" class="btn btn-primary btn-sm">
                         <i class="fas fa-bell me-1"></i>Configure Notifications
                     </a>
                 </div>
@@ -61,9 +71,9 @@
                     <p class="card-text text-muted small">Manage embedding requests and processing</p>
                     <div class="d-grid gap-2">
                         <a href="{% url 'embedding_requests_current' %}" class="btn btn-success btn-sm">View Current Requests</a>
-                        <a href="{% url 'embedding_requests' %}" class="btn btn-outline-success btn-sm">View All Requests</a>
-                        <a href="{% url 'embedding_requests_delete' %}" class="btn btn-sm" style="background-color: #1e3a8a; border-color: #1e3a8a; color: white;">Delete Requests</a>
-                        <a href="{% url 'embedding_notification_config' %}" class="btn btn-sm" style="background-color: #28a745; border-color: #28a745; color: white;">
+                        <a href="{% url 'embedding_requests' %}" class="btn btn-success btn-sm">View All Requests</a>
+                        <a href="{% url 'embedding_requests_delete' %}" class="btn btn-success btn-sm">Delete Requests</a>
+                        <a href="{% url 'embedding_notification_config' %}" class="btn btn-success btn-sm">
                             <i class="fas fa-bell me-1"></i>Configure Notifications
                         </a>
                     </div>
@@ -80,9 +90,9 @@
                     <p class="card-text text-muted small">Manage sectioning requests and cutting</p>
                     <div class="d-grid gap-2">
                         <a href="{% url 'sectioning_requests_current' %}" class="btn btn-info btn-sm">View Current Requests</a>
-                        <a href="{% url 'sectioning_requests' %}" class="btn btn-outline-info btn-sm">View All Requests</a>
-                        <a href="{% url 'sectioning_requests_delete' %}" class="btn btn-sm" style="background-color: #581c87; border-color: #581c87; color: white;">Delete Requests</a>
-                        <a href="{% url 'sectioning_notification_config' %}" class="btn btn-sm" style="background-color: #28a745; border-color: #28a745; color: white;">
+                        <a href="{% url 'sectioning_requests' %}" class="btn btn-info btn-sm">View All Requests</a>
+                        <a href="{% url 'sectioning_requests_delete' %}" class="btn btn-info btn-sm">Delete Requests</a>
+                        <a href="{% url 'sectioning_notification_config' %}" class="btn btn-info btn-sm">
                             <i class="fas fa-bell me-1"></i>Configure Notifications
                         </a>
                     </div>
@@ -146,10 +156,10 @@
                                             <a href="{% url 'admin:requests_app_antibody_changelist' %}" class="btn btn-outline-primary btn-sm">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{% url 'admin:requests_app_antibody_add' %}" class="btn btn-outline-success btn-sm">
+                                            <a href="{% url 'admin:requests_app_antibody_add' %}" class="btn btn-outline-primary btn-sm">
                                                 <i class="fas fa-plus"></i>
                                             </a>
-                                            <button class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#importAntibodyModal">
+                                            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#importAntibodyModal">
                                                 <i class="fas fa-file-import"></i>
                                             </button>
                                         </div>
@@ -177,10 +187,10 @@
                                             <a href="{% url 'admin:requests_app_probe_changelist' %}" class="btn btn-outline-primary btn-sm">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{% url 'admin:requests_app_probe_add' %}" class="btn btn-outline-success btn-sm">
+                                            <a href="{% url 'admin:requests_app_probe_add' %}" class="btn btn-outline-primary btn-sm">
                                                 <i class="fas fa-plus"></i>
                                             </a>
-                                            <button class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#importProbeModal">
+                                            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#importProbeModal">
                                                 <i class="fas fa-file-import"></i>
                                             </button>
                                         </div>
@@ -230,7 +240,7 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
-                                            <a href="{% url 'admin:requests_app_stainingrequestchangelog_changelist' %}" class="btn btn-outline-info btn-sm">
+                                            <a href="{% url 'admin:requests_app_stainingrequestchangelog_changelist' %}" class="btn btn-outline-primary btn-sm">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                         </div>
@@ -282,7 +292,7 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
-                                            <a href="{% url 'admin:requests_app_embeddingrequest_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                            <a href="{% url 'admin:requests_app_embeddingrequest_changelist' %}" class="btn btn-outline-success btn-sm">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                         </div>
@@ -307,7 +317,7 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
-                                            <a href="{% url 'admin:requests_app_embeddingrequestchangelog_changelist' %}" class="btn btn-outline-info btn-sm">
+                                            <a href="{% url 'admin:requests_app_embeddingrequestchangelog_changelist' %}" class="btn btn-outline-success btn-sm">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                         </div>
@@ -359,7 +369,7 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
-                                            <a href="{% url 'admin:requests_app_sectioningrequest_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                            <a href="{% url 'admin:requests_app_sectioningrequest_changelist' %}" class="btn btn-outline-info btn-sm">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                         </div>
@@ -437,7 +447,7 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
-                                            <a href="{% url 'admin:requests_app_requestor_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                            <a href="{% url 'admin:requests_app_requestor_changelist' %}" class="btn btn-outline-success btn-sm">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             <a href="{% url 'admin:requests_app_requestor_add' %}" class="btn btn-outline-success btn-sm">
@@ -465,10 +475,10 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
-                                            <a href="{% url 'admin:requests_app_tissue_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                            <a href="{% url 'admin:requests_app_tissue_changelist' %}" class="btn btn-outline-info btn-sm">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{% url 'admin:requests_app_tissue_add' %}" class="btn btn-outline-success btn-sm">
+                                            <a href="{% url 'admin:requests_app_tissue_add' %}" class="btn btn-outline-info btn-sm">
                                                 <i class="fas fa-plus"></i>
                                             </a>
                                         </div>
@@ -493,10 +503,10 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
-                                            <a href="{% url 'admin:requests_app_status_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                            <a href="{% url 'admin:requests_app_status_changelist' %}" class="btn btn-outline-warning btn-sm">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{% url 'admin:requests_app_status_add' %}" class="btn btn-outline-success btn-sm">
+                                            <a href="{% url 'admin:requests_app_status_add' %}" class="btn btn-outline-warning btn-sm">
                                                 <i class="fas fa-plus"></i>
                                             </a>
                                         </div>
@@ -521,10 +531,10 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
-                                            <a href="{% url 'admin:requests_app_assignee_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                            <a href="{% url 'admin:requests_app_assignee_changelist' %}" class="btn btn-outline-secondary btn-sm">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{% url 'admin:requests_app_assignee_add' %}" class="btn btn-outline-success btn-sm">
+                                            <a href="{% url 'admin:requests_app_assignee_add' %}" class="btn btn-outline-secondary btn-sm">
                                                 <i class="fas fa-plus"></i>
                                             </a>
                                         </div>
@@ -549,13 +559,13 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
-                                            <a href="{% url 'admin:requests_app_study_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                            <a href="{% url 'admin:requests_app_study_changelist' %}" class="btn btn-outline-dark btn-sm">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{% url 'admin:requests_app_study_add' %}" class="btn btn-outline-success btn-sm">
+                                            <a href="{% url 'admin:requests_app_study_add' %}" class="btn btn-outline-dark btn-sm">
                                                 <i class="fas fa-plus"></i>
                                             </a>
-                                            <button class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#importStudyModal">
+                                            <button class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#importStudyModal">
                                                 <i class="fas fa-file-import"></i>
                                             </button>
                                         </div>
@@ -580,10 +590,10 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
-                                            <a href="{% url 'admin:requests_app_priority_changelist' %}" class="btn btn-outline-primary btn-sm">
+                                            <a href="{% url 'admin:requests_app_priority_changelist' %}" class="btn btn-outline-danger btn-sm">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{% url 'admin:requests_app_priority_add' %}" class="btn btn-outline-success btn-sm">
+                                            <a href="{% url 'admin:requests_app_priority_add' %}" class="btn btn-outline-danger btn-sm">
                                                 <i class="fas fa-plus"></i>
                                             </a>
                                         </div>
@@ -603,7 +613,7 @@
             <div class="text-muted">
                 <small>
                     <i class="fas fa-shield-alt me-1"></i>
-                    Borealis Biosciences Admin Panel
+                    Histopathology Requests Admin Panel
                 </small>
             </div>
         </div>

@@ -23,12 +23,13 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-light">
+                <div class="card-header bg-light" style="cursor: pointer;" onclick="toggleFilter()">
                     <h5 class="card-title mb-0">
                         <i class="fas fa-filter me-2"></i>Filter Current Requests
+                        <i class="fas fa-chevron-down float-end" id="filter-chevron"></i>
                     </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body collapse" id="filter-section">
                     <form method="get" class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label">Status</label>
@@ -36,7 +37,7 @@
                                 {% for status in statuses %}
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="status" value="{{ status.status }}" id="status_{{ status.id }}" 
-                                           {% if status.status in selected_statuses %}checked{% endif %}>
+                                           {% if status.status in selected_statuses %}checked{% elif not selected_statuses and status.status != 'Complete' %}checked{% endif %}>
                                     <label class="form-check-label" for="status_{{ status.id }}">
                                         {{ status.status }}
                                     </label>
@@ -53,10 +54,10 @@
                             <input type="date" class="form-control" id="date_to" name="date_to" value="{{ date_to }}">
                         </div>
                         <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary me-2">
+                            <button type="submit" class="btn btn-success me-2">
                                 <i class="fas fa-search me-1"></i>Filter
                             </button>
-                            <a href="{% url 'embedding_requests_current' %}" class="btn btn-outline-secondary">
+                            <a href="{% url 'embedding_requests_current' %}" class="btn btn-outline-success">
                                 <i class="fas fa-times me-1"></i>Clear
                             </a>
                         </div>
@@ -162,9 +163,11 @@
                                         <td>{{ request.number_of_animals|default:"-" }}</td>
                                         <td>{{ request.take_down_date|date:"M d, Y"|default:"-" }}</td>
                                         <td>
-                                            <span class="badge bg-{% if request.currently_in %}success{% else %}secondary{% endif %}">
-                                                {% if request.currently_in %}Yes{% else %}No{% endif %}
-                                            </span>
+                                            {% if request.currently_in %}
+                                                <span class="badge bg-info">{{ request.currently_in }}</span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
                                         </td>
                                         <td>{{ request.date_of_xylene_etoh_change|date:"M d, Y"|default:"-" }}</td>
                                         <td>{{ request.length_of_time_in_etoh|truncatechars:15|default:"-" }}</td>
@@ -178,13 +181,13 @@
                                         <td>{{ request.assigned_to.name|truncatechars:15|default:"-" }}</td>
                                         <td>{{ request.created_at|date:"M d, Y" }}</td>
                                         <td>
-                                            <a href="{% url 'embedding_request_detail' request.pk %}" class="btn btn-sm btn-outline-primary" title="View Details">
+                                            <a href="{% url 'embedding_request_detail' request.pk %}" class="btn btn-sm btn-outline-success" title="View Details">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{% url 'embedding_request_edit' request.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                            <a href="{% url 'embedding_request_edit' request.pk %}" class="btn btn-sm btn-outline-success" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <a href="{% url 'embedding_request_history' request.pk %}" class="btn btn-sm btn-outline-info" title="View History">
+                                            <a href="{% url 'embedding_request_history' request.pk %}" class="btn btn-sm btn-outline-success" title="View History">
                                                 <i class="fas fa-history"></i>
                                             </a>
                                         </td>
@@ -238,4 +241,21 @@
         </div>
     </div>
 </div>
+
+<script>
+function toggleFilter() {
+    const filterSection = document.getElementById('filter-section');
+    const chevron = document.getElementById('filter-chevron');
+    
+    if (filterSection.classList.contains('show')) {
+        filterSection.classList.remove('show');
+        chevron.classList.remove('fa-chevron-up');
+        chevron.classList.add('fa-chevron-down');
+    } else {
+        filterSection.classList.add('show');
+        chevron.classList.remove('fa-chevron-down');
+        chevron.classList.add('fa-chevron-up');
+    }
+}
+</script>
 {% endblock %}

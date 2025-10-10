@@ -153,10 +153,8 @@
                                         <tr>
                                             <td class="fw-bold">Currently In:</td>
                                             <td>
-                                                {% if request.currently_in is not None %}
-                                                    <span class="badge bg-{% if request.currently_in %}success{% else %}secondary{% endif %}">
-                                                        {% if request.currently_in %}Yes{% else %}No{% endif %}
-                                                    </span>
+                                                {% if request.currently_in %}
+                                                    <span class="badge bg-info">{{ request.currently_in }}</span>
                                                 {% else %}
                                                     <span class="text-muted">Not specified</span>
                                                 {% endif %}

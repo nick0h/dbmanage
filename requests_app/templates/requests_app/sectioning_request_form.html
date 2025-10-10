@@ -10,13 +10,21 @@
                     <i class="fas fa-cut text-info me-2"></i>New Sectioning Request
                 </h1>
                 <div>
-                    <a href="{% url 'sectioning_requests' %}" class="btn btn-outline-secondary">
+                    <a href="{% url 'sectioning_requests' %}" class="btn btn-outline-info">
                         <i class="fas fa-arrow-left me-2"></i>Back to Sectioning Requests
                     </a>
                 </div>
             </div>
         </div>
     </div>
+
+    {% if success_message or request.GET.success %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        {% if success_message %}{{ success_message }}{% else %}Sectioning request submitted successfully! Form has been reset for creating another similar request.{% endif %}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
 
     <div class="row">
         <div class="col-12">
@@ -27,7 +35,7 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" action="{% url 'sectioning_request_create' %}" id="sectioningRequestForm">
                         {% csrf_token %}
                         
                         <!-- Basic Information -->
@@ -185,16 +193,19 @@
                                 <label class="form-label">
                                     <i class="fas fa-link me-1"></i>Links
                                 </label>
-                                <div class="row">
-                                    <div class="col-md-10">
+                                <div class="row mb-2">
+                                    <div class="col-md-5">
                                         <input type="url" class="form-control" id="id_link" name="link" placeholder="Enter a link (e.g., https://example.com)" maxlength="255">
                                     </div>
-                                    <div class="col-md-2">
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" id="id_link_description" name="link_description" placeholder="Link description (optional)" maxlength="100">
+                                    </div>
+                                    <div class="col-md-3">
                                         <button type="button" class="btn btn-outline-info w-100" id="addLinkBtn">Add Link</button>
                                     </div>
                                 </div>
                                 <div id="linkList" class="mt-2"></div>
-                                <small class="text-muted">Add up to 10 links to relevant resources</small>
+                                <small class="text-muted">Add up to 10 links to relevant resources with optional descriptions</small>
                             </div>
                         </div>
 
@@ -202,9 +213,12 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="d-flex justify-content-end gap-2">
-                                    <a href="{% url 'sectioning_requests' %}" class="btn btn-outline-secondary">
+                                    <a href="{% url 'sectioning_requests' %}" class="btn btn-outline-info">
                                         <i class="fas fa-times me-2"></i>Cancel
                                     </a>
+                                    <button type="button" name="submit_and_copy" class="btn btn-info">
+                                        <i class="fas fa-copy me-2"></i>Submit and Copy
+                                    </button>
                                     <button type="submit" class="btn btn-info">
                                         <i class="fas fa-save me-2"></i>Create Sectioning Request
                                     </button>
@@ -262,25 +276,32 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add link functionality
     addLinkBtn.addEventListener('click', function() {
         const linkInput = document.getElementById('id_link');
+        const descriptionInput = document.getElementById('id_link_description');
         const linkValue = linkInput.value.trim();
+        const descriptionValue = descriptionInput.value.trim();
         
         if (linkValue && linkCount < 10) {
             // Create a div to hold the link
             const linkDiv = document.createElement('div');
             linkDiv.className = 'form-control mt-2 d-flex align-items-center';
             
-            // Create a hidden input for the link value
-            const hiddenInput = document.createElement('input');
-            hiddenInput.type = 'hidden';
-            hiddenInput.name = 'link_' + linkCount;
-            hiddenInput.value = linkValue;
+            // Create hidden inputs for the link value and description
+            const hiddenLinkInput = document.createElement('input');
+            hiddenLinkInput.type = 'hidden';
+            hiddenLinkInput.name = 'link_' + linkCount;
+            hiddenLinkInput.value = linkValue;
             
-            // Create a clickable link
+            const hiddenDescInput = document.createElement('input');
+            hiddenDescInput.type = 'hidden';
+            hiddenDescInput.name = 'link_description_' + linkCount;
+            hiddenDescInput.value = descriptionValue;
+            
+            // Create a clickable link with description
             const linkElement = document.createElement('a');
             linkElement.href = linkValue;
             linkElement.target = '_blank';
             linkElement.className = 'text-decoration-none me-2';
-            linkElement.textContent = linkValue;
+            linkElement.textContent = descriptionValue ? `${descriptionValue} (${linkValue})` : linkValue;
             
             // Create a remove button
             const removeBtn = document.createElement('button');
@@ -292,16 +313,118 @@ document.addEventListener('DOMContentLoaded', function() {
                 linkCount--;
             };
             
-            linkDiv.appendChild(hiddenInput);
+            linkDiv.appendChild(hiddenLinkInput);
+            linkDiv.appendChild(hiddenDescInput);
             linkDiv.appendChild(linkElement);
             linkDiv.appendChild(removeBtn);
             linkList.appendChild(linkDiv);
             
-            // Clear the input and increment counter
+            // Clear the inputs and increment counter
             linkInput.value = '';
+            descriptionInput.value = '';
             linkCount++;
         }
     });
+
+    // Handle Submit and Copy button
+    const submitAndCopyBtn = document.querySelector('button[name="submit_and_copy"]');
+    if (submitAndCopyBtn) {
+        submitAndCopyBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent normal form submission
+            console.log('Submit and Copy button clicked!');
+            
+            // Show loading message
+            const originalText = submitAndCopyBtn.innerHTML;
+            submitAndCopyBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+            submitAndCopyBtn.disabled = true;
+            
+            // Prepare form data
+            const form = document.getElementById('sectioningRequestForm');
+            const formData = new FormData(form);
+            formData.append('submit_and_copy', 'true');
+            
+            // Submit via AJAX
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showSuccessMessage('Sectioning request submitted successfully! Form is ready for creating another similar request.');
+                    // Reset button
+                    submitAndCopyBtn.innerHTML = originalText;
+                    submitAndCopyBtn.disabled = false;
+                } else {
+                    // Show error message
+                    showErrorMessage('Error submitting request: ' + (data.error || 'Unknown error'));
+                    // Reset button
+                    submitAndCopyBtn.innerHTML = originalText;
+                    submitAndCopyBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorMessage('Error submitting request. Please try again.');
+                // Reset button
+                submitAndCopyBtn.innerHTML = originalText;
+                submitAndCopyBtn.disabled = false;
+            });
+        });
+    }
+    
+    // Function to show success message
+    function showSuccessMessage(message) {
+        // Remove any existing alerts
+        const existingAlert = document.querySelector('.alert');
+        if (existingAlert) {
+            existingAlert.remove();
+        }
+        
+        // Create success alert
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-success alert-dismissible fade show';
+        alertDiv.innerHTML = `
+            <i class="fas fa-check-circle me-2"></i>${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        // Insert at the top of the form
+        const form = document.getElementById('sectioningRequestForm');
+        form.parentNode.insertBefore(alertDiv, form);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+    
+    // Function to show error message
+    function showErrorMessage(message) {
+        // Remove any existing alerts
+        const existingAlert = document.querySelector('.alert');
+        if (existingAlert) {
+            existingAlert.remove();
+        }
+        
+        // Create error alert
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+        alertDiv.innerHTML = `
+            <i class="fas fa-exclamation-circle me-2"></i>${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        // Insert at the top of the form
+        const form = document.getElementById('sectioningRequestForm');
+        form.parentNode.insertBefore(alertDiv, form);
+    }
 });
 </script>
 {% endblock %}

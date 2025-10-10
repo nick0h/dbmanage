@@ -194,7 +194,7 @@ class EmbeddingRequest(models.Model):
     special_request = models.TextField(blank=True, null=True)
     number_of_animals = models.IntegerField(blank=True, null=True, verbose_name="Number of Animals")
     take_down_date = models.DateField(blank=True, null=True, verbose_name="Take Down Date")
-    currently_in = models.BooleanField(choices=[(True, "Yes"), (False, "No")], default=False, verbose_name="Currently In?")
+    currently_in = models.CharField(max_length=255, blank=True, null=True, verbose_name="Currently In")
     date_of_xylene_etoh_change = models.DateField(blank=True, null=True, verbose_name="Date of Xylene-EtOH Change")
     length_of_time_in_etoh = models.CharField(blank=True, max_length=40, null=True, verbose_name="Length of Time in EtOH")
     links = models.JSONField(blank=True, null=True, verbose_name="Links")
@@ -341,7 +341,7 @@ class EmbeddingRequestChangeLog(BaseChangeLog):
     special_request = models.TextField(blank=True, null=True)
     number_of_animals = models.IntegerField(blank=True, null=True)
     take_down_date = models.DateField(blank=True, null=True)
-    currently_in = models.BooleanField(blank=True, null=True)
+    currently_in = models.CharField(max_length=255, blank=True, null=True)
     date_of_xylene_etoh_change = models.DateField(blank=True, null=True)
     length_of_time_in_etoh = models.CharField(blank=True, max_length=40, null=True)
     
