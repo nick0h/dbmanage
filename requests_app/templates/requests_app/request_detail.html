@@ -276,9 +276,12 @@
                                         <h6 class="fw-bold">Links:</h6>
                                         <div class="list-group">
                                             {% for link in request.links %}
-                                                <a href="{{ link }}" target="_blank" class="list-group-item list-group-item-action d-flex align-items-center">
+                                                <a href="{{ link.url }}" target="_blank" class="list-group-item list-group-item-action d-flex align-items-center">
                                                     <i class="fas fa-external-link-alt me-2"></i>
-                                                    {{ link }}
+                                                    <div>
+                                                        <div class="fw-bold">{{ link.description|default:link.url }}</div>
+                                                        <small class="text-muted">{{ link.url }}</small>
+                                                    </div>
                                                 </a>
                                             {% endfor %}
                                         </div>
