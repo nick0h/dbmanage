@@ -1,0 +1,75 @@
+<svg width="320" height="80" viewBox="0 0 320 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Green to Blue Gradient -->
+    <linearGradient id="borealisGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4caf50;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00bcd4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4a90e2;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Abstract Pattern Gradient -->
+    <linearGradient id="patternGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6a0dad;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00bcd4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4caf50;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background Rectangle with Gradient -->
+  <rect width="320" height="80" fill="url(#borealisGradient)" rx="8"/>
+  
+  <!-- Abstract Jagged Pattern -->
+  <path d="M0,60 
+           L20,45 
+           L40,55 
+           L60,35 
+           L80,50 
+           L100,30 
+           L120,45 
+           L140,25 
+           L160,40 
+           L180,20 
+           L200,35 
+           L220,15 
+           L240,30 
+           L260,10 
+           L280,25 
+           L300,5 
+           L320,20 
+           L320,80 
+           L0,80 Z" 
+        fill="url(#patternGradient)" 
+        opacity="0.8"/>
+  
+  <!-- Additional Pattern Layer for Depth -->
+  <path d="M0,70 
+           L15,55 
+           L35,65 
+           L55,45 
+           L75,60 
+           L95,40 
+           L115,55 
+           L135,35 
+           L155,50 
+           L175,30 
+           L195,45 
+           L215,25 
+           L235,40 
+           L255,20 
+           L275,35 
+           L295,15 
+           L315,30 
+           L320,30 
+           L320,80 
+           L0,80 Z" 
+        fill="url(#patternGradient)" 
+        opacity="0.6"/>
+  
+  <!-- Text -->
+  <text x="160" y="50" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="white" stroke="rgba(0,0,0,0.3)" stroke-width="1">
+    BOREALIS
+  </text>
+  <text x="160" y="68" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="rgba(255,255,255,0.9)">
+    Histopathology Requests
+  </text>
+</svg>

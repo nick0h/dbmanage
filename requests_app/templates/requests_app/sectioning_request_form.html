@@ -84,7 +84,7 @@
                         <div class="row mb-3">
                             <div class="col-12">
                                 <label class="form-label">
-                                    <i class="fas fa-microscope me-1"></i>Tissue:
+                                    <i class="fas fa-microscope me-1"></i>Tissue: <span class="text-danger">*</span>
                                 </label>
                                 <div class="row">
                                     <div class="col-md-10">
@@ -124,7 +124,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="{{ form.cut_surface_down.id_for_label }}" class="form-label">
-                                    <i class="fas fa-cut me-1"></i>Cut Surface Down
+                                    <i class="fas fa-cut me-1"></i>Cut Surface Down <span class="text-danger">*</span>
                                 </label>
                                 {{ form.cut_surface_down }}
                                 {% if form.cut_surface_down.errors %}
@@ -136,7 +136,7 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="{{ form.sections_per_slide.id_for_label }}" class="form-label">
-                                    <i class="fas fa-layer-group me-1"></i># of Sections/Slide
+                                    <i class="fas fa-layer-group me-1"></i># of Sections/Slide <span class="text-danger">*</span>
                                 </label>
                                 {{ form.sections_per_slide }}
                                 {% if form.sections_per_slide.errors %}
@@ -145,7 +145,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="{{ form.slides_per_block.id_for_label }}" class="form-label">
-                                    <i class="fas fa-cube me-1"></i># of Slides/Block
+                                    <i class="fas fa-cube me-1"></i># of Slides/Block <span class="text-danger">*</span>
                                 </label>
                                 {{ form.slides_per_block }}
                                 {% if form.slides_per_block.errors %}
@@ -425,6 +425,42 @@ document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('sectioningRequestForm');
         form.parentNode.insertBefore(alertDiv, form);
     }
+    
+    // Form validation
+    function validateForm() {
+        const requiredFields = [
+            { id: 'id_requestor', name: 'Requestor' },
+            { id: 'id_study', name: 'Study' },
+            { id: 'id_tissue', name: 'Tissue' },
+            { id: 'id_for_what', name: 'For' },
+            { id: 'id_cut_surface_down', name: 'Cut Surface Down' },
+            { id: 'id_sections_per_slide', name: '# of Sections/Slide' },
+            { id: 'id_slides_per_block', name: '# of Slides/Block' }
+        ];
+        
+        const missingFields = [];
+        
+        requiredFields.forEach(field => {
+            const element = document.getElementById(field.id);
+            if (!element || !element.value || element.value.trim() === '') {
+                missingFields.push(field.name);
+            }
+        });
+        
+        if (missingFields.length > 0) {
+            showErrorMessage('Please fill out all required fields: ' + missingFields.join(', '));
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Add form submission validation
+    document.getElementById('sectioningRequestForm').addEventListener('submit', function(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+        }
+    });
 });
 </script>
 {% endblock %}

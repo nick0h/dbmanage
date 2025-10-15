@@ -116,4 +116,7 @@ urlpatterns = [
         
         # Email Test URL
         path('email-test/', views.EmailTestView.as_view(), name='email_test'),
+        
+        # Custom Logout URL
+        path('logout/', views.custom_logout, name='custom_logout'),
 ] 

@@ -84,7 +84,7 @@
                         <div class="row mb-3">
                             <div class="col-12">
                                 <label class="form-label">
-                                    <i class="fas fa-microscope me-1"></i>Tissue:
+                                    <i class="fas fa-microscope me-1"></i>Tissue: <span class="text-danger">*</span>
                                 </label>
                                 <div class="row">
                                     <div class="col-md-10">
@@ -115,7 +115,7 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="{{ form.number_of_animals.id_for_label }}" class="form-label">
-                                    <i class="fas fa-paw me-1"></i>Number of Animals
+                                    <i class="fas fa-paw me-1"></i>Number of Animals <span class="text-danger">*</span>
                                 </label>
                                 {{ form.number_of_animals }}
                                 {% if form.number_of_animals.errors %}
@@ -124,7 +124,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="{{ form.take_down_date.id_for_label }}" class="form-label">
-                                    <i class="fas fa-calendar me-1"></i>Take Down Date
+                                    <i class="fas fa-calendar me-1"></i>Take Down Date <span class="text-danger">*</span>
                                 </label>
                                 {{ form.take_down_date }}
                                 {% if form.take_down_date.errors %}
@@ -136,7 +136,7 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="{{ form.currently_in.id_for_label }}" class="form-label">
-                                    <i class="fas fa-flask me-1"></i>Currently In?
+                                    <i class="fas fa-flask me-1"></i>Currently In? <span class="text-danger">*</span>
                                 </label>
                                 {{ form.currently_in }}
                                 {% if form.currently_in.errors %}
@@ -145,7 +145,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="{{ form.date_of_xylene_etoh_change.id_for_label }}" class="form-label">
-                                    <i class="fas fa-calendar-alt me-1"></i>Date of Xylene-EtOH Change
+                                    <i class="fas fa-calendar-alt me-1"></i>Date of Xylene-EtOH Change <span class="text-danger">*</span>
                                 </label>
                                 {{ form.date_of_xylene_etoh_change }}
                                 {% if form.date_of_xylene_etoh_change.errors %}
@@ -157,7 +157,7 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="{{ form.length_of_time_in_etoh.id_for_label }}" class="form-label">
-                                    <i class="fas fa-clock me-1"></i>Length of Time in EtOH
+                                    <i class="fas fa-clock me-1"></i>Length of Time in EtOH <span class="text-danger">*</span>
                                 </label>
                                 {{ form.length_of_time_in_etoh }}
                                 {% if form.length_of_time_in_etoh.errors %}
@@ -425,6 +425,43 @@ document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('embeddingRequestForm');
         form.parentNode.insertBefore(alertDiv, form);
     }
+    
+    // Form validation
+    function validateForm() {
+        const requiredFields = [
+            { id: 'id_requestor', name: 'Requestor' },
+            { id: 'id_study', name: 'Study' },
+            { id: 'id_tissue', name: 'Tissue' },
+            { id: 'id_number_of_animals', name: 'Number of Animals' },
+            { id: 'id_take_down_date', name: 'Take Down Date' },
+            { id: 'id_currently_in', name: 'Currently In' },
+            { id: 'id_date_of_xylene_etoh_change', name: 'Date of Xylene-EtOH Change' },
+            { id: 'id_length_of_time_in_etoh', name: 'Length of Time in EtOH' }
+        ];
+        
+        const missingFields = [];
+        
+        requiredFields.forEach(field => {
+            const element = document.getElementById(field.id);
+            if (!element || !element.value || element.value.trim() === '') {
+                missingFields.push(field.name);
+            }
+        });
+        
+        if (missingFields.length > 0) {
+            showErrorMessage('Please fill out all required fields: ' + missingFields.join(', '));
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Add form submission validation
+    document.getElementById('embeddingRequestForm').addEventListener('submit', function(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+        }
+    });
 });
 </script>
 {% endblock %}

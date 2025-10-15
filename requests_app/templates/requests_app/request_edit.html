@@ -59,13 +59,8 @@
                 <div class="row mb-3">
                     <div class="col-md-12">
                         <label class="form-label">Probe:</label>
-                        <select class="form-control" name="probe" readonly style="background-color: #f8f9fa; color: #6c757d;" disabled>
-                            <option value="">No Probe</option>
-                            {% for probe in probes %}
-                                <option value="{{ probe.pk }}" {% if request_obj.probe and request_obj.probe.pk == probe.pk %}selected{% endif %}>{{ probe.name }} - {{ probe.description }}</option>
-                            {% endfor %}
-                        </select>
-                        <small class="text-muted">Probe cannot be modified after creation</small>
+                        {{ form.probe }}
+                        <small class="text-muted">Select the probe for this request</small>
                     </div>
                 </div>
 

@@ -77,8 +77,8 @@
 
 /* Navbar Styling */
 .navbar-dark {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 50%, #343a40 100%) !important;
-  border-bottom: 3px solid #212529;
+  background: linear-gradient(135deg, var(--borealis-purple) 0%, var(--borealis-blue) 50%, var(--borealis-teal) 100%) !important;
+  border-bottom: 3px solid #1e3a8a;
 }
 
 .navbar-brand:hover {

@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import FormView, ListView, UpdateView, DetailView, DeleteView, TemplateView
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth import logout
 from django.utils.decorators import method_decorator
 from .forms import RequestForm, RequestEditForm, RequestSearchForm, StudyEditForm, AntibodyForm, RequestorForm, TissueForm, StatusForm, AssigneeForm, ProbeForm, PriorityForm, SectioningRequestSearchForm, EmbeddingRequestSearchForm, EmbeddingRequestForm, SectioningRequestForm, StainingRequestSearchForm, EmbeddingRequestEditForm, SectioningRequestEditForm, StainingNotificationConfigForm, EmbeddingNotificationConfigForm, SectioningNotificationConfigForm
 from .models import Request, Status, Study, Requestor, Antibody, Tissue, Assignee, Probe, Priority, StainingRequest, EmbeddingRequest, SectioningRequest, StainingRequestChangeLog, EmbeddingRequestChangeLog, SectioningRequestChangeLog, NotificationSettings
@@ -2735,4 +2736,8 @@ class ImportProbesView(TemplateView):
         return redirect('admin:index')
 
 
-
+def custom_logout(request):
+    """Custom logout view that properly logs out the user and redirects to home"""
+    logout(request)
+    messages.success(request, 'You have been successfully logged out.')
+    return redirect('home')

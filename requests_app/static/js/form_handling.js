@@ -1,4 +1,7 @@
 function validateForm(formData) {
+    // Check for required fields based on form type
+    const requiredFields = getRequiredFields(formData);
+    
     for (let [key, value] of formData.entries()) {
         if (value.length > 256) {
             return {
@@ -6,14 +9,54 @@ function validateForm(formData) {
                 message: `Field ${key} exceeds maximum length of 256 characters`
             };
         }
-        if (value.trim().length === 0) {
+        
+        // Check if field is required and empty
+        if (requiredFields.includes(key) && value.trim().length === 0) {
             return {
                 valid: false,
-                message: `Field ${key} cannot be empty`
+                message: `Please fill out all required fields: ${getMissingFields(formData, requiredFields).join(', ')}`
             };
         }
     }
     return { valid: true };
+}
+
+function getRequiredFields(formData) {
+    // Check if this is an antibody form by looking for antibody-specific fields
+    const hasAntibodyFields = formData.has('name') && formData.has('antigen') && formData.has('species') && formData.has('vendor');
+    
+    if (hasAntibodyFields) {
+        // For antibody form, all fields except 'recognizes' are required
+        return ['name', 'description', 'antigen', 'species', 'vendor'];
+    }
+    
+    // Check if this is a probe form by looking for probe-specific fields
+    const hasProbeFields = formData.has('name') && formData.has('target_gene') && formData.has('vendor') && formData.has('sequence');
+    
+    if (hasProbeFields) {
+        // For probe form, all fields except 'sequence', 'catalog_number', 'platform', 'target_region', 'number_of_pairs' are required
+        return ['name', 'description', 'target_gene', 'vendor'];
+    }
+    
+    // For other forms, check all fields
+    const requiredFields = [];
+    for (let [key, value] of formData.entries()) {
+        if (key !== 'csrfmiddlewaretoken' && key !== 'recognizes') {
+            requiredFields.push(key);
+        }
+    }
+    return requiredFields;
+}
+
+function getMissingFields(formData, requiredFields) {
+    const missingFields = [];
+    for (let field of requiredFields) {
+        const value = formData.get(field);
+        if (!value || value.trim().length === 0) {
+            missingFields.push(field.charAt(0).toUpperCase() + field.slice(1));
+        }
+    }
+    return missingFields;
 }
 
 function sanitizeInput(input) {

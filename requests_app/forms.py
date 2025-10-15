@@ -39,7 +39,7 @@ class RequestEditForm(forms.ModelForm):
     
     class Meta:
         model = Request
-        fields = ['status', 'notes', 'description', 'special_request', 'priority', 'assigned_to', 'antibody']
+        fields = ['status', 'notes', 'description', 'special_request', 'priority', 'assigned_to', 'antibody', 'probe']
         widgets = {
             'status': forms.Select(attrs={'class': 'form-control'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'maxlength': 256}),
@@ -48,6 +48,7 @@ class RequestEditForm(forms.ModelForm):
             'priority': forms.Select(attrs={'class': 'form-control'}),
             'assigned_to': forms.Select(attrs={'class': 'form-control'}),
             'antibody': forms.Select(attrs={'class': 'form-control'}),
+            'probe': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -58,6 +59,9 @@ class RequestEditForm(forms.ModelForm):
         self.fields['assigned_to'].required = False
         self.fields['antibody'].queryset = Antibody.objects.filter(archived=False).order_by('name')
         self.fields['antibody'].label_from_instance = lambda obj: f"{obj.name} - {obj.description}"
+        self.fields['probe'].queryset = Probe.objects.filter(archived=False).order_by('name')
+        self.fields['probe'].label_from_instance = lambda obj: f"{obj.name} - {obj.description}"
+        self.fields['probe'].required = False
 
 class RequestSearchForm(forms.Form):
     request_id = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Request ID'}))

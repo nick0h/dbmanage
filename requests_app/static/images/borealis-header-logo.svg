@@ -1,0 +1,61 @@
+<svg width="320" height="80" viewBox="0 0 320 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Purple to Cyan to Green Gradient -->
+    <linearGradient id="borealisGradient" x1="0%" y1="100%" x2="0%" y1="0%">
+      <stop offset="0%" style="stop-color:#6a0dad;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00bcd4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4caf50;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Abstract Pattern Gradient -->
+    <linearGradient id="patternGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6a0dad;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00bcd4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4caf50;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- White background for the right side -->
+  <rect width="320" height="80" fill="white"/>
+  
+  <!-- Left side gradient background (20-25% of width) -->
+  <rect width="80" height="80" fill="url(#borealisGradient)"/>
+  
+  <!-- Abstract Jagged Pattern - Main pronounced section -->
+  <path d="M0,60 
+           L15,45 
+           L25,55 
+           L35,40 
+           L45,50 
+           L55,35 
+           L65,45 
+           L75,30 
+           L80,40 
+           L80,80 
+           L0,80 Z" 
+        fill="url(#patternGradient)" 
+        opacity="0.9"/>
+  
+  <!-- Additional jagged pattern layer for depth -->
+  <path d="M0,70 
+           L10,55 
+           L20,65 
+           L30,50 
+           L40,60 
+           L50,45 
+           L60,55 
+           L70,40 
+           L80,50 
+           L80,80 
+           L0,80 Z" 
+        fill="url(#patternGradient)" 
+        opacity="0.7"/>
+  
+  <!-- Text on white background -->
+  <text x="160" y="35" font-family="Arial, sans-serif" font-size="28" font-weight="bold" text-anchor="middle" fill="#1e3a8a">
+    BOREALIS
+  </text>
+  <text x="160" y="55" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#64748b">
+    Histopathology Requests
+  </text>
+</svg>

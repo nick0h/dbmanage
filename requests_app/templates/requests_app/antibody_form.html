@@ -11,32 +11,32 @@
 </div>
 
 <div class="mb-3">
-    <label for="id_name" class="form-label">Name:</label>
+    <label for="id_name" class="form-label">Name: <span class="text-danger">*</span></label>
     <input type="text" class="form-control" id="id_name" name="name" required maxlength="256">
 </div>
 
 <div class="mb-3">
-    <label for="id_description" class="form-label">Description:</label>
+    <label for="id_description" class="form-label">Description: <span class="text-danger">*</span></label>
     <textarea class="form-control" id="id_description" name="description" rows="3" required maxlength="256"></textarea>
 </div>
 
 <div class="mb-3">
-    <label for="id_antigen" class="form-label">Antigen:</label>
+    <label for="id_antigen" class="form-label">Antigen: <span class="text-danger">*</span></label>
     <input type="text" class="form-control" id="id_antigen" name="antigen" required maxlength="256">
 </div>
 
 <div class="mb-3">
-    <label for="id_species" class="form-label">Species:</label>
+    <label for="id_species" class="form-label">Species: <span class="text-danger">*</span></label>
     <input type="text" class="form-control" id="id_species" name="species" required maxlength="256">
 </div>
 
 <div class="mb-3">
     <label for="id_recognizes" class="form-label">Recognizes:</label>
-    <input type="text" class="form-control" id="id_recognizes" name="recognizes" required maxlength="256">
+    <input type="text" class="form-control" id="id_recognizes" name="recognizes" maxlength="256">
 </div>
 
 <div class="mb-3">
-    <label for="id_vendor" class="form-label">Vendor:</label>
+    <label for="id_vendor" class="form-label">Vendor: <span class="text-danger">*</span></label>
     <input type="text" class="form-control" id="id_vendor" name="vendor" required maxlength="256">
 </div>
 {% endblock %} 

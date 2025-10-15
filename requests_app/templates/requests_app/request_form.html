@@ -3,106 +3,155 @@
 
 {% block content %}
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>New Request</h2>
-        <a href="{% url 'home' %}" class="btn btn-outline-primary">
-            <i class="fas fa-home me-2"></i>Back to Homepage
-        </a>
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2">
+                    <i class="fas fa-vial text-primary me-2"></i>New Staining Request
+                </h1>
+                <div>
+                    <a href="{% url 'staining_requests' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Staining Requests
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
-    
-    {% if success_message %}
+
+    {% if success_message or request.GET.success %}
     <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fas fa-check-circle me-2"></i>{{ success_message }}
+        <i class="fas fa-check-circle me-2"></i>
+        {% if success_message %}{{ success_message }}{% else %}Staining request submitted successfully! Form has been reset for creating another similar request.{% endif %}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     {% endif %}
-    <form method="post" id="requestForm" action="{% url 'staining_request_create' %}">
-        {% csrf_token %}
-        
-        <div class="form-group mb-3">
-            <label for="id_date">Date:</label>
-            <input type="date" class="form-control" id="id_date" name="date" value="{{ today_date|date:'Y-m-d' }}" required>
-        </div>
 
-        <div class="form-group mb-3">
-            <label for="id_requestor">Requestor:</label>
-            {{ form.requestor }}
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="id_description">Description:</label>
-            <input type="text" class="form-control" id="id_description" name="description" required maxlength="256">
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="id_antibody">Antibody:</label>
-            {{ form.antibody }}
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="id_probe">Probe:</label>
-            {{ form.probe }}
-            <div class="form-text">Optional - Select a probe if needed</div>
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="id_study">Study:</label>
-            {{ form.study }}
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="id_tissue">Tissue:</label>
-            <div class="row">
-                <div class="col-md-10">
-                    {{ form.tissue }}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>Staining Request Details
+                    </h5>
                 </div>
-                <div class="col-md-2">
-                    <button type="button" class="btn btn-secondary w-100" id="addTissueBtn">Add Tissue</button>
+                <div class="card-body">
+                    <form method="post" id="requestForm" action="{% url 'staining_request_create' %}">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>Basic Information
+                                </h6>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="id_requestor" class="form-label">Requestor: <span class="text-danger">*</span></label>
+                                {{ form.requestor }}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="id_description" class="form-label">Description: <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="id_description" name="description" required maxlength="256">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="id_antibody" class="form-label">Antibody: <span class="text-danger">*</span></label>
+                                {{ form.antibody }}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_probe" class="form-label">Probe:</label>
+                                {{ form.probe }}
+                                <div class="form-text">Optional - Select a probe if needed</div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="id_study" class="form-label">Study: <span class="text-danger">*</span></label>
+                                {{ form.study }}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label for="id_tissue" class="form-label">Primary Tissue: <span class="text-danger">*</span></label>
+                                {{ form.tissue }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="button" class="btn btn-secondary w-100" id="addTissueBtn">Add Additional Tissue</button>
+                            </div>
+                        </div>
+                        <div id="tissueList" class="mb-3"></div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="id_priority" class="form-label">Priority:</label>
+                                {{ form.priority }}
+                                <div class="form-text">1 = Low, 5 = High</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_assigned_to" class="form-label">Assigned To:</label>
+                                {{ form.assigned_to }}
+                                <div class="form-text">Optional - Select who should handle this request</div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="id_special_request" class="form-label">Special Request:</label>
+                                <textarea class="form-control" id="id_special_request" name="special_request" rows="3" maxlength="256"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="id_link" class="form-label">Links:</label>
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <input type="url" class="form-control" id="id_link" name="link" placeholder="Enter a link (e.g., https://example.com)" maxlength="255">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" id="id_link_description" name="link_description" placeholder="Link description (optional)" maxlength="100">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-outline-primary w-100" id="addLinkBtn">Add Link</button>
+                                    </div>
+                                </div>
+                                <div id="linkList" class="mt-2"></div>
+                                <small class="text-muted">Add up to 10 links to relevant resources with optional descriptions</small>
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane me-2"></i>Submit Request
+                                    </button>
+                                    <button type="button" id="submitAndCopyBtn" class="btn btn-success">
+                                        <i class="fas fa-copy me-2"></i>Submit and Copy
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" id="cancelBtn">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
-            <div id="tissueList" class="mt-2"></div>
         </div>
-
-        <div class="form-group mb-3">
-            <label for="id_priority">Priority:</label>
-            {{ form.priority }}
-            <div class="form-text">1 = Low, 5 = High</div>
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="id_assigned_to">Assigned To:</label>
-            {{ form.assigned_to }}
-            <div class="form-text">Optional - Select who should handle this request</div>
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="id_special_request">Special Request:</label>
-            <textarea class="form-control" id="id_special_request" name="special_request" rows="3" maxlength="256"></textarea>
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="id_link">Links:</label>
-            <div class="row mb-2">
-                <div class="col-md-6">
-                    <input type="url" class="form-control" id="id_link" name="link" placeholder="Enter a link (e.g., https://example.com)" maxlength="255">
-                </div>
-                <div class="col-md-4">
-                    <input type="text" class="form-control" id="id_link_description" name="link_description" placeholder="Link description (optional)" maxlength="100">
-                </div>
-                <div class="col-md-2">
-                    <button type="button" class="btn btn-outline-primary w-100" id="addLinkBtn">Add Link</button>
-                </div>
-            </div>
-            <div id="linkList" class="mt-2"></div>
-            <small class="text-muted">Add up to 10 links to relevant resources with optional descriptions</small>
-        </div>
-
-        <div class="form-group">
-            <button type="submit" class="btn btn-primary">Submit</button>
-            <button type="button" id="submitAndCopyBtn" class="btn btn-success">Submit and Copy</button>
-            <button type="button" class="btn btn-outline-primary" id="cancelBtn">Cancel</button>
-        </div>
-    </form>
+    </div>
 </div>
 
 <script>
@@ -316,6 +365,40 @@ document.addEventListener('DOMContentLoaded', function() {
         // Insert at the top of the form
         form.parentNode.insertBefore(alertDiv, form);
     }
+    
+    // Form validation
+    function validateForm() {
+        const requiredFields = [
+            { id: 'id_requestor', name: 'Requestor' },
+            { id: 'id_description', name: 'Description' },
+            { id: 'id_antibody', name: 'Antibody' },
+            { id: 'id_study', name: 'Study' },
+            { id: 'id_tissue', name: 'Primary Tissue' }
+        ];
+        
+        const missingFields = [];
+        
+        requiredFields.forEach(field => {
+            const element = document.getElementById(field.id);
+            if (!element || !element.value || element.value.trim() === '') {
+                missingFields.push(field.name);
+            }
+        });
+        
+        if (missingFields.length > 0) {
+            showErrorMessage('Please fill out all required fields: ' + missingFields.join(', '));
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Add form submission validation
+    form.addEventListener('submit', function(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+        }
+    });
 });
 </script>
 {% endblock %} 

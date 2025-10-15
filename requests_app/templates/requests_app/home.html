@@ -36,7 +36,7 @@
                 <div class="card-body d-flex flex-column">
                     <div class="d-grid gap-2 mt-auto">
                         <a href="{% url 'staining_requests_current' %}" class="btn btn-primary">
-                            <i class="fas fa-eye me-2"></i>View Current Requests
+                            <i class="fas fa-eye me-2"></i>View Current Active Requests
                         </a>
                         <a href="{% url 'staining_request_create' %}" class="btn btn-primary">
                             <i class="fas fa-plus me-2"></i>New Staining Request
@@ -66,7 +66,7 @@
                 <div class="card-body d-flex flex-column">
                     <div class="d-grid gap-2 mt-auto">
                         <a href="{% url 'embedding_requests_current' %}" class="btn btn-success">
-                            <i class="fas fa-eye me-2"></i>View Current Requests
+                            <i class="fas fa-eye me-2"></i>View Current Active Requests
                         </a>
                         <a href="{% url 'embedding_request_create' %}" class="btn btn-success">
                             <i class="fas fa-plus me-2"></i>New Embedding Request
@@ -96,7 +96,7 @@
                 <div class="card-body d-flex flex-column">
                     <div class="d-grid gap-2 mt-auto">
                         <a href="{% url 'sectioning_requests_current' %}" class="btn btn-info">
-                            <i class="fas fa-eye me-2"></i>View Current Requests
+                            <i class="fas fa-eye me-2"></i>View Current Active Requests
                         </a>
                         <a href="{% url 'sectioning_request_create' %}" class="btn btn-info">
                             <i class="fas fa-plus me-2"></i>New Sectioning Request
@@ -113,7 +113,8 @@
         </div>
     </div>
 
-    <!-- Admin Section - Bottom Bar -->
+    <!-- Admin Section - Bottom Bar (Only show for authenticated admin users) -->
+    {% if user.is_authenticated and user.is_staff %}
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
@@ -137,6 +138,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
     <!-- Footer -->
     <div class="row">
