@@ -135,11 +135,11 @@
                         <div class="row mt-4">
                             <div class="col-12">
                                 <div class="d-flex gap-2">
+                                    <button type="button" name="submit_and_copy" class="btn btn-success">
+                                        <i class="fas fa-copy me-2"></i>Submit and Copy
+                                    </button>
                                     <button type="submit" class="btn btn-primary">
                                         <i class="fas fa-paper-plane me-2"></i>Submit Request
-                                    </button>
-                                    <button type="button" id="submitAndCopyBtn" class="btn btn-success">
-                                        <i class="fas fa-copy me-2"></i>Submit and Copy
                                     </button>
                                     <button type="button" class="btn btn-outline-secondary" id="cancelBtn">
                                         <i class="fas fa-times me-2"></i>Cancel
@@ -155,16 +155,136 @@
 </div>
 
 <script>
+console.log('Script starting to load...');
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded event fired');
+    console.log('About to look for addTissueBtn...');
     const form = document.getElementById('requestForm');
     const addTissueBtn = document.getElementById('addTissueBtn');
     const cancelBtn = document.getElementById('cancelBtn');
     const tissueList = document.getElementById('tissueList');
     let tissueCount = 0;
     
+    // Debug: Check if elements exist
+    console.log('Form element:', form);
+    console.log('addTissueBtn:', addTissueBtn);
+    console.log('tissueList:', tissueList);
+    console.log('addTissueBtn type:', typeof addTissueBtn);
+    console.log('addTissueBtn disabled:', addTissueBtn ? addTissueBtn.disabled : 'not found');
+    
+    if (!form) {
+        console.error('Form element not found!');
+        return;
+    }
+    
+    // Test if button exists and add click listener
+    if (addTissueBtn) {
+        console.log('Button found, adding event listener');
+        
+        // Remove any existing event listeners and add the working one
+        addTissueBtn.onclick = null;
+        addTissueBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Add tissue button clicked, current tissueCount:', tissueCount);
+            
+            const maxTissues = 10; // Fixed: removed template variable that was causing syntax error
+            console.log('maxTissues:', maxTissues);
+            console.log('maxTissues type:', typeof maxTissues);
+            
+            if (tissueCount < maxTissues) {
+                const tissueSelect = document.createElement('select');
+                tissueSelect.className = 'form-control mt-2';
+                tissueSelect.name = 'tissue_' + tissueCount;
+                
+                // Add default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select a tissue...';
+                tissueSelect.appendChild(defaultOption);
+                
+                // Clone the original tissue select options
+                const originalSelect = document.getElementById('id_tissue');
+                if (originalSelect) {
+                    const options = originalSelect.querySelectorAll('option');
+                    options.forEach(function(option) {
+                        if (option.value !== '') { // Skip the default option
+                            const newOption = document.createElement('option');
+                            newOption.value = option.value;
+                            newOption.textContent = option.textContent;
+                            tissueSelect.appendChild(newOption);
+                        }
+                    });
+                }
+                
+                tissueList.appendChild(tissueSelect);
+                tissueCount++;
+                console.log('Added tissue dropdown, new count:', tissueCount);
+            } else {
+                alert('Maximum number of additional tissues reached (' + maxTissues + ')');
+            }
+        });
+        
+    } else {
+        console.error('Button not found!');
+    }
+    
     const addLinkBtn = document.getElementById('addLinkBtn');
     const linkList = document.getElementById('linkList');
     let linkCount = 0;
+    
+    // Handle Submit and Copy button (matching embedding form pattern)
+    const submitAndCopyBtn = document.querySelector('button[name="submit_and_copy"]');
+    if (submitAndCopyBtn) {
+        console.log('Submit and Copy button found:', submitAndCopyBtn);
+        submitAndCopyBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent normal form submission
+            console.log('Submit and Copy button clicked!');
+            
+            // Show loading message
+            const originalText = submitAndCopyBtn.innerHTML;
+            submitAndCopyBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+            submitAndCopyBtn.disabled = true;
+            
+            // Prepare form data
+            const formData = new FormData(form);
+            formData.append('submit_and_copy', 'true');
+            
+            // Submit via AJAX
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showSuccessMessage('Request submitted successfully! Form is ready for creating another similar request.');
+                    // Reset button
+                    submitAndCopyBtn.innerHTML = originalText;
+                    submitAndCopyBtn.disabled = false;
+                } else {
+                    // Show error message
+                    showErrorMessage('Error submitting request: ' + (data.error || 'Unknown error'));
+                    // Reset button
+                    submitAndCopyBtn.innerHTML = originalText;
+                    submitAndCopyBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorMessage('Error submitting request. Please try again.');
+                // Reset button
+                submitAndCopyBtn.innerHTML = originalText;
+                submitAndCopyBtn.disabled = false;
+            });
+        });
+    } else {
+        console.error('Submit and Copy button not found!');
+    }
 
     // Set today's date if not already set
     const dateField = document.getElementById('id_date');
@@ -173,35 +293,6 @@ document.addEventListener('DOMContentLoaded', function() {
         dateField.value = today.toISOString().split('T')[0];
     }
 
-    // Add tissue dropdown
-    addTissueBtn.addEventListener('click', function() {
-        if (tissueCount < {{ max_tissues }}) {
-            const tissueSelect = document.createElement('select');
-            tissueSelect.className = 'form-control mt-2';
-            tissueSelect.name = 'tissue_' + tissueCount;
-            
-            // Add default option
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.textContent = 'Select a tissue...';
-            tissueSelect.appendChild(defaultOption);
-            
-            // Clone the original tissue select options
-            const originalSelect = document.getElementById('id_tissue');
-            const options = originalSelect.querySelectorAll('option');
-            options.forEach(function(option) {
-                if (option.value !== '') { // Skip the default option
-                    const newOption = document.createElement('option');
-                    newOption.value = option.value;
-                    newOption.textContent = option.textContent;
-                    tissueSelect.appendChild(newOption);
-                }
-            });
-            
-            tissueList.appendChild(tissueSelect);
-            tissueCount++;
-        }
-    });
 
     // Add link functionality
     addLinkBtn.addEventListener('click', function() {
@@ -269,55 +360,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('id_date').value = today.toISOString().split('T')[0];
     });
 
-    // Handle Submit and Copy button
-    const submitAndCopyBtn = document.getElementById('submitAndCopyBtn');
-    if (submitAndCopyBtn) {
-        submitAndCopyBtn.addEventListener('click', function(e) {
-            e.preventDefault(); // Prevent normal form submission
-            console.log('Submit and Copy button clicked!');
-            
-            // Show loading message
-            const originalText = submitAndCopyBtn.innerHTML;
-            submitAndCopyBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
-            submitAndCopyBtn.disabled = true;
-            
-            // Prepare form data
-            const formData = new FormData(form);
-            formData.append('submit_and_copy', 'true');
-            
-            // Submit via AJAX
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Show success message
-                    showSuccessMessage('Request submitted successfully! Form is ready for creating another similar request.');
-                    // Reset button
-                    submitAndCopyBtn.innerHTML = originalText;
-                    submitAndCopyBtn.disabled = false;
-                } else {
-                    // Show error message
-                    showErrorMessage('Error submitting request: ' + (data.error || 'Unknown error'));
-                    // Reset button
-                    submitAndCopyBtn.innerHTML = originalText;
-                    submitAndCopyBtn.disabled = false;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showErrorMessage('Error submitting request. Please try again.');
-                // Reset button
-                submitAndCopyBtn.innerHTML = originalText;
-                submitAndCopyBtn.disabled = false;
-            });
-        });
-    }
     
     // Function to show success message
     function showSuccessMessage(message) {
@@ -395,8 +437,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add form submission validation
     form.addEventListener('submit', function(e) {
+        console.log('Form submit event triggered');
         if (!validateForm()) {
+            console.log('Form validation failed, preventing submission');
             e.preventDefault();
+        } else {
+            console.log('Form validation passed, allowing submission');
         }
     });
 });
