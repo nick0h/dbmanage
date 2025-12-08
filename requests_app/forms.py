@@ -1,12 +1,13 @@
 from django import forms
-from .models import Requestor, Antibody, Study, Tissue, Request, Status, Assignee, Probe, Priority, EmbeddingRequest, SectioningRequest
+from .models import Requestor, Antibody, Study, Tissue, Request, Status, Assignee, Probe, Priority, EmbeddingRequest, SectioningRequest, AntibodyStatus
 
 class RequestForm(forms.ModelForm):
     special_request = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}), required=False, max_length=256)
+    staining_summary = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4}), required=False)
     
     class Meta:
         model = Request
-        fields = ['requestor', 'antibody', 'probe', 'study', 'description', 'tissue', 'priority', 'special_request', 'assigned_to', 'links']
+        fields = ['requestor', 'antibody', 'probe', 'study', 'description', 'tissue', 'priority', 'special_request', 'staining_summary', 'assigned_to', 'links']
         widgets = {
             'requestor': forms.Select(attrs={'class': 'form-control'}),
             'antibody': forms.Select(attrs={'class': 'form-control'}),
@@ -16,6 +17,7 @@ class RequestForm(forms.ModelForm):
             'description': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
             'priority': forms.Select(attrs={'class': 'form-control'}),
             'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
+            'staining_summary': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'assigned_to': forms.Select(attrs={'class': 'form-control'}),
         }
 
@@ -36,19 +38,23 @@ class RequestForm(forms.ModelForm):
 class RequestEditForm(forms.ModelForm):
     notes = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'maxlength': 256}), required=False, max_length=256)
     description = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}), required=False, max_length=256)
+    staining_summary = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4}), required=False)
     
     class Meta:
         model = Request
-        fields = ['status', 'notes', 'description', 'special_request', 'priority', 'assigned_to', 'antibody', 'probe']
+        fields = ['status', 'notes', 'description', 'special_request', 'staining_summary', 'priority', 'assigned_to', 'antibody', 'probe', 'study', 'tissue']
         widgets = {
             'status': forms.Select(attrs={'class': 'form-control'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'maxlength': 256}),
             'description': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
             'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
+            'staining_summary': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'priority': forms.Select(attrs={'class': 'form-control'}),
             'assigned_to': forms.Select(attrs={'class': 'form-control'}),
             'antibody': forms.Select(attrs={'class': 'form-control'}),
             'probe': forms.Select(attrs={'class': 'form-control'}),
+            'study': forms.Select(attrs={'class': 'form-control'}),
+            'tissue': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -62,6 +68,9 @@ class RequestEditForm(forms.ModelForm):
         self.fields['probe'].queryset = Probe.objects.filter(archived=False).order_by('name')
         self.fields['probe'].label_from_instance = lambda obj: f"{obj.name} - {obj.description}"
         self.fields['probe'].required = False
+        self.fields['study'].queryset = Study.objects.all().order_by('study_id')
+        self.fields['study'].label_from_instance = lambda obj: f"{obj.study_id} - {obj.title}"
+        self.fields['tissue'].queryset = Tissue.objects.all().order_by('name')
 
 class RequestSearchForm(forms.Form):
     request_id = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Request ID'}))
@@ -171,6 +180,7 @@ class SectioningRequestForm(forms.ModelForm):
 
 class EmbeddingRequestEditForm(forms.ModelForm):
     special_request = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}), required=False, max_length=256)
+    tissue = forms.ModelChoiceField(queryset=Tissue.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
     
     class Meta:
         model = EmbeddingRequest
@@ -196,9 +206,16 @@ class EmbeddingRequestEditForm(forms.ModelForm):
         self.fields['assigned_to'].queryset = Assignee.objects.all().order_by('name')
         self.fields['assigned_to'].required = False
         self.fields['currently_in'].required = False
+        
+        # Initialize tissue field with first tissue from ManyToMany relationship
+        if self.instance and self.instance.pk:
+            first_tissue = self.instance.tissues.first()
+            if first_tissue:
+                self.fields['tissue'].initial = first_tissue
 
 class SectioningRequestEditForm(forms.ModelForm):
     special_request = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}), required=False, max_length=256)
+    tissue = forms.ModelChoiceField(queryset=Tissue.objects.all().order_by('name'), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
     
     class Meta:
         model = SectioningRequest
@@ -227,6 +244,12 @@ class SectioningRequestEditForm(forms.ModelForm):
         self.fields['slides_per_block'].required = False
         self.fields['other'].required = False
         self.fields['for_what'].required = False
+        
+        # Initialize tissue field with first tissue from ManyToMany relationship
+        if self.instance and self.instance.pk:
+            first_tissue = self.instance.tissues.first()
+            if first_tissue:
+                self.fields['tissue'].initial = first_tissue
 
 # Staining Request Search Form
 class StainingRequestSearchForm(forms.Form):
@@ -340,7 +363,7 @@ class AntibodyForm(forms.ModelForm):
     
     class Meta:
         model = Antibody
-        fields = ['name', 'description', 'antigen', 'species', 'recognizes', 'vendor', 'archived']
+        fields = ['name', 'description', 'antigen', 'species', 'recognizes', 'vendor', 'status', 'archived']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
@@ -348,7 +371,17 @@ class AntibodyForm(forms.ModelForm):
             'species': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
             'recognizes': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
             'vendor': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['status'].queryset = AntibodyStatus.objects.all().order_by('status')
+        self.fields['status'].required = False
+        self.fields['antigen'].required = False
+        self.fields['species'].required = False
+        self.fields['recognizes'].required = False
+        self.fields['vendor'].required = False
 
 class RequestorForm(forms.ModelForm):
     class Meta:

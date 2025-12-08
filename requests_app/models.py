@@ -85,10 +85,23 @@ class Priority(models.Model):
                 defaults={'label': label, 'description': description}
             )
 
+class AntibodyStatus(models.Model):
+    key = models.AutoField(primary_key=True)
+    status = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+    
+    class Meta:
+        verbose_name = "Antibody Status"
+        verbose_name_plural = "Antibody Statuses"
+        ordering = ['status']
+    
+    def __str__(self):
+        return self.status
+
 class Probe(models.Model):
     key = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
+    description = models.TextField()
     sequence = models.CharField(max_length=500, blank=True, null=True)
     target_gene = models.CharField(max_length=255, blank=True, null=True)
     vendor = models.CharField(max_length=255, blank=True, null=True)
@@ -97,6 +110,7 @@ class Probe(models.Model):
     target_region = models.CharField(max_length=255, blank=True, null=True)
     number_of_pairs = models.IntegerField(blank=True, null=True)
     archived = models.BooleanField(default=False, verbose_name="Archived")
+    date_created = models.DateTimeField(default=timezone.now, verbose_name="Date Created")
 
     def __str__(self):
         return f"{self.name} - {self.description}"
@@ -111,11 +125,13 @@ class Antibody(models.Model):
     key = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     description = models.TextField()
-    antigen = models.CharField(max_length=255)
-    species = models.CharField(max_length=100)
-    recognizes = models.CharField(max_length=255)
-    vendor = models.CharField(max_length=255)
+    antigen = models.CharField(max_length=255, blank=True, null=True)
+    species = models.CharField(max_length=100, blank=True, null=True)
+    recognizes = models.CharField(max_length=255, blank=True, null=True)
+    vendor = models.CharField(max_length=255, blank=True, null=True)
     archived = models.BooleanField(default=False, verbose_name="Archived")
+    status = models.ForeignKey('AntibodyStatus', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Status")
+    date_created = models.DateTimeField(default=timezone.now, verbose_name="Date Created")
 
     def __str__(self):
         return f"{self.name} - {self.description}"
@@ -156,6 +172,7 @@ class Request(models.Model):
     tissue = models.ForeignKey(Tissue, on_delete=models.CASCADE)
     description = models.CharField(max_length=256, blank=True, null=True)
     special_request = models.TextField(blank=True, null=True)
+    staining_summary = models.TextField(blank=True, null=True, verbose_name="Staining Summary")
     status = models.ForeignKey(Status, on_delete=models.CASCADE, default=Status.get_default_status)
     notes = models.TextField(blank=True, null=True)
     priority = models.ForeignKey(Priority, on_delete=models.CASCADE, default=3)
@@ -198,6 +215,7 @@ class EmbeddingRequest(models.Model):
     date_of_xylene_etoh_change = models.DateField(blank=True, null=True, verbose_name="Date of Xylene-EtOH Change")
     length_of_time_in_etoh = models.CharField(blank=True, max_length=40, null=True, verbose_name="Length of Time in EtOH")
     links = models.JSONField(blank=True, null=True, verbose_name="Links")
+    data = models.JSONField(blank=True, null=True, verbose_name="Additional Data")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status_timestamp = models.DateTimeField(default=timezone.now, verbose_name="Status Set At")
@@ -228,6 +246,7 @@ class SectioningRequest(models.Model):
     slides_per_block = models.IntegerField(blank=True, null=True, verbose_name="# of Slides/Block")
     for_what = models.CharField(choices=[("H&E", "H&E"), ("Special stain", "Special stain"), ("IHC", "IHC"), ("ISH", "ISH"), ("other", "Other")], default="H&E", max_length=20, verbose_name="For")
     links = models.JSONField(blank=True, null=True, verbose_name="Links")
+    data = models.JSONField(blank=True, null=True, verbose_name="Additional Data")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status_timestamp = models.DateTimeField(default=timezone.now, verbose_name="Status Set At")

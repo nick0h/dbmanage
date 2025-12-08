@@ -4,6 +4,7 @@ from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import logout
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from .forms import RequestForm, RequestEditForm, RequestSearchForm, StudyEditForm, AntibodyForm, RequestorForm, TissueForm, StatusForm, AssigneeForm, ProbeForm, PriorityForm, SectioningRequestSearchForm, EmbeddingRequestSearchForm, EmbeddingRequestForm, SectioningRequestForm, StainingRequestSearchForm, EmbeddingRequestEditForm, SectioningRequestEditForm, StainingNotificationConfigForm, EmbeddingNotificationConfigForm, SectioningNotificationConfigForm
 from .models import Request, Status, Study, Requestor, Antibody, Tissue, Assignee, Probe, Priority, StainingRequest, EmbeddingRequest, SectioningRequest, StainingRequestChangeLog, EmbeddingRequestChangeLog, SectioningRequestChangeLog, NotificationSettings
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
@@ -220,6 +221,17 @@ class StainingRequestCreateView(TemplateView):
             request_obj = form.save(commit=False)
             request_obj.status = Status.get_default_status()
             
+            # Collect additional studies from form data
+            additional_studies = []
+            for key, value in request.POST.items():
+                if key.startswith('study_') and value:  # study_0, study_1, etc.
+                    try:
+                        study_id = int(value)
+                        study = Study.objects.get(pk=study_id)
+                        additional_studies.append(f"{study.study_id} - {study.title}")
+                    except (ValueError, Study.DoesNotExist):
+                        pass
+            
             # Collect additional tissues from form data
             additional_tissues = []
             for key, value in request.POST.items():
@@ -256,6 +268,7 @@ class StainingRequestCreateView(TemplateView):
                 'date': request.POST.get('date'),
                 'description': form.cleaned_data.get('description'),
                 'special_request': form.cleaned_data.get('special_request'),
+                'studies': additional_studies,
                 'tissues': additional_tissues,
                 'links': links,
             }
@@ -335,6 +348,17 @@ class EmbeddingRequestCreateView(TemplateView):
             request_obj = form.save(commit=False)
             request_obj.save()
             
+            # Collect additional studies from form data
+            additional_studies = []
+            for key, value in request.POST.items():
+                if key.startswith('study_') and value:  # study_0, study_1, etc.
+                    try:
+                        study_id = int(value)
+                        study = Study.objects.get(pk=study_id)
+                        additional_studies.append(f"{study.study_id} - {study.title}")
+                    except (ValueError, Study.DoesNotExist):
+                        pass
+            
             # Handle tissues exactly like staining request
             # Primary tissue from form
             primary_tissue_id = request.POST.get('tissue')
@@ -344,18 +368,27 @@ class EmbeddingRequestCreateView(TemplateView):
             
             # Additional tissues from JavaScript-created fields
             additional_tissues = []
+            additional_tissue_names = []
             for key, value in request.POST.items():
                 if key.startswith('tissue_') and value:  # tissue_0, tissue_1, etc.
                     try:
                         tissue_id = int(value)
                         tissue = Tissue.objects.get(pk=tissue_id)
                         additional_tissues.append(tissue)
+                        additional_tissue_names.append(tissue.name)
                     except (ValueError, Tissue.DoesNotExist):
                         pass
             
             # Add additional tissues
             if additional_tissues:
                 request_obj.tissues.add(*additional_tissues)
+            
+            # Store additional studies and tissues in data field
+            if not request_obj.data:
+                request_obj.data = {}
+            request_obj.data['studies'] = additional_studies
+            request_obj.data['tissues'] = additional_tissue_names
+            request_obj.save()
             
             # Handle links
             links = []
@@ -420,6 +453,17 @@ class SectioningRequestCreateView(TemplateView):
             request_obj = form.save(commit=False)
             request_obj.save()
             
+            # Collect additional studies from form data
+            additional_studies = []
+            for key, value in request.POST.items():
+                if key.startswith('study_') and value:  # study_0, study_1, etc.
+                    try:
+                        study_id = int(value)
+                        study = Study.objects.get(pk=study_id)
+                        additional_studies.append(f"{study.study_id} - {study.title}")
+                    except (ValueError, Study.DoesNotExist):
+                        pass
+            
             # Handle tissues exactly like staining request
             # Primary tissue from form
             primary_tissue_id = request.POST.get('tissue')
@@ -429,18 +473,27 @@ class SectioningRequestCreateView(TemplateView):
             
             # Additional tissues from JavaScript-created fields
             additional_tissues = []
+            additional_tissue_names = []
             for key, value in request.POST.items():
                 if key.startswith('tissue_') and value:  # tissue_0, tissue_1, etc.
                     try:
                         tissue_id = int(value)
                         tissue = Tissue.objects.get(pk=tissue_id)
                         additional_tissues.append(tissue)
+                        additional_tissue_names.append(tissue.name)
                     except (ValueError, Tissue.DoesNotExist):
                         pass
             
             # Add additional tissues
             if additional_tissues:
                 request_obj.tissues.add(*additional_tissues)
+            
+            # Store additional studies and tissues in data field
+            if not request_obj.data:
+                request_obj.data = {}
+            request_obj.data['studies'] = additional_studies
+            request_obj.data['tissues'] = additional_tissue_names
+            request_obj.save()
             
             # Handle links
             links = []
@@ -896,13 +949,20 @@ def antibody_create(request):
         
         name = sanitize_input(name)
         description = sanitize_input(description)
-        antigen = sanitize_input(antigen)
-        species = sanitize_input(species)
-        recognizes = sanitize_input(recognizes)
-        vendor = sanitize_input(vendor)
+        antigen = sanitize_input(antigen) if antigen else ''
+        species = sanitize_input(species) if species else ''
+        recognizes = sanitize_input(recognizes) if recognizes else ''
+        vendor = sanitize_input(vendor) if vendor else ''
         
-        if validate_input(name) and validate_input(description) and validate_input(antigen) and validate_input(species) and validate_input(recognizes) and validate_input(vendor):
-            Antibody.objects.create(name=name, description=description, antigen=antigen, species=species, recognizes=recognizes, vendor=vendor)
+        if validate_input(name) and validate_input(description):
+            Antibody.objects.create(
+                name=name, 
+                description=description, 
+                antigen=antigen if antigen else None, 
+                species=species if species else None, 
+                recognizes=recognizes if recognizes else None, 
+                vendor=vendor if vendor else None
+            )
             return redirect('antibody_list')
         else:
             return JsonResponse({'error': 'Invalid input'}, status=400)
@@ -1153,7 +1213,7 @@ def probe_create(request):
         target_region = sanitize_input(target_region)
         number_of_pairs = sanitize_input(number_of_pairs)
         
-        if validate_input(name):
+        if validate_input(name) and validate_input(description):
             # Convert number_of_pairs to integer if provided
             pairs_value = None
             if number_of_pairs:
@@ -1165,12 +1225,12 @@ def probe_create(request):
             Probe.objects.create(
                 name=name,
                 description=description,
-                sequence=sequence,
-                target_gene=target_gene,
-                vendor=vendor,
-                catalog_number=catalog_number,
-                platform=platform,
-                target_region=target_region,
+                sequence=sequence if sequence else None,
+                target_gene=target_gene if target_gene else None,
+                vendor=vendor if vendor else None,
+                catalog_number=catalog_number if catalog_number else None,
+                platform=platform if platform else None,
+                target_region=target_region if target_region else None,
                 number_of_pairs=pairs_value
             )
             return redirect('probe_list')
@@ -1401,10 +1461,10 @@ def import_antibodies_from_file(request):
                 # Clean and validate the data
                 name = str(name).strip()
                 description = str(description).strip() if description else ''
-                antigen = str(antigen).strip() if antigen else ''
-                species = str(species).strip() if species else ''
-                recognizes = str(recognizes).strip() if recognizes else ''
-                vendor = str(vendor).strip() if vendor else ''
+                antigen = str(antigen).strip() if antigen else None
+                species = str(species).strip() if species else None
+                recognizes = str(recognizes).strip() if recognizes else None
+                vendor = str(vendor).strip() if vendor else None
                 
                 if validate_import_input(name):
                     # Check if antibody already exists
@@ -1501,24 +1561,24 @@ def import_probes_from_file(request):
                 platform = platform_cell.value
                 number_of_pairs = number_of_pairs_cell.value
                 
-                # Skip empty rows (name is required)
-                if not name:
+                # Skip empty rows (name and description are required)
+                if not name or not description:
                     continue
                 
                 # Clean and validate the data
                 name = str(name).strip()
-                description = str(description).strip() if description else ''
-                target_gene = str(target_gene).strip() if target_gene else ''
-                vendor = str(vendor).strip() if vendor else ''
-                platform = str(platform).strip() if platform else ''
+                description = str(description).strip()
+                target_gene = str(target_gene).strip() if target_gene else None
+                vendor = str(vendor).strip() if vendor else None
+                platform = str(platform).strip() if platform else None
                 
-                # Convert number_of_pairs to integer, default to 0 if not valid
+                # Convert number_of_pairs to integer, default to None if not valid
                 try:
-                    number_of_pairs = int(number_of_pairs) if number_of_pairs else 0
+                    number_of_pairs = int(number_of_pairs) if number_of_pairs else None
                 except (ValueError, TypeError):
-                    number_of_pairs = 0
+                    number_of_pairs = None
                 
-                if validate_import_input(name):
+                if validate_import_input(name) and validate_import_input(description):
                     # Check if probe already exists
                     if not Probe.objects.filter(name=name).exists():
                         Probe.objects.create(
@@ -1893,9 +1953,65 @@ class StainingRequestEditView(UpdateView):
         print("DEBUG: StainingRequestEditView form_valid called")
         # Get the original object before saving
         original_obj = Request.objects.get(pk=self.object.pk)
+        original_status = original_obj.status
         
         # Debug: print all POST data
         print(f"DEBUG: All POST keys: {list(self.request.POST.keys())}")
+        print(f"DEBUG: Status in POST: {self.request.POST.get('status', 'NOT FOUND')}")
+        
+        # Save the form first - this will save all form fields including status
+        self.object = form.save()
+        
+        # Check if status changed and update status_timestamp
+        if original_status != self.object.status:
+            self.object.status_timestamp = timezone.now()
+            print(f"DEBUG: Status changed from {original_status} to {self.object.status}, updating timestamp")
+        
+        # Handle additional studies - collect from POST data
+        additional_studies = []
+        
+        # First, collect existing studies that were preserved
+        for key, value in self.request.POST.items():
+            if key.startswith('existing_study_') and value:
+                additional_studies.append(value)
+        
+        # Then collect new studies from study_0, study_1, etc.
+        for key, value in self.request.POST.items():
+            if key.startswith('study_') and not key.startswith('existing_study_') and value:
+                try:
+                    study_id = int(value)
+                    study = Study.objects.get(pk=study_id)
+                    study_str = f"{study.study_id} - {study.title}"
+                    if study_str not in additional_studies:  # Avoid duplicates
+                        additional_studies.append(study_str)
+                except (ValueError, Study.DoesNotExist):
+                    pass
+        
+        # Handle additional tissues - collect from POST data
+        additional_tissues = []
+        
+        # First, collect existing tissues that were preserved
+        for key, value in self.request.POST.items():
+            if key.startswith('existing_tissue_') and value:
+                additional_tissues.append(value)
+        
+        # Then collect new tissues from tissue_0, tissue_1, etc.
+        for key, value in self.request.POST.items():
+            if key.startswith('tissue_') and not key.startswith('existing_tissue_') and value:
+                try:
+                    tissue_id = int(value)
+                    tissue = Tissue.objects.get(pk=tissue_id)
+                    tissue_name = tissue.name
+                    if tissue_name not in additional_tissues:  # Avoid duplicates
+                        additional_tissues.append(tissue_name)
+                except (ValueError, Tissue.DoesNotExist):
+                    pass
+        
+        # Update the data JSONField with studies and tissues
+        if not self.object.data:
+            self.object.data = {}
+        self.object.data['studies'] = additional_studies
+        self.object.data['tissues'] = additional_tissues
         
         # Handle links - preserve existing links and add new ones
         existing_links = self.object.links or []
@@ -1926,14 +2042,14 @@ class StainingRequestEditView(UpdateView):
         print(f"DEBUG: New links: {new_links}")
         print(f"DEBUG: All links: {all_links}")
         print(f"DEBUG: POST data with 'link': {[k for k in self.request.POST.keys() if 'link' in k]}")
+        print(f"DEBUG: Additional studies: {additional_studies}")
+        print(f"DEBUG: Additional tissues: {additional_tissues}")
         
-        # Update links
+        # Update links and save everything
         self.object.links = all_links
         self.object.save()
         print(f"DEBUG: Saved links to database: {self.object.links}")
-        
-        # Save the form
-        response = super().form_valid(form)
+        print(f"DEBUG: Final status: {self.object.status}")
         
         # Determine what fields changed
         changed_fields = []
@@ -1952,7 +2068,9 @@ class StainingRequestEditView(UpdateView):
             description=f'Updated fields: {", ".join(changed_fields) if changed_fields else "No specific fields detected as changed"}'
         )
         
-        return response
+        # Return redirect response
+        from django.http import HttpResponseRedirect
+        return HttpResponseRedirect(self.get_success_url())
 
 class StainingRequestDeleteView(DeleteView):
     model = Request
@@ -1979,15 +2097,88 @@ class EmbeddingRequestEditView(UpdateView):
         context['tissues'] = Tissue.objects.all().order_by('name')
         context['statuses'] = Status.objects.exclude(status='submitted').order_by('status')
         context['assignees'] = Assignee.objects.all().order_by('name')
+        
         return context
     
     def form_valid(self, form):
-        print("DEBUG: EmbeddingRequestEditView form_valid called")
         # Get the original object before saving
         original_obj = EmbeddingRequest.objects.get(pk=self.object.pk)
+        original_status = original_obj.status
         
-        # Debug: print all POST data
-        print(f"DEBUG: All POST keys: {list(self.request.POST.keys())}")
+        # Save the form first - this will save all form fields including status
+        self.object = form.save()
+        
+        # Check if status changed and update status_timestamp
+        if original_status != self.object.status:
+            self.object.status_timestamp = timezone.now()
+        
+        # Handle additional studies - collect from POST data
+        additional_studies = []
+        
+        # First, collect existing studies that were preserved
+        for key, value in self.request.POST.items():
+            if key.startswith('existing_study_') and value:
+                additional_studies.append(value)
+        
+        # Then collect new studies from study_0, study_1, etc.
+        for key, value in self.request.POST.items():
+            if key.startswith('study_') and not key.startswith('existing_study_') and value:
+                try:
+                    study_id = int(value)
+                    study = Study.objects.get(pk=study_id)
+                    study_str = f"{study.study_id} - {study.title}"
+                    if study_str not in additional_studies:  # Avoid duplicates
+                        additional_studies.append(study_str)
+                except (ValueError, Study.DoesNotExist):
+                    pass
+        
+        # Handle additional tissues - collect from POST data
+        additional_tissues = []
+        
+        # First, collect existing tissues that were preserved
+        for key, value in self.request.POST.items():
+            if key.startswith('existing_tissue_') and value:
+                additional_tissues.append(value)
+        
+        # Then collect new tissues from tissue_0, tissue_1, etc.
+        for key, value in self.request.POST.items():
+            if key.startswith('tissue_') and not key.startswith('existing_tissue_') and value:
+                try:
+                    tissue_id = int(value)
+                    tissue = Tissue.objects.get(pk=tissue_id)
+                    tissue_name = tissue.name
+                    if tissue_name not in additional_tissues:  # Avoid duplicates
+                        additional_tissues.append(tissue_name)
+                except (ValueError, Tissue.DoesNotExist):
+                    pass
+        
+        # Handle primary tissue
+        primary_tissue_id = self.request.POST.get('tissue')
+        
+        # Update the data JSONField with studies and tissues
+        if not self.object.data:
+            self.object.data = {}
+        self.object.data['studies'] = additional_studies
+        self.object.data['tissues'] = additional_tissues
+        
+        # Clear existing tissues
+        self.object.tissues.clear()
+        
+        # Add primary tissue if provided
+        if primary_tissue_id:
+            try:
+                primary_tissue = Tissue.objects.get(pk=primary_tissue_id)
+                self.object.tissues.add(primary_tissue)
+            except (ValueError, Tissue.DoesNotExist):
+                pass
+        
+        # Add additional tissues to ManyToMany
+        for tissue_name in additional_tissues:
+            try:
+                tissue = Tissue.objects.get(name=tissue_name)
+                self.object.tissues.add(tissue)
+            except Tissue.DoesNotExist:
+                pass
         
         # Handle links - preserve existing links and add new ones
         existing_links = self.object.links or []
@@ -2013,19 +2204,9 @@ class EmbeddingRequestEditView(UpdateView):
         # Combine existing links with new links
         all_links = existing_links + new_links
         
-        # Debug: print what we're collecting
-        print(f"DEBUG: Existing links: {existing_links}")
-        print(f"DEBUG: New links: {new_links}")
-        print(f"DEBUG: All links: {all_links}")
-        print(f"DEBUG: POST data with 'link': {[k for k in self.request.POST.keys() if 'link' in k]}")
-        
-        # Update links
+        # Update links and save everything
         self.object.links = all_links
         self.object.save()
-        print(f"DEBUG: Saved links to database: {self.object.links}")
-        
-        # Save the form
-        response = super().form_valid(form)
         
         # Determine what fields changed
         changed_fields = []
@@ -2044,7 +2225,9 @@ class EmbeddingRequestEditView(UpdateView):
             description=f'Updated fields: {", ".join(changed_fields) if changed_fields else "No specific fields detected as changed"}'
         )
         
-        return response
+        # Return redirect response
+        from django.http import HttpResponseRedirect
+        return HttpResponseRedirect(self.get_success_url())
 
 class EmbeddingRequestDeleteView(DeleteView):
     model = EmbeddingRequest
@@ -2071,15 +2254,88 @@ class SectioningRequestEditView(UpdateView):
         context['tissues'] = Tissue.objects.all().order_by('name')
         context['statuses'] = Status.objects.exclude(status='submitted').order_by('status')
         context['assignees'] = Assignee.objects.all().order_by('name')
+        
         return context
     
     def form_valid(self, form):
-        print("DEBUG: SectioningRequestEditView form_valid called")
         # Get the original object before saving
         original_obj = SectioningRequest.objects.get(pk=self.object.pk)
+        original_status = original_obj.status
         
-        # Debug: print all POST data
-        print(f"DEBUG: All POST keys: {list(self.request.POST.keys())}")
+        # Save the form first - this will save all form fields including status
+        self.object = form.save()
+        
+        # Check if status changed and update status_timestamp
+        if original_status != self.object.status:
+            self.object.status_timestamp = timezone.now()
+        
+        # Handle additional studies - collect from POST data
+        additional_studies = []
+        
+        # First, collect existing studies that were preserved
+        for key, value in self.request.POST.items():
+            if key.startswith('existing_study_') and value:
+                additional_studies.append(value)
+        
+        # Then collect new studies from study_0, study_1, etc.
+        for key, value in self.request.POST.items():
+            if key.startswith('study_') and not key.startswith('existing_study_') and value:
+                try:
+                    study_id = int(value)
+                    study = Study.objects.get(pk=study_id)
+                    study_str = f"{study.study_id} - {study.title}"
+                    if study_str not in additional_studies:  # Avoid duplicates
+                        additional_studies.append(study_str)
+                except (ValueError, Study.DoesNotExist):
+                    pass
+        
+        # Handle additional tissues - collect from POST data
+        additional_tissues = []
+        
+        # First, collect existing tissues that were preserved
+        for key, value in self.request.POST.items():
+            if key.startswith('existing_tissue_') and value:
+                additional_tissues.append(value)
+        
+        # Then collect new tissues from tissue_0, tissue_1, etc.
+        for key, value in self.request.POST.items():
+            if key.startswith('tissue_') and not key.startswith('existing_tissue_') and value:
+                try:
+                    tissue_id = int(value)
+                    tissue = Tissue.objects.get(pk=tissue_id)
+                    tissue_name = tissue.name
+                    if tissue_name not in additional_tissues:  # Avoid duplicates
+                        additional_tissues.append(tissue_name)
+                except (ValueError, Tissue.DoesNotExist):
+                    pass
+        
+        # Handle primary tissue
+        primary_tissue_id = self.request.POST.get('tissue')
+        
+        # Update the data JSONField with studies and tissues
+        if not self.object.data:
+            self.object.data = {}
+        self.object.data['studies'] = additional_studies
+        self.object.data['tissues'] = additional_tissues
+        
+        # Clear existing tissues
+        self.object.tissues.clear()
+        
+        # Add primary tissue if provided
+        if primary_tissue_id:
+            try:
+                primary_tissue = Tissue.objects.get(pk=primary_tissue_id)
+                self.object.tissues.add(primary_tissue)
+            except (ValueError, Tissue.DoesNotExist):
+                pass
+        
+        # Add additional tissues to ManyToMany
+        for tissue_name in additional_tissues:
+            try:
+                tissue = Tissue.objects.get(name=tissue_name)
+                self.object.tissues.add(tissue)
+            except Tissue.DoesNotExist:
+                pass
         
         # Handle links - preserve existing links and add new ones
         existing_links = self.object.links or []
@@ -2105,19 +2361,9 @@ class SectioningRequestEditView(UpdateView):
         # Combine existing links with new links
         all_links = existing_links + new_links
         
-        # Debug: print what we're collecting
-        print(f"DEBUG: Existing links: {existing_links}")
-        print(f"DEBUG: New links: {new_links}")
-        print(f"DEBUG: All links: {all_links}")
-        print(f"DEBUG: POST data with 'link': {[k for k in self.request.POST.keys() if 'link' in k]}")
-        
-        # Update links
+        # Update links and save everything
         self.object.links = all_links
         self.object.save()
-        print(f"DEBUG: Saved links to database: {self.object.links}")
-        
-        # Save the form
-        response = super().form_valid(form)
         
         # Determine what fields changed
         changed_fields = []
@@ -2136,7 +2382,9 @@ class SectioningRequestEditView(UpdateView):
             description=f'Updated fields: {", ".join(changed_fields) if changed_fields else "No specific fields detected as changed"}'
         )
         
-        return response
+        # Return redirect response
+        from django.http import HttpResponseRedirect
+        return HttpResponseRedirect(self.get_success_url())
 
 class SectioningRequestDeleteView(DeleteView):
     model = SectioningRequest
@@ -2576,10 +2824,10 @@ class ImportAntibodiesView(TemplateView):
                     Antibody.objects.create(
                         name=row['name'],
                         description=row['description'] if pd.notna(row['description']) else '',
-                        antigen=row['antigen'] if pd.notna(row['antigen']) else '',
-                        species=row['species'] if pd.notna(row['species']) else '',
-                        recognizes=row['recognizes'] if pd.notna(row['recognizes']) else '',
-                        vendor=row['vendor'] if pd.notna(row['vendor']) else ''
+                        antigen=row['antigen'] if pd.notna(row['antigen']) else None,
+                        species=row['species'] if pd.notna(row['species']) else None,
+                        recognizes=row['recognizes'] if pd.notna(row['recognizes']) else None,
+                        vendor=row['vendor'] if pd.notna(row['vendor']) else None
                     )
                     imported_count += 1
                     
@@ -2705,6 +2953,11 @@ class ImportProbesView(TemplateView):
             
             for index, row in df.iterrows():
                 try:
+                    # Skip rows without required fields
+                    if pd.isna(row['name']) or pd.isna(row['description']):
+                        skipped_count += 1
+                        continue
+                    
                     # Check if probe already exists
                     if Probe.objects.filter(name=row['name']).exists():
                         skipped_count += 1
@@ -2713,10 +2966,10 @@ class ImportProbesView(TemplateView):
                     # Create new probe
                     Probe.objects.create(
                         name=row['name'],
-                        description=row['description'] if pd.notna(row['description']) else '',
-                        target_gene=row['target_gene'] if pd.notna(row['target_gene']) else '',
-                        vendor=row['vendor'] if pd.notna(row['vendor']) else '',
-                        platform=row['platform'] if pd.notna(row['platform']) else '',
+                        description=row['description'],
+                        target_gene=row['target_gene'] if pd.notna(row['target_gene']) else None,
+                        vendor=row['vendor'] if pd.notna(row['vendor']) else None,
+                        platform=row['platform'] if pd.notna(row['platform']) else None,
                         number_of_pairs=int(row['number_of_pairs']) if pd.notna(row['number_of_pairs']) else None
                     )
                     imported_count += 1

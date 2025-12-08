@@ -46,18 +46,6 @@
                         <small class="text-muted">Select the antibody for this request</small>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Study:</label>
-                        <select class="form-control" name="study" readonly style="background-color: #f8f9fa; color: #6c757d;" disabled>
-                            {% for study in studies %}
-                                <option value="{{ study.pk }}" {% if request_obj.study.pk == study.pk %}selected{% endif %}>{{ study.title }}</option>
-                            {% endfor %}
-                        </select>
-                        <small class="text-muted">Study cannot be modified after creation</small>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-12">
                         <label class="form-label">Probe:</label>
                         {{ form.probe }}
                         <small class="text-muted">Select the probe for this request</small>
@@ -65,40 +53,74 @@
                 </div>
 
                 <div class="row mb-3">
-                    <div class="col-md-12">
-                        <label class="form-label">Primary Tissue:</label>
-                        <select class="form-control" name="tissue" readonly style="background-color: #f8f9fa; color: #6c757d;" disabled>
-                            {% for tissue in tissues %}
-                                <option value="{{ tissue.pk }}" {% if request_obj.tissue.pk == tissue.pk %}selected{% endif %}>{{ tissue.name }}</option>
-                            {% endfor %}
-                        </select>
-                        <small class="text-muted">Primary tissue cannot be modified after creation</small>
+                    <div class="col-md-8">
+                        <label class="form-label">Primary Study:</label>
+                        {{ form.study }}
+                        <small class="text-muted">Select the primary study for this request</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="button" class="btn btn-secondary w-100" id="addStudyBtn">Add Additional Study</button>
                     </div>
                 </div>
 
-                {% if request_obj.data.tissues %}
                 <div class="row mb-3">
                     <div class="col-md-12">
-                        <label class="form-label">Additional Tissues ({{ request_obj.data.tissues|length }}):</label>
-                        <div class="alert alert-info">
-                            <ul class="list-unstyled mb-0">
-                                {% for tissue_name in request_obj.data.tissues %}
-                                    <li><i class="fas fa-tag me-2"></i>{{ tissue_name|truncatechars:40 }}</li>
+                        <label class="form-label">Additional Studies:</label>
+                        <div id="studyList" class="mt-2">
+                            {% if request_obj.data.studies %}
+                                {% for study_str in request_obj.data.studies %}
+                                    <div class="form-control mt-2 d-flex align-items-center" data-study-str="{{ study_str }}">
+                                        <select class="form-control me-2 existing-study-select" name="existing_study_{{ forloop.counter0 }}" data-original-value="{{ study_str }}">
+                                            <option value="">Select a study...</option>
+                                            {% for study in studies %}
+                                                <option value="{{ study.study_id }} - {{ study.title }}">{{ study.study_id }} - {{ study.title }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="button" class="btn btn-sm btn-outline-danger ms-auto" onclick="removeStudy(this)">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
                                 {% endfor %}
-                            </ul>
+                            {% endif %}
                         </div>
-                        <small class="text-muted">Total tissues for this request: {{ request_obj.data.tissues|length|add:1 }}</small>
                     </div>
                 </div>
-                {% else %}
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Primary Tissue:</label>
+                        {{ form.tissue }}
+                        <small class="text-muted">Select the primary tissue for this request</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="button" class="btn btn-secondary w-100" id="addTissueBtn">Add Additional Tissue</button>
+                    </div>
+                </div>
+
                 <div class="row mb-3">
                     <div class="col-md-12">
-                        <div class="alert alert-light">
-                            <small class="text-muted">No additional tissues specified for this request.</small>
+                        <label class="form-label">Additional Tissues:</label>
+                        <div id="tissueList" class="mt-2">
+                            {% if request_obj.data.tissues %}
+                                {% for tissue_name in request_obj.data.tissues %}
+                                    <div class="form-control mt-2 d-flex align-items-center" data-tissue-name="{{ tissue_name }}">
+                                        <select class="form-control me-2 existing-tissue-select" name="existing_tissue_{{ forloop.counter0 }}" data-original-value="{{ tissue_name }}">
+                                            <option value="">Select a tissue...</option>
+                                            {% for tissue in tissues %}
+                                                <option value="{{ tissue.name }}">{{ tissue.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="button" class="btn btn-sm btn-outline-danger ms-auto" onclick="removeTissue(this)">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
                         </div>
                     </div>
                 </div>
-                {% endif %}
 
                 <div class="row mb-3">
                     <div class="col-md-12">
@@ -112,6 +134,14 @@
                     <div class="col-md-12">
                         <label class="form-label">Special Request:</label>
                         <textarea class="form-control" name="special_request" rows="3" maxlength="256">{{ request_obj.special_request }}</textarea>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label">Staining Summary:</label>
+                        {{ form.staining_summary }}
+                        <div class="form-text">Optional - Add a summary of the staining results</div>
                     </div>
                 </div>
 
@@ -190,12 +220,181 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const addStudyBtn = document.getElementById('addStudyBtn');
+    const studyList = document.getElementById('studyList');
+    let studyCount = 0;
+    
+    // Count existing studies to set proper counter
+    const existingStudies = studyList.querySelectorAll('.form-control.mt-2.d-flex.align-items-center');
+    studyCount = existingStudies.length;
+    
+    // Set selected values for existing studies
+    const existingStudySelects = document.querySelectorAll('.existing-study-select');
+    existingStudySelects.forEach(function(select) {
+        const originalValue = select.getAttribute('data-original-value');
+        if (originalValue) {
+            // Find and select the matching option
+            const options = select.querySelectorAll('option');
+            options.forEach(function(option) {
+                if (option.value === originalValue) {
+                    option.selected = true;
+                }
+            });
+        }
+    });
+    
+    // Add study button functionality
+    if (addStudyBtn) {
+        addStudyBtn.addEventListener('click', function() {
+            const maxStudies = 10;
+            
+            if (studyCount < maxStudies) {
+                const studySelect = document.createElement('select');
+                studySelect.className = 'form-control mt-2';
+                studySelect.name = 'study_' + studyCount;
+                
+                // Add default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select a study...';
+                studySelect.appendChild(defaultOption);
+                
+                // Clone the original study select options
+                const originalSelect = document.getElementById('id_study');
+                if (originalSelect) {
+                    const options = originalSelect.querySelectorAll('option');
+                    options.forEach(function(option) {
+                        if (option.value !== '') { // Skip the default option
+                            const newOption = document.createElement('option');
+                            newOption.value = option.value;
+                            newOption.textContent = option.textContent;
+                            studySelect.appendChild(newOption);
+                        }
+                    });
+                }
+                
+                // Create a container div with remove button
+                const studyDiv = document.createElement('div');
+                studyDiv.className = 'form-control mt-2 d-flex align-items-center';
+                studyDiv.appendChild(studySelect);
+                
+                // Create a remove button
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn btn-sm btn-outline-danger ms-auto';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.onclick = function() {
+                    studyDiv.remove();
+                    studyCount--;
+                };
+                studyDiv.appendChild(removeBtn);
+                
+                studyList.appendChild(studyDiv);
+                studyCount++;
+            } else {
+                alert('Maximum number of additional studies reached (' + maxStudies + ')');
+            }
+        });
+    }
+    
+    // Function to remove existing studies
+    window.removeStudy = function(button) {
+        const studyDiv = button.closest('.form-control');
+        studyDiv.remove();
+        studyCount--;
+    };
+    
+    // Tissue functionality
+    const addTissueBtn = document.getElementById('addTissueBtn');
+    const tissueList = document.getElementById('tissueList');
+    let tissueCount = 0;
+    
+    // Count existing tissues to set proper counter
+    const existingTissues = tissueList.querySelectorAll('.form-control.mt-2.d-flex.align-items-center');
+    tissueCount = existingTissues.length;
+    
+    // Set selected values for existing tissues
+    const existingTissueSelects = document.querySelectorAll('.existing-tissue-select');
+    existingTissueSelects.forEach(function(select) {
+        const originalValue = select.getAttribute('data-original-value');
+        if (originalValue) {
+            // Find and select the matching option
+            const options = select.querySelectorAll('option');
+            options.forEach(function(option) {
+                if (option.value === originalValue) {
+                    option.selected = true;
+                }
+            });
+        }
+    });
+    
+    // Add tissue button functionality
+    if (addTissueBtn) {
+        addTissueBtn.addEventListener('click', function() {
+            const maxTissues = 10;
+            
+            if (tissueCount < maxTissues) {
+                const tissueSelect = document.createElement('select');
+                tissueSelect.className = 'form-control mt-2';
+                tissueSelect.name = 'tissue_' + tissueCount;
+                
+                // Add default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select a tissue...';
+                tissueSelect.appendChild(defaultOption);
+                
+                // Clone the original tissue select options
+                const originalSelect = document.getElementById('id_tissue');
+                if (originalSelect) {
+                    const options = originalSelect.querySelectorAll('option');
+                    options.forEach(function(option) {
+                        if (option.value !== '') { // Skip the default option
+                            const newOption = document.createElement('option');
+                            newOption.value = option.value;
+                            newOption.textContent = option.textContent;
+                            tissueSelect.appendChild(newOption);
+                        }
+                    });
+                }
+                
+                // Create a container div with remove button
+                const tissueDiv = document.createElement('div');
+                tissueDiv.className = 'form-control mt-2 d-flex align-items-center';
+                tissueDiv.appendChild(tissueSelect);
+                
+                // Create a remove button
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn btn-sm btn-outline-danger ms-auto';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.onclick = function() {
+                    tissueDiv.remove();
+                    tissueCount--;
+                };
+                tissueDiv.appendChild(removeBtn);
+                
+                tissueList.appendChild(tissueDiv);
+                tissueCount++;
+            } else {
+                alert('Maximum number of additional tissues reached (' + maxTissues + ')');
+            }
+        });
+    }
+    
+    // Function to remove existing tissues
+    window.removeTissue = function(button) {
+        const tissueDiv = button.closest('.form-control');
+        tissueDiv.remove();
+        tissueCount--;
+    };
+    
     const addLinkBtn = document.getElementById('addLinkBtn');
     const linkList = document.getElementById('linkList');
     let linkCount = 0;
     
-    // Count existing links to set proper counter
-    const existingLinks = document.querySelectorAll('.form-control.mt-2.d-flex.align-items-center');
+    // Count existing links to set proper counter (excluding study divs)
+    const existingLinks = linkList.querySelectorAll('.form-control.mt-2.d-flex.align-items-center');
     linkCount = existingLinks.length;
 
     // Add link functionality

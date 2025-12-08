@@ -48,7 +48,7 @@
                         </div>
                         
                         <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-12">
                                 <label for="{{ form.requestor.id_for_label }}" class="form-label">
                                     <i class="fas fa-user me-1"></i>Requestor <span class="text-danger">*</span>
                                 </label>
@@ -57,7 +57,10 @@
                                     <div class="text-danger small mt-1">{{ form.requestor.errors.0 }}</div>
                                 {% endif %}
                             </div>
-                            <div class="col-md-6">
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-8">
                                 <label for="{{ form.study.id_for_label }}" class="form-label">
                                     <i class="fas fa-flask me-1"></i>Study <span class="text-danger">*</span>
                                 </label>
@@ -66,7 +69,12 @@
                                     <div class="text-danger small mt-1">{{ form.study.errors.0 }}</div>
                                 {% endif %}
                             </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="button" class="btn btn-secondary w-100" id="addStudyBtn">Add Additional Study</button>
+                            </div>
                         </div>
+                        <div id="studyList" class="mb-3"></div>
 
                         <div class="row mb-3">
                             <div class="col-md-6">
@@ -235,13 +243,57 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('embeddingRequestForm');
+    const addStudyBtn = document.getElementById('addStudyBtn');
     const addTissueBtn = document.getElementById('addTissueBtn');
+    const studyList = document.getElementById('studyList');
     const tissueList = document.getElementById('tissueList');
+    let studyCount = 0;
     let tissueCount = 0;
     
     const addLinkBtn = document.getElementById('addLinkBtn');
     const linkList = document.getElementById('linkList');
     let linkCount = 0;
+
+    // Add study button functionality
+    if (addStudyBtn) {
+        addStudyBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const maxStudies = 10;
+            
+            if (studyCount < maxStudies) {
+                const studySelect = document.createElement('select');
+                studySelect.className = 'form-control mt-2';
+                studySelect.name = 'study_' + studyCount;
+                
+                // Add default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select a study...';
+                studySelect.appendChild(defaultOption);
+                
+                // Clone the original study select options
+                const originalSelect = document.getElementById('id_study');
+                if (originalSelect) {
+                    const options = originalSelect.querySelectorAll('option');
+                    options.forEach(function(option) {
+                        if (option.value !== '') { // Skip the default option
+                            const newOption = document.createElement('option');
+                            newOption.value = option.value;
+                            newOption.textContent = option.textContent;
+                            studySelect.appendChild(newOption);
+                        }
+                    });
+                }
+                
+                studyList.appendChild(studySelect);
+                studyCount++;
+            } else {
+                alert('Maximum number of additional studies reached (' + maxStudies + ')');
+            }
+        });
+    }
 
     // Add tissue dropdown
     addTissueBtn.addEventListener('click', function() {

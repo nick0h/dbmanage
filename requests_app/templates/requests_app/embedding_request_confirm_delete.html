@@ -55,7 +55,7 @@
                             {% if request.tissues %}
                             <div class="mt-3">
                                 <strong>Tissue:</strong>
-                                <span class="badge bg-success me-1">{{ request.tissues.name }}</span>
+                                {% if request.tissues.first %}<span class="badge bg-success me-1">{{ request.tissues.first.name }}</span>{% else %}<span class="badge bg-secondary me-1">No tissue</span>{% endif %}
                             </div>
                             {% endif %}
 

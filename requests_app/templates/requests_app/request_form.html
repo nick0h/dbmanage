@@ -74,11 +74,16 @@
                         </div>
 
                         <div class="row mb-3">
-                            <div class="col-12">
+                            <div class="col-md-8">
                                 <label for="id_study" class="form-label">Study: <span class="text-danger">*</span></label>
                                 {{ form.study }}
                             </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="button" class="btn btn-secondary w-100" id="addStudyBtn">Add Additional Study</button>
+                            </div>
                         </div>
+                        <div id="studyList" class="mb-3"></div>
 
                         <div class="row mb-3">
                             <div class="col-md-8">
@@ -109,6 +114,14 @@
                             <div class="col-12">
                                 <label for="id_special_request" class="form-label">Special Request:</label>
                                 <textarea class="form-control" id="id_special_request" name="special_request" rows="3" maxlength="256"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="id_staining_summary" class="form-label">Staining Summary:</label>
+                                {{ form.staining_summary }}
+                                <div class="form-text">Optional - Add a summary of the staining results</div>
                             </div>
                         </div>
 
@@ -160,26 +173,76 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DOMContentLoaded event fired');
     console.log('About to look for addTissueBtn...');
     const form = document.getElementById('requestForm');
+    const addStudyBtn = document.getElementById('addStudyBtn');
     const addTissueBtn = document.getElementById('addTissueBtn');
     const cancelBtn = document.getElementById('cancelBtn');
+    const studyList = document.getElementById('studyList');
     const tissueList = document.getElementById('tissueList');
+    let studyCount = 0;
     let tissueCount = 0;
     
     // Debug: Check if elements exist
     console.log('Form element:', form);
+    console.log('addStudyBtn:', addStudyBtn);
     console.log('addTissueBtn:', addTissueBtn);
+    console.log('studyList:', studyList);
     console.log('tissueList:', tissueList);
-    console.log('addTissueBtn type:', typeof addTissueBtn);
-    console.log('addTissueBtn disabled:', addTissueBtn ? addTissueBtn.disabled : 'not found');
     
     if (!form) {
         console.error('Form element not found!');
         return;
     }
     
+    // Add study button functionality
+    if (addStudyBtn) {
+        console.log('Study button found, adding event listener');
+        
+        addStudyBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Add study button clicked, current studyCount:', studyCount);
+            
+            const maxStudies = 10;
+            
+            if (studyCount < maxStudies) {
+                const studySelect = document.createElement('select');
+                studySelect.className = 'form-control mt-2';
+                studySelect.name = 'study_' + studyCount;
+                
+                // Add default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select a study...';
+                studySelect.appendChild(defaultOption);
+                
+                // Clone the original study select options
+                const originalSelect = document.getElementById('id_study');
+                if (originalSelect) {
+                    const options = originalSelect.querySelectorAll('option');
+                    options.forEach(function(option) {
+                        if (option.value !== '') { // Skip the default option
+                            const newOption = document.createElement('option');
+                            newOption.value = option.value;
+                            newOption.textContent = option.textContent;
+                            studySelect.appendChild(newOption);
+                        }
+                    });
+                }
+                
+                studyList.appendChild(studySelect);
+                studyCount++;
+                console.log('Added study dropdown, new count:', studyCount);
+            } else {
+                alert('Maximum number of additional studies reached (' + maxStudies + ')');
+            }
+        });
+    } else {
+        console.error('Study button not found!');
+    }
+    
     // Test if button exists and add click listener
     if (addTissueBtn) {
-        console.log('Button found, adding event listener');
+        console.log('Tissue button found, adding event listener');
         
         // Remove any existing event listeners and add the working one
         addTissueBtn.onclick = null;
@@ -226,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
     } else {
-        console.error('Button not found!');
+        console.error('Tissue button not found!');
     }
     
     const addLinkBtn = document.getElementById('addLinkBtn');
@@ -350,6 +413,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Cancel button
     cancelBtn.addEventListener('click', function() {
         form.reset();
+        studyList.innerHTML = '';
+        studyCount = 0;
         tissueList.innerHTML = '';
         tissueCount = 0;
         linkList.innerHTML = '';

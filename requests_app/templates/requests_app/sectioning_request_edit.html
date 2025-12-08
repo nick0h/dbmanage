@@ -43,7 +43,7 @@
                         </div>
                         
                         <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-12">
                                 <label for="{{ form.requestor.id_for_label }}" class="form-label">
                                     <i class="fas fa-user me-1"></i>Requestor <span class="text-danger">*</span>
                                 </label>
@@ -52,14 +52,45 @@
                                     <div class="text-danger small mt-1">{{ form.requestor.errors.0 }}</div>
                                 {% endif %}
                             </div>
-                            <div class="col-md-6">
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-8">
                                 <label for="{{ form.study.id_for_label }}" class="form-label">
-                                    <i class="fas fa-flask me-1"></i>Study <span class="text-danger">*</span>
+                                    <i class="fas fa-flask me-1"></i>Primary Study <span class="text-danger">*</span>
                                 </label>
                                 {{ form.study }}
                                 {% if form.study.errors %}
                                     <div class="text-danger small mt-1">{{ form.study.errors.0 }}</div>
                                 {% endif %}
+                                <small class="text-muted">Select the primary study for this request</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="button" class="btn btn-secondary w-100" id="addStudyBtn">Add Additional Study</button>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label class="form-label">Additional Studies:</label>
+                                <div id="studyList" class="mt-2">
+                                    {% if request_obj.data.studies %}
+                                        {% for study_str in request_obj.data.studies %}
+                                            <div class="form-control mt-2 d-flex align-items-center" data-study-str="{{ study_str }}">
+                                                <select class="form-control me-2 existing-study-select" name="existing_study_{{ forloop.counter0 }}" data-original-value="{{ study_str }}">
+                                                    <option value="">Select a study...</option>
+                                                    {% for study in studies %}
+                                                        <option value="{{ study.study_id }} - {{ study.title }}">{{ study.study_id }} - {{ study.title }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <button type="button" class="btn btn-sm btn-outline-danger ms-auto" onclick="removeStudy(this)">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
 
@@ -85,48 +116,50 @@
                         </div>
                         </div>
 
-                        <!-- Tissues (Read-Only) -->
                         <div class="row mb-3">
-                            <div class="col-12">
-                                <label class="form-label">
-                                    <i class="fas fa-microscope me-1"></i>Primary Tissue:
+                            <div class="col-md-6">
+                                <label for="id_tissue" class="form-label">
+                                    <i class="fas fa-microscope me-1"></i>Primary Tissue
                                 </label>
-                                <div class="form-control-plaintext bg-light p-3 border rounded">
-                                    {% if object.tissues.first %}
-                                        <span class="badge bg-info fs-6">{{ object.tissues.first.name }}</span>
-                                    {% else %}
-                                        <span class="text-muted">No primary tissue selected</span>
-                                    {% endif %}
-                                </div>
-                                <small class="text-muted">Primary tissue cannot be modified after request creation</small>
+                                <select class="form-control" id="id_tissue" name="tissue">
+                                    <option value="">Select a tissue...</option>
+                                    {% for tissue in tissues %}
+                                        <option value="{{ tissue.pk }}" {% if object.tissues.first.pk == tissue.pk %}selected{% endif %}>{{ tissue.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% if form.tissue.errors %}
+                                    <div class="text-danger small mt-1">{{ form.tissue.errors.0 }}</div>
+                                {% endif %}
+                                <small class="text-muted">Select the primary tissue for this request</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="button" class="btn btn-secondary w-100" id="addTissueBtn">Add Additional Tissue</button>
                             </div>
                         </div>
 
-                        {% if object.tissues.count > 1 %}
                         <div class="row mb-3">
-                            <div class="col-12">
-                                <label class="form-label">Additional Tissues ({{ object.tissues.count|add:-1 }}):</label>
-                                <div class="alert alert-info">
-                                    <ul class="list-unstyled mb-0">
-                                        {% for tissue in object.tissues.all %}
-                                            {% if not forloop.first %}
-                                                <li><i class="fas fa-tag me-2"></i>{{ tissue.name|truncatechars:40 }}</li>
-                                            {% endif %}
+                            <div class="col-md-12">
+                                <label class="form-label">Additional Tissues:</label>
+                                <div id="tissueList" class="mt-2">
+                                    {% if request_obj.data.tissues %}
+                                        {% for tissue_name in request_obj.data.tissues %}
+                                            <div class="form-control mt-2 d-flex align-items-center" data-tissue-name="{{ tissue_name }}">
+                                                <select class="form-control me-2 existing-tissue-select" name="existing_tissue_{{ forloop.counter0 }}" data-original-value="{{ tissue_name }}">
+                                                    <option value="">Select a tissue...</option>
+                                                    {% for tissue in tissues %}
+                                                        <option value="{{ tissue.name }}" {% if tissue.name == tissue_name %}selected{% endif %}>{{ tissue.name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <button type="button" class="btn btn-sm btn-outline-danger ms-auto" onclick="removeTissue(this)">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
                                         {% endfor %}
-                                    </ul>
-                                </div>
-                                <small class="text-muted">Total tissues for this request: {{ object.tissues.count }}</small>
-                            </div>
-                        </div>
-                        {% else %}
-                        <div class="row mb-3">
-                            <div class="col-12">
-                                <div class="alert alert-light">
-                                    <small class="text-muted">No additional tissues specified for this request.</small>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
-                        {% endif %}
 
                         <!-- Sectioning-Specific Fields -->
                         <div class="row mb-4">
@@ -278,12 +311,296 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form[method="post"]');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // CRITICAL FIX: Ensure tissue field is visible and enabled before submission
+            const tissueFieldAtSubmit = document.getElementById('id_tissue');
+            if (tissueFieldAtSubmit) {
+                // Force show the select (searchable-dropdown might have hidden it)
+                tissueFieldAtSubmit.style.display = 'block';
+                tissueFieldAtSubmit.style.visibility = 'visible';
+                tissueFieldAtSubmit.style.opacity = '1';
+                
+                // Force enable the field if it's disabled
+                tissueFieldAtSubmit.disabled = false;
+                
+                // Remove any readonly attribute
+                tissueFieldAtSubmit.removeAttribute('readonly');
+                
+                // CRITICAL: If the field is not in the form, manually add it
+                if (!form.contains(tissueFieldAtSubmit)) {
+                    form.appendChild(tissueFieldAtSubmit);
+                }
+                
+                // CRITICAL: Manually ensure the field is included by creating a hidden input
+                if (tissueFieldAtSubmit.value) {
+                    // Remove any existing hidden tissue input
+                    const existingHidden = form.querySelector('input[name="tissue"][type="hidden"]');
+                    if (existingHidden) {
+                        existingHidden.remove();
+                    }
+                    // Create new hidden input with the value
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'tissue';
+                    hiddenInput.value = tissueFieldAtSubmit.value;
+                    form.appendChild(hiddenInput);
+                }
+            }
+            
+            // CRITICAL FIX: Handle ALL additional tissue fields (existing_tissue_* and tissue_*)
+            // Find all existing tissue selects (existing_tissue_0, existing_tissue_1, etc.)
+            const allSelectsForExisting = document.querySelectorAll('select');
+            const existingTissueSelects = Array.from(allSelectsForExisting).filter(select => 
+                select.name && select.name.startsWith('existing_tissue_')
+            );
+            existingTissueSelects.forEach(function(select) {
+                // Ensure it's visible and enabled
+                select.style.display = 'block';
+                select.style.visibility = 'visible';
+                select.style.opacity = '1';
+                select.disabled = false;
+                select.removeAttribute('readonly');
+                
+                // Ensure it's inside the form
+                if (!form.contains(select)) {
+                    const parent = select.parentElement;
+                    if (parent) {
+                        form.appendChild(parent);
+                    } else {
+                        form.appendChild(select);
+                    }
+                }
+                
+                // Create hidden input as backup if it has a value
+                if (select.value) {
+                    const existingHidden = form.querySelector('input[name="' + select.name + '"][type="hidden"]');
+                    if (existingHidden) {
+                        existingHidden.remove();
+                    }
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = select.name;
+                    hiddenInput.value = select.value;
+                    form.appendChild(hiddenInput);
+                }
+            });
+            
+            // Find all new tissue selects (tissue_0, tissue_1, etc.)
+            const allSelects = document.querySelectorAll('select');
+            const newTissueSelects = Array.from(allSelects).filter(select => 
+                select.name && select.name.startsWith('tissue_') && !select.name.startsWith('existing_tissue_')
+            );
+            newTissueSelects.forEach(function(select) {
+                // Ensure it's visible and enabled
+                select.style.display = 'block';
+                select.style.visibility = 'visible';
+                select.style.opacity = '1';
+                select.disabled = false;
+                select.removeAttribute('readonly');
+                
+                // Ensure it's inside the form
+                if (!form.contains(select)) {
+                    const parent = select.parentElement;
+                    if (parent) {
+                        form.appendChild(parent);
+                    } else {
+                        form.appendChild(select);
+                    }
+                }
+                
+                // Create hidden input as backup if it has a value
+                if (select.value) {
+                    const existingHidden = form.querySelector('input[name="' + select.name + '"][type="hidden"]');
+                    if (existingHidden) {
+                        existingHidden.remove();
+                    }
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = select.name;
+                    hiddenInput.value = select.value;
+                    form.appendChild(hiddenInput);
+                }
+            });
+        });
+    }
+    
+    const addStudyBtn = document.getElementById('addStudyBtn');
+    const studyList = document.getElementById('studyList');
+    let studyCount = 0;
+    
+    // Count existing studies to set proper counter
+    const existingStudies = studyList.querySelectorAll('.form-control.mt-2.d-flex.align-items-center');
+    studyCount = existingStudies.length;
+    
+    // Set selected values for existing studies
+    const existingStudySelects = document.querySelectorAll('.existing-study-select');
+    existingStudySelects.forEach(function(select) {
+        const originalValue = select.getAttribute('data-original-value');
+        if (originalValue) {
+            // Find and select the matching option
+            const options = select.querySelectorAll('option');
+            options.forEach(function(option) {
+                if (option.value === originalValue) {
+                    option.selected = true;
+                }
+            });
+        }
+    });
+    
+    // Add study button functionality
+    if (addStudyBtn) {
+        addStudyBtn.addEventListener('click', function() {
+            const maxStudies = 10;
+            
+            if (studyCount < maxStudies) {
+                const studySelect = document.createElement('select');
+                studySelect.className = 'form-control mt-2';
+                studySelect.name = 'study_' + studyCount;
+                
+                // Add default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select a study...';
+                studySelect.appendChild(defaultOption);
+                
+                // Clone the original study select options
+                const originalSelect = document.getElementById('id_study');
+                if (originalSelect) {
+                    const options = originalSelect.querySelectorAll('option');
+                    options.forEach(function(option) {
+                        if (option.value !== '') { // Skip the default option
+                            const newOption = document.createElement('option');
+                            newOption.value = option.value;
+                            newOption.textContent = option.textContent;
+                            studySelect.appendChild(newOption);
+                        }
+                    });
+                }
+                
+                // Create a container div with remove button
+                const studyDiv = document.createElement('div');
+                studyDiv.className = 'form-control mt-2 d-flex align-items-center';
+                studyDiv.appendChild(studySelect);
+                
+                // Create a remove button
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn btn-sm btn-outline-danger ms-auto';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.onclick = function() {
+                    studyDiv.remove();
+                    studyCount--;
+                };
+                studyDiv.appendChild(removeBtn);
+                
+                studyList.appendChild(studyDiv);
+                studyCount++;
+            } else {
+                alert('Maximum number of additional studies reached (' + maxStudies + ')');
+            }
+        });
+    }
+    
+    // Function to remove existing studies
+    window.removeStudy = function(button) {
+        const studyDiv = button.closest('.form-control');
+        studyDiv.remove();
+        studyCount--;
+    };
+    
+    // Tissue functionality
+    const addTissueBtn = document.getElementById('addTissueBtn');
+    const tissueList = document.getElementById('tissueList');
+    let tissueCount = 0;
+    
+    // Count existing tissues to set proper counter
+    const existingTissues = tissueList.querySelectorAll('.form-control.mt-2.d-flex.align-items-center');
+    tissueCount = existingTissues.length;
+    
+    // Set selected values for existing tissues
+    const existingTissueSelects = document.querySelectorAll('.existing-tissue-select');
+    existingTissueSelects.forEach(function(select) {
+        const originalValue = select.getAttribute('data-original-value');
+        if (originalValue) {
+            // Find and select the matching option
+            const options = select.querySelectorAll('option');
+            options.forEach(function(option) {
+                if (option.value === originalValue) {
+                    option.selected = true;
+                }
+            });
+        }
+    });
+    
+    // Add tissue button functionality
+    if (addTissueBtn) {
+        addTissueBtn.addEventListener('click', function() {
+            const maxTissues = 10;
+            
+            if (tissueCount < maxTissues) {
+                const tissueSelect = document.createElement('select');
+                tissueSelect.className = 'form-control mt-2';
+                tissueSelect.name = 'tissue_' + tissueCount;
+                
+                // Add default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select a tissue...';
+                tissueSelect.appendChild(defaultOption);
+                
+                // Clone the original tissue select options
+                const originalSelect = document.getElementById('id_tissue');
+                if (originalSelect) {
+                    const options = originalSelect.querySelectorAll('option');
+                    options.forEach(function(option) {
+                        if (option.value !== '') { // Skip the default option
+                            const newOption = document.createElement('option');
+                            newOption.value = option.value;
+                            newOption.textContent = option.textContent;
+                            tissueSelect.appendChild(newOption);
+                        }
+                    });
+                }
+                
+                // Create a container div with remove button
+                const tissueDiv = document.createElement('div');
+                tissueDiv.className = 'form-control mt-2 d-flex align-items-center';
+                tissueDiv.appendChild(tissueSelect);
+                
+                // Create a remove button
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn btn-sm btn-outline-danger ms-auto';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.onclick = function() {
+                    tissueDiv.remove();
+                    tissueCount--;
+                };
+                tissueDiv.appendChild(removeBtn);
+                
+                tissueList.appendChild(tissueDiv);
+                tissueCount++;
+            } else {
+                alert('Maximum number of additional tissues reached (' + maxTissues + ')');
+            }
+        });
+    }
+    
+    // Function to remove existing tissues
+    window.removeTissue = function(button) {
+        const tissueDiv = button.closest('.form-control');
+        tissueDiv.remove();
+        tissueCount--;
+    };
+    
     const addLinkBtn = document.getElementById('addLinkBtn');
     const linkList = document.getElementById('linkList');
     let linkCount = 0;
     
     // Count existing links to set proper counter
-    const existingLinks = document.querySelectorAll('.form-control.mt-2.d-flex.align-items-center');
+    const existingLinks = linkList.querySelectorAll('.form-control.mt-2.d-flex.align-items-center');
     linkCount = existingLinks.length;
 
     // Add link functionality

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Requestor, Antibody, Study, Tissue, Request, Status, Assignee, Probe, Priority, EmbeddingRequest, SectioningRequest, StainingRequestChangeLog, EmbeddingRequestChangeLog, SectioningRequestChangeLog
+from .models import Requestor, Antibody, Study, Tissue, Request, Status, Assignee, Probe, Priority, EmbeddingRequest, SectioningRequest, StainingRequestChangeLog, EmbeddingRequestChangeLog, SectioningRequestChangeLog, AntibodyStatus
 from .forms import AntibodyForm, ProbeForm, StudyEditForm
 
 # Register your models here.
@@ -16,18 +16,20 @@ admin.site.register(SectioningRequest)
 @admin.register(Antibody)
 class AntibodyAdmin(admin.ModelAdmin):
     form = AntibodyForm
-    list_display = ('name', 'description', 'antigen', 'species', 'vendor', 'archived')
-    list_filter = ('archived', 'species', 'vendor')
+    list_display = ('name', 'description', 'antigen', 'species', 'vendor', 'status', 'archived', 'date_created')
+    list_filter = ('archived', 'species', 'vendor', 'status', 'date_created')
     search_fields = ('name', 'description', 'antigen', 'species', 'vendor')
     list_editable = ('archived',)
+    readonly_fields = ('date_created',)
 
 @admin.register(Probe)
 class ProbeAdmin(admin.ModelAdmin):
     form = ProbeForm
-    list_display = ('name', 'description', 'target_gene', 'vendor', 'platform', 'archived')
-    list_filter = ('archived', 'platform', 'vendor')
+    list_display = ('name', 'description', 'target_gene', 'vendor', 'platform', 'archived', 'date_created')
+    list_filter = ('archived', 'platform', 'vendor', 'date_created')
     search_fields = ('name', 'description', 'target_gene', 'vendor', 'platform')
     list_editable = ('archived',)
+    readonly_fields = ('date_created',)
 
 @admin.register(Study)
 class StudyAdmin(admin.ModelAdmin):
@@ -36,6 +38,12 @@ class StudyAdmin(admin.ModelAdmin):
     list_filter = ('archived',)
     search_fields = ('study_id', 'title')
     list_editable = ('archived',)
+
+@admin.register(AntibodyStatus)
+class AntibodyStatusAdmin(admin.ModelAdmin):
+    list_display = ('status', 'description')
+    search_fields = ('status', 'description')
+    ordering = ('status',)
 
 # Custom admin for change log models
 @admin.register(StainingRequestChangeLog)

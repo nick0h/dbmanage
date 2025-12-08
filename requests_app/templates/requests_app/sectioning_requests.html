@@ -159,7 +159,7 @@
                                         <td>{{ request.key }}</td>
                                         <td>{{ request.requestor.name|truncatechars:15 }}</td>
                                         <td>{{ request.study.study_id|truncatechars:12 }}</td>
-                                        <td>{{ request.tissues.name|truncatechars:15|default:"-" }}</td>
+                                        <td>{% if request.tissues.first %}{{ request.tissues.first.name|truncatechars:15 }}{% else %}-{% endif %}</td>
                                         <td>{{ request.for_what }}</td>
                                         <td>
                                             <span class="badge bg-{% if request.cut_surface_down %}success{% else %}secondary{% endif %}">
