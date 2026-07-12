@@ -170,6 +170,22 @@ class Request(models.Model):
     probe = models.ForeignKey(Probe, on_delete=models.CASCADE, null=True, blank=True)
     study = models.ForeignKey(Study, on_delete=models.CASCADE)
     tissue = models.ForeignKey(Tissue, on_delete=models.CASCADE)
+    positive_control_tissue = models.ForeignKey(
+        Tissue,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='positive_control_requests',
+        verbose_name='Positive Control Tissue',
+    )
+    negative_control_tissue = models.ForeignKey(
+        Tissue,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='negative_control_requests',
+        verbose_name='Negative Control Tissue',
+    )
     description = models.CharField(max_length=256, blank=True, null=True)
     special_request = models.TextField(blank=True, null=True)
     staining_summary = models.TextField(blank=True, null=True, verbose_name="Staining Summary")
@@ -321,6 +337,8 @@ class StainingRequestChangeLog(BaseChangeLog):
             'requestor': request.requestor.key if request.requestor else None,
             'study': request.study.key if request.study else None,
             'tissue': request.tissue.key if request.tissue else None,
+            'positive_control_tissue': request.positive_control_tissue.key if request.positive_control_tissue else None,
+            'negative_control_tissue': request.negative_control_tissue.key if request.negative_control_tissue else None,
             'antibody': request.antibody.key if request.antibody else None,
             'probe': request.probe.key if request.probe else None,
             'status': request.status.key if request.status else None,

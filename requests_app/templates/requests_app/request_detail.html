@@ -16,14 +16,9 @@
             </div>
 
             <div class="row">
-                <!-- Basic Information -->
                 <div class="col-md-6 mb-4">
                     <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-info-circle me-2"></i>Basic Information
-                            </h5>
-                        </div>
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="staining-basic-info" title="Basic Information" icon="fas fa-info-circle" %}
                         <div class="card-body">
                             <table class="table table-borderless">
                                 <tr>
@@ -76,17 +71,13 @@
                                 </tr>
                             </table>
                         </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Study Information -->
                 <div class="col-md-6 mb-4">
                     <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-microscope me-2"></i>Study Information
-                            </h5>
-                        </div>
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="staining-study-info" title="Study Information" icon="fas fa-microscope" %}
                         <div class="card-body">
                             <table class="table table-borderless">
                                 <tr>
@@ -109,17 +100,13 @@
                                 </tr>
                             </table>
                         </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Antibody Information -->
                 <div class="col-md-6 mb-4">
                     <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-flask me-2"></i>Antibody Information
-                            </h5>
-                        </div>
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="staining-antibody-info" title="Antibody Information" icon="fas fa-flask" %}
                         <div class="card-body">
                             <table class="table table-borderless">
                                 <tr>
@@ -148,17 +135,13 @@
                                 </tr>
                             </table>
                         </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Probe Information -->
                 <div class="col-md-6 mb-4">
                     <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-dna me-2"></i>Probe Information
-                            </h5>
-                        </div>
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="staining-probe-info" title="Probe Information" icon="fas fa-dna" %}
                         <div class="card-body">
                             {% if request.probe %}
                                 <table class="table table-borderless">
@@ -203,17 +186,13 @@
                                 <p class="text-muted mb-0">No probe assigned to this request.</p>
                             {% endif %}
                         </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Tissue Information -->
                 <div class="col-md-6 mb-4">
                     <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-tint me-2"></i>Tissue Information
-                            </h5>
-                        </div>
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="staining-tissue-info" title="Tissue Information" icon="fas fa-tint" %}
                         <div class="card-body">
                             <table class="table table-borderless">
                                 <tr>
@@ -230,19 +209,27 @@
                                         </td>
                                     </tr>
                                 {% endif %}
+                                {% if request.positive_control_tissue %}
+                                    <tr>
+                                        <td class="fw-bold">Positive Control Tissue:</td>
+                                        <td>{{ request.positive_control_tissue.name }}</td>
+                                    </tr>
+                                {% endif %}
+                                {% if request.negative_control_tissue %}
+                                    <tr>
+                                        <td class="fw-bold">Negative Control Tissue:</td>
+                                        <td>{{ request.negative_control_tissue.name }}</td>
+                                    </tr>
+                                {% endif %}
                             </table>
+                        </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Request Details -->
                 <div class="col-12 mb-4">
                     <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-file-alt me-2"></i>Request Details
-                            </h5>
-                        </div>
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="staining-request-details" title="Request Details" icon="fas fa-file-alt" %}
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6">
@@ -289,19 +276,15 @@
                                 </div>
                             {% endif %}
                         </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Change Log Section -->
             <div class="row">
                 <div class="col-12 mb-4">
                     <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-history me-2"></i>Request History
-                            </h5>
-                        </div>
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="staining-request-history" title="Request History" icon="fas fa-history" %}
                         <div class="card-body">
                             {% if request.change_logs.all %}
                                 <div class="table-responsive">
@@ -350,6 +333,7 @@
                                 <p class="text-muted">No change history available for this request.</p>
                             {% endif %}
                         </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -362,7 +346,6 @@
     background-color: #fd7e14 !important;
 }
 
-/* Style for borealis links */
 .borealis-link {
     color: #007bff !important;
     text-decoration: underline;
@@ -374,4 +357,5 @@
     text-decoration: none;
 }
 </style>
-{% endblock %} 
+<link href="{% static 'css/collapsible_table_columns.css' %}" rel="stylesheet">
+{% endblock %}

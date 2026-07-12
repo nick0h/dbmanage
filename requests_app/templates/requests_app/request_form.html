@@ -61,11 +61,30 @@
                             </div>
                         </div>
 
+                        <div id="multipleAntibodyNotice" class="alert alert-info d-none mb-3" role="alert">
+                            Selecting multiple antibodies will create multiple requests — one request per antibody, with all other fields shared.
+                        </div>
+                        {% if multi_antibody_error %}
+                        <div class="alert alert-danger mb-3" role="alert">{{ multi_antibody_error }}</div>
+                        {% endif %}
+
                         <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="id_antibody" class="form-label">Antibody: <span class="text-danger">*</span></label>
+                            <div class="col-md-8">
+                                <label for="id_antibody" class="form-label">
+                                    Antibody: <span class="text-danger">*</span>
+                                    <a href="#" id="antibodyDetailsLink" class="ms-2 d-none" target="_blank" rel="noopener noreferrer">Details</a>
+                                </label>
                                 {{ form.antibody }}
                             </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="button" class="btn btn-secondary w-100" id="addAntibodyBtn">Add Antibody</button>
+                            </div>
+                        </div>
+                        <div id="antibodyList" class="mb-3"></div>
+                        {{ selected_antibody_ids|json_script:"selected-antibody-ids" }}
+
+                        <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="id_probe" class="form-label">Probe:</label>
                                 {{ form.probe }}
@@ -96,6 +115,43 @@
                             </div>
                         </div>
                         <div id="tissueList" class="mb-3"></div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-outline-success w-100" id="addPositiveControlBtn">
+                                    <i class="fas fa-plus me-2"></i>Add Positive Control Tissue
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-outline-warning w-100" id="addNegativeControlBtn">
+                                    <i class="fas fa-plus me-2"></i>Add Negative Control Tissue
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="positiveControlSection" class="row mb-3 d-none">
+                            <div class="col-md-8">
+                                <label for="id_positive_control_tissue" class="form-label">Positive Control Tissue:</label>
+                                {{ form.positive_control_tissue }}
+                                <div class="form-text">Optional - Select a positive control tissue</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="button" class="btn btn-outline-danger w-100" id="removePositiveControlBtn">Remove</button>
+                            </div>
+                        </div>
+
+                        <div id="negativeControlSection" class="row mb-3 d-none">
+                            <div class="col-md-8">
+                                <label for="id_negative_control_tissue" class="form-label">Negative Control Tissue:</label>
+                                {{ form.negative_control_tissue }}
+                                <div class="form-text">Optional - Select a negative control tissue</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="button" class="btn btn-outline-danger w-100" id="removeNegativeControlBtn">Remove</button>
+                            </div>
+                        </div>
 
                         <div class="row mb-3">
                             <div class="col-md-6">
@@ -178,8 +234,128 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelBtn = document.getElementById('cancelBtn');
     const studyList = document.getElementById('studyList');
     const tissueList = document.getElementById('tissueList');
+    const antibodySelect = document.getElementById('id_antibody');
+    const antibodyDetailsLink = document.getElementById('antibodyDetailsLink');
+    const antibodyDetailUrlPattern = "{% url 'antibody_detail' 0 %}";
+    const addAntibodyBtn = document.getElementById('addAntibodyBtn');
+    const antibodyList = document.getElementById('antibodyList');
+    const multipleAntibodyNotice = document.getElementById('multipleAntibodyNotice');
+    const maxAntibodies = 10;
+    let antibodyCount = 0;
     let studyCount = 0;
     let tissueCount = 0;
+
+    function getAdditionalAntibodySelects() {
+        if (!antibodyList) {
+            return [];
+        }
+        return antibodyList.querySelectorAll('select[name="antibodies"]');
+    }
+
+    function updateMultipleAntibodyNotice() {
+        if (!multipleAntibodyNotice) {
+            return;
+        }
+        multipleAntibodyNotice.classList.toggle('d-none', getAdditionalAntibodySelects().length === 0);
+    }
+
+    function createAntibodySelect(selectedValue) {
+        const antibodySelectEl = document.createElement('select');
+        antibodySelectEl.className = 'form-control';
+        antibodySelectEl.name = 'antibodies';
+
+        const originalSelect = document.getElementById('id_antibody');
+        if (originalSelect) {
+            originalSelect.querySelectorAll('option').forEach(function(option) {
+                const clonedOption = option.cloneNode(true);
+                antibodySelectEl.appendChild(clonedOption);
+            });
+        }
+
+        if (selectedValue) {
+            antibodySelectEl.value = selectedValue;
+        }
+
+        return antibodySelectEl;
+    }
+
+    function addAntibodyRow(selectedValue) {
+        if (!antibodyList || antibodyCount >= maxAntibodies) {
+            if (antibodyCount >= maxAntibodies) {
+                showErrorMessage('Maximum of ' + maxAntibodies + ' additional antibodies allowed.');
+            }
+            return;
+        }
+
+        const row = document.createElement('div');
+        row.className = 'row mb-2 additional-antibody-row';
+
+        const selectCol = document.createElement('div');
+        selectCol.className = 'col-md-8';
+        selectCol.appendChild(createAntibodySelect(selectedValue));
+
+        const buttonCol = document.createElement('div');
+        buttonCol.className = 'col-md-4';
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn btn-outline-danger w-100 remove-antibody-btn';
+        removeBtn.textContent = 'Remove';
+        removeBtn.addEventListener('click', function() {
+            row.remove();
+            antibodyCount--;
+            updateMultipleAntibodyNotice();
+        });
+        buttonCol.appendChild(removeBtn);
+
+        row.appendChild(selectCol);
+        row.appendChild(buttonCol);
+        antibodyList.appendChild(row);
+        antibodyCount++;
+        updateMultipleAntibodyNotice();
+
+        if (typeof initializeSearchableDropdowns === 'function') {
+            initializeSearchableDropdowns();
+        }
+    }
+
+    if (addAntibodyBtn) {
+        addAntibodyBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            addAntibodyRow();
+        });
+    }
+
+    const selectedAntibodyIdsEl = document.getElementById('selected-antibody-ids');
+    if (selectedAntibodyIdsEl) {
+        try {
+            const restoreIds = JSON.parse(selectedAntibodyIdsEl.textContent);
+            restoreIds.forEach(function(antibodyId) {
+                addAntibodyRow(antibodyId);
+            });
+        } catch (error) {
+            console.error('Could not restore additional antibodies:', error);
+        }
+    }
+
+    function updateAntibodyDetailsLink() {
+        if (!antibodySelect || !antibodyDetailsLink) {
+            return;
+        }
+
+        const antibodyId = antibodySelect.value;
+        if (antibodyId) {
+            antibodyDetailsLink.href = antibodyDetailUrlPattern.replace('/0/', `/${antibodyId}/`);
+            antibodyDetailsLink.classList.remove('d-none');
+        } else {
+            antibodyDetailsLink.href = '#';
+            antibodyDetailsLink.classList.add('d-none');
+        }
+    }
+
+    if (antibodySelect) {
+        antibodySelect.addEventListener('change', updateAntibodyDetailsLink);
+        updateAntibodyDetailsLink();
+    }
     
     // Debug: Check if elements exist
     console.log('Form element:', form);
@@ -291,6 +467,55 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.error('Tissue button not found!');
     }
+
+    function setupOptionalControlTissue(addBtnId, removeBtnId, sectionId, selectId) {
+        const addBtn = document.getElementById(addBtnId);
+        const removeBtn = document.getElementById(removeBtnId);
+        const section = document.getElementById(sectionId);
+        const select = document.getElementById(selectId);
+
+        if (!addBtn || !removeBtn || !section || !select) {
+            return;
+        }
+
+        addBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            section.classList.remove('d-none');
+            addBtn.classList.add('d-none');
+        });
+
+        removeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            select.value = '';
+            section.classList.add('d-none');
+            addBtn.classList.remove('d-none');
+        });
+    }
+
+    setupOptionalControlTissue(
+        'addPositiveControlBtn',
+        'removePositiveControlBtn',
+        'positiveControlSection',
+        'id_positive_control_tissue'
+    );
+    setupOptionalControlTissue(
+        'addNegativeControlBtn',
+        'removeNegativeControlBtn',
+        'negativeControlSection',
+        'id_negative_control_tissue'
+    );
+
+    const positiveControlSelect = document.getElementById('id_positive_control_tissue');
+    if (positiveControlSelect && positiveControlSelect.value) {
+        document.getElementById('positiveControlSection').classList.remove('d-none');
+        document.getElementById('addPositiveControlBtn').classList.add('d-none');
+    }
+
+    const negativeControlSelect = document.getElementById('id_negative_control_tissue');
+    if (negativeControlSelect && negativeControlSelect.value) {
+        document.getElementById('negativeControlSection').classList.remove('d-none');
+        document.getElementById('addNegativeControlBtn').classList.add('d-none');
+    }
     
     const addLinkBtn = document.getElementById('addLinkBtn');
     const linkList = document.getElementById('linkList');
@@ -303,6 +528,10 @@ document.addEventListener('DOMContentLoaded', function() {
         submitAndCopyBtn.addEventListener('click', function(e) {
             e.preventDefault(); // Prevent normal form submission
             console.log('Submit and Copy button clicked!');
+
+            if (!validateForm()) {
+                return;
+            }
             
             // Show loading message
             const originalText = submitAndCopyBtn.innerHTML;
@@ -324,8 +553,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Show success message
-                    showSuccessMessage('Request submitted successfully! Form is ready for creating another similar request.');
+                    showSuccessMessage(data.message || 'Request submitted successfully! Form is ready for creating another similar request.');
                     // Reset button
                     submitAndCopyBtn.innerHTML = originalText;
                     submitAndCopyBtn.disabled = false;
@@ -417,6 +645,17 @@ document.addEventListener('DOMContentLoaded', function() {
         studyCount = 0;
         tissueList.innerHTML = '';
         tissueCount = 0;
+        if (antibodyList) {
+            antibodyList.innerHTML = '';
+            antibodyCount = 0;
+            updateMultipleAntibodyNotice();
+        }
+        document.getElementById('positiveControlSection').classList.add('d-none');
+        document.getElementById('negativeControlSection').classList.add('d-none');
+        document.getElementById('addPositiveControlBtn').classList.remove('d-none');
+        document.getElementById('addNegativeControlBtn').classList.remove('d-none');
+        document.getElementById('id_positive_control_tissue').value = '';
+        document.getElementById('id_negative_control_tissue').value = '';
         linkList.innerHTML = '';
         linkCount = 0;
         document.getElementById('id_link_description').value = '';
@@ -489,6 +728,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const element = document.getElementById(field.id);
             if (!element || !element.value || element.value.trim() === '') {
                 missingFields.push(field.name);
+            }
+        });
+
+        const additionalAntibodySelects = getAdditionalAntibodySelects();
+        additionalAntibodySelects.forEach(function(select, index) {
+            if (!select.value || select.value.trim() === '') {
+                missingFields.push('Additional Antibody ' + (index + 1));
             }
         });
         

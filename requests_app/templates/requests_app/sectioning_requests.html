@@ -68,6 +68,8 @@
     </div>
     {% endif %}
 
+    {% include "requests_app/partials/request_total_box.html" with accent_class="info" %}
+
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
@@ -76,76 +78,77 @@
                 </div>
                 <div class="card-body">
                     {% if requests %}
+                        {% include "requests_app/partials/collapsible_columns_controls.html" with table_id="sectioning" %}
                         <div class="table-responsive">
-                            <table class="table table-striped table-hover table-sm">
+                            <table class="table table-striped table-hover table-sm requests-list-table" data-table-id="sectioning">
                                 <thead>
                                     <tr>
-                                        <th>
+                                        <th data-column="key" data-column-label="ID" data-column-locked="true">
                                             <a href="?sort={% if current_sort == 'key' %}-key{% else %}key{% endif %}{% if selected_statuses %}{% for status in selected_statuses %}&status={{ status }}{% endfor %}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="text-decoration-none">
                                                 ID {% if current_sort == 'key' %}↑{% elif current_sort == '-key' %}↓{% endif %}
                                             </a>
                                         </th>
-                                        <th>
+                                        <th data-column="requestor" data-column-label="Requestor">
                                             <a href="?sort={% if current_sort == 'requestor__name' %}-requestor__name{% else %}requestor__name{% endif %}{% if selected_statuses %}{% for status in selected_statuses %}&status={{ status }}{% endfor %}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="text-decoration-none">
                                                 Requestor {% if current_sort == 'requestor__name' %}↑{% elif current_sort == '-requestor__name' %}↓{% endif %}
                                             </a>
                                         </th>
-                                        <th>
+                                        <th data-column="study" data-column-label="Study">
                                             <a href="?sort={% if current_sort == 'study__study_id' %}-study__study_id{% else %}study__study_id{% endif %}{% if selected_statuses %}{% for status in selected_statuses %}&status={{ status }}{% endfor %}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="text-decoration-none">
                                                 Study {% if current_sort == 'study__study_id' %}↑{% elif current_sort == '-study__study_id' %}↓{% endif %}
                                             </a>
                                         </th>
-                                        <th>
+                                        <th data-column="tissue" data-column-label="Tissue">
                                             <a href="?sort={% if current_sort == 'tissues__name' %}-tissues__name{% else %}tissues__name{% endif %}{% if selected_statuses %}{% for status in selected_statuses %}&status={{ status }}{% endfor %}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="text-decoration-none">
                                                 Tissue {% if current_sort == 'tissues__name' %}↑{% elif current_sort == '-tissues__name' %}↓{% endif %}
                                             </a>
                                         </th>
-                                        <th>
+                                        <th data-column="for_what" data-column-label="For">
                                             <a href="?sort={% if current_sort == 'for_what' %}-for_what{% else %}for_what{% endif %}{% if selected_statuses %}{% for status in selected_statuses %}&status={{ status }}{% endfor %}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="text-decoration-none">
                                                 For {% if current_sort == 'for_what' %}↑{% elif current_sort == '-for_what' %}↓{% endif %}
                                             </a>
                                         </th>
-                                        <th>
+                                        <th data-column="cut_surface_down" data-column-label="Cut Surface Down">
                                             <a href="?sort={% if current_sort == 'cut_surface_down' %}-cut_surface_down{% else %}cut_surface_down{% endif %}{% if selected_statuses %}{% for status in selected_statuses %}&status={{ status }}{% endfor %}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="text-decoration-none">
                                                 Cut Surface Down {% if current_sort == 'cut_surface_down' %}↑{% elif current_sort == '-cut_surface_down' %}↓{% endif %}
                                             </a>
                                         </th>
-                                        <th>
+                                        <th data-column="sections_per_slide" data-column-label="Sections/Slide">
                                             <a href="?sort={% if current_sort == 'sections_per_slide' %}-sections_per_slide{% else %}sections_per_slide{% endif %}{% if selected_statuses %}{% for status in selected_statuses %}&status={{ status }}{% endfor %}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="text-decoration-none">
                                                 Sections/Slide {% if current_sort == 'sections_per_slide' %}↑{% elif current_sort == '-sections_per_slide' %}↓{% endif %}
                                             </a>
                                         </th>
-                                        <th>
+                                        <th data-column="slides_per_block" data-column-label="Slides/Block">
                                             <a href="?sort={% if current_sort == 'slides_per_block' %}-slides_per_block{% else %}slides_per_block{% endif %}{% if selected_statuses %}{% for status in selected_statuses %}&status={{ status }}{% endfor %}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="text-decoration-none">
                                                 Slides/Block {% if current_sort == 'slides_per_block' %}↑{% elif current_sort == '-slides_per_block' %}↓{% endif %}
                                             </a>
                                         </th>
-                                        <th>
+                                        <th data-column="other" data-column-label="Other">
                                             <a href="?sort={% if current_sort == 'other' %}-other{% else %}other{% endif %}{% if selected_statuses %}{% for status in selected_statuses %}&status={{ status }}{% endfor %}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="text-decoration-none">
                                                 Other {% if current_sort == 'other' %}↑{% elif current_sort == '-other' %}↓{% endif %}
                                             </a>
                                         </th>
-                                        <th>
+                                        <th data-column="special_request" data-column-label="Special Request">
                                             <a href="?sort={% if current_sort == 'special_request' %}-special_request{% else %}special_request{% endif %}{% if selected_statuses %}{% for status in selected_statuses %}&status={{ status }}{% endfor %}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="text-decoration-none">
                                                 Special Request {% if current_sort == 'special_request' %}↑{% elif current_sort == '-special_request' %}↓{% endif %}
                                             </a>
                                         </th>
-                                        <th>
+                                        <th data-column="status" data-column-label="Status">
                                             <a href="?sort={% if current_sort == 'status__status' %}-status__status{% else %}status__status{% endif %}{% if selected_statuses %}{% for status in selected_statuses %}&status={{ status }}{% endfor %}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="text-decoration-none">
                                                 Status {% if current_sort == 'status__status' %}↑{% elif current_sort == '-status__status' %}↓{% endif %}
                                             </a>
                                         </th>
-                                        <th>
+                                        <th data-column="status_timestamp" data-column-label="Status Set At">
                                             <a href="?sort={% if current_sort == 'status_timestamp' %}-status_timestamp{% else %}status_timestamp{% endif %}{% if selected_statuses %}{% for status in selected_statuses %}&status={{ status }}{% endfor %}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="text-decoration-none">
                                                 Status Set At {% if current_sort == 'status_timestamp' %}↑{% elif current_sort == '-status_timestamp' %}↓{% endif %}
                                             </a>
                                         </th>
-                                        <th>
+                                        <th data-column="assigned_to" data-column-label="Assigned To">
                                             <a href="?sort={% if current_sort == 'assigned_to__name' %}-assigned_to__name{% else %}assigned_to__name{% endif %}{% if selected_statuses %}{% for status in selected_statuses %}&status={{ status }}{% endfor %}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="text-decoration-none">
                                                 Assigned To {% if current_sort == 'assigned_to__name' %}↑{% elif current_sort == '-assigned_to__name' %}↓{% endif %}
                                             </a>
                                         </th>
-                                        <th>
+                                        <th data-column="created_at" data-column-label="Created">
                                             <a href="?sort={% if current_sort == 'created_at' %}-created_at{% else %}created_at{% endif %}{% if selected_statuses %}{% for status in selected_statuses %}&status={{ status }}{% endfor %}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="text-decoration-none">
                                                 Created {% if current_sort == 'created_at' %}↑{% elif current_sort == '-created_at' %}↓{% endif %}
                                             </a>
@@ -156,28 +159,28 @@
                                 <tbody>
                                     {% for request in requests %}
                                     <tr>
-                                        <td>{{ request.key }}</td>
-                                        <td>{{ request.requestor.name|truncatechars:15 }}</td>
-                                        <td>{{ request.study.study_id|truncatechars:12 }}</td>
-                                        <td>{% if request.tissues.first %}{{ request.tissues.first.name|truncatechars:15 }}{% else %}-{% endif %}</td>
-                                        <td>{{ request.for_what }}</td>
-                                        <td>
+                                        <td data-column="key">{{ request.key }}</td>
+                                        <td data-column="requestor">{{ request.requestor.name|truncatechars:15 }}</td>
+                                        <td data-column="study">{{ request.study.study_id|truncatechars:12 }}</td>
+                                        <td data-column="tissue">{% if request.tissues.first %}{{ request.tissues.first.name|truncatechars:15 }}{% else %}-{% endif %}</td>
+                                        <td data-column="for_what">{{ request.for_what }}</td>
+                                        <td data-column="cut_surface_down">
                                             <span class="badge bg-{% if request.cut_surface_down %}success{% else %}secondary{% endif %}">
                                                 {% if request.cut_surface_down %}Yes{% else %}No{% endif %}
                                             </span>
                                         </td>
-                                        <td>{{ request.sections_per_slide|default:"-" }}</td>
-                                        <td>{{ request.slides_per_block|default:"-" }}</td>
-                                        <td>{{ request.other|truncatechars:20|default:"-" }}</td>
-                                        <td>{{ request.special_request|truncatechars:25|default:"-" }}</td>
-                                        <td>
+                                        <td data-column="sections_per_slide">{{ request.sections_per_slide|default:"-" }}</td>
+                                        <td data-column="slides_per_block">{{ request.slides_per_block|default:"-" }}</td>
+                                        <td data-column="other">{{ request.other|truncatechars:20|default:"-" }}</td>
+                                        <td data-column="special_request">{{ request.special_request|truncatechars:25|default:"-" }}</td>
+                                        <td data-column="status">
                                             <span class="badge bg-secondary">{{ request.status.status }}</span>
                                         </td>
-                                        <td>
+                                        <td data-column="status_timestamp">
                                             <small class="text-muted">{{ request.status_timestamp|date:"M d, Y H:i" }}</small>
                                         </td>
-                                        <td>{{ request.assigned_to.name|truncatechars:15|default:"-" }}</td>
-                                        <td>{{ request.created_at|date:"M d, Y" }}</td>
+                                        <td data-column="assigned_to">{{ request.assigned_to.name|truncatechars:15|default:"-" }}</td>
+                                        <td data-column="created_at">{{ request.created_at|date:"M d, Y" }}</td>
                                         <td>
                                             <a href="{% url 'sectioning_request_detail' request.pk %}" class="btn btn-sm btn-outline-info" title="View Details">
                                                 <i class="fas fa-eye"></i>
@@ -256,4 +259,6 @@ function toggleFilter() {
     }
 }
 </script>
+<link href="{% static 'css/collapsible_table_columns.css' %}" rel="stylesheet">
+<script src="{% static 'js/collapsible_table_columns.js' %}"></script>
 {% endblock %}

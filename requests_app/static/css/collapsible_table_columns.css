@@ -1,0 +1,26 @@
+.column-hidden {
+    display: none !important;
+}
+
+.collapsible-fields-header[aria-expanded="true"] .fields-panel-chevron,
+.detail-section-header[aria-expanded="true"] .detail-section-chevron {
+    transform: rotate(180deg);
+}
+
+.fields-panel-chevron,
+.detail-section-chevron {
+    transition: transform 0.2s ease;
+}
+
+.detail-section-header:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.collapsible-columns-checkboxes .form-check {
+    min-width: 140px;
+}
+
+.collapsible-columns-checkboxes .form-check-label {
+    cursor: pointer;
+    user-select: none;
+}

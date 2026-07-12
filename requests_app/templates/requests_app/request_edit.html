@@ -123,6 +123,43 @@
                 </div>
 
                 <div class="row mb-3">
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-outline-success w-100{% if request_obj.positive_control_tissue %} d-none{% endif %}" id="addPositiveControlBtn">
+                            <i class="fas fa-plus me-2"></i>Add Positive Control Tissue
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-outline-warning w-100{% if request_obj.negative_control_tissue %} d-none{% endif %}" id="addNegativeControlBtn">
+                            <i class="fas fa-plus me-2"></i>Add Negative Control Tissue
+                        </button>
+                    </div>
+                </div>
+
+                <div id="positiveControlSection" class="row mb-3{% if not request_obj.positive_control_tissue %} d-none{% endif %}">
+                    <div class="col-md-8">
+                        <label class="form-label">Positive Control Tissue:</label>
+                        {{ form.positive_control_tissue }}
+                        <small class="text-muted">Optional - Select a positive control tissue</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="button" class="btn btn-outline-danger w-100" id="removePositiveControlBtn">Remove</button>
+                    </div>
+                </div>
+
+                <div id="negativeControlSection" class="row mb-3{% if not request_obj.negative_control_tissue %} d-none{% endif %}">
+                    <div class="col-md-8">
+                        <label class="form-label">Negative Control Tissue:</label>
+                        {{ form.negative_control_tissue }}
+                        <small class="text-muted">Optional - Select a negative control tissue</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="button" class="btn btn-outline-danger w-100" id="removeNegativeControlBtn">Remove</button>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
                     <div class="col-md-12">
                         <label class="form-label">Priority:</label>
                         {{ form.priority }}
@@ -220,6 +257,43 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    function setupOptionalControlTissue(addBtnId, removeBtnId, sectionId, selectId) {
+        const addBtn = document.getElementById(addBtnId);
+        const removeBtn = document.getElementById(removeBtnId);
+        const section = document.getElementById(sectionId);
+        const select = document.getElementById(selectId);
+
+        if (!addBtn || !removeBtn || !section || !select) {
+            return;
+        }
+
+        addBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            section.classList.remove('d-none');
+            addBtn.classList.add('d-none');
+        });
+
+        removeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            select.value = '';
+            section.classList.add('d-none');
+            addBtn.classList.remove('d-none');
+        });
+    }
+
+    setupOptionalControlTissue(
+        'addPositiveControlBtn',
+        'removePositiveControlBtn',
+        'positiveControlSection',
+        'id_positive_control_tissue'
+    );
+    setupOptionalControlTissue(
+        'addNegativeControlBtn',
+        'removeNegativeControlBtn',
+        'negativeControlSection',
+        'id_negative_control_tissue'
+    );
+
     const addStudyBtn = document.getElementById('addStudyBtn');
     const studyList = document.getElementById('studyList');
     let studyCount = 0;

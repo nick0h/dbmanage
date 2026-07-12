@@ -7,13 +7,15 @@ class RequestForm(forms.ModelForm):
     
     class Meta:
         model = Request
-        fields = ['requestor', 'antibody', 'probe', 'study', 'description', 'tissue', 'priority', 'special_request', 'staining_summary', 'assigned_to', 'links']
+        fields = ['requestor', 'antibody', 'probe', 'study', 'description', 'tissue', 'positive_control_tissue', 'negative_control_tissue', 'priority', 'special_request', 'staining_summary', 'assigned_to', 'links']
         widgets = {
             'requestor': forms.Select(attrs={'class': 'form-control'}),
             'antibody': forms.Select(attrs={'class': 'form-control'}),
             'probe': forms.Select(attrs={'class': 'form-control'}),
             'study': forms.Select(attrs={'class': 'form-control'}),
             'tissue': forms.Select(attrs={'class': 'form-control'}),
+            'positive_control_tissue': forms.Select(attrs={'class': 'form-control'}),
+            'negative_control_tissue': forms.Select(attrs={'class': 'form-control'}),
             'description': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 256}),
             'priority': forms.Select(attrs={'class': 'form-control'}),
             'special_request': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}),
@@ -30,6 +32,10 @@ class RequestForm(forms.ModelForm):
         self.fields['probe'].label_from_instance = lambda obj: f"{obj.name} - {obj.description}"
         self.fields['study'].queryset = Study.objects.all().order_by('study_id')
         self.fields['tissue'].queryset = Tissue.objects.all().order_by('name')
+        self.fields['positive_control_tissue'].queryset = Tissue.objects.all().order_by('name')
+        self.fields['negative_control_tissue'].queryset = Tissue.objects.all().order_by('name')
+        self.fields['positive_control_tissue'].required = False
+        self.fields['negative_control_tissue'].required = False
         self.fields['priority'].queryset = Priority.objects.all().order_by('value')
         self.fields['assigned_to'].queryset = Assignee.objects.all().order_by('name')
         self.fields['assigned_to'].required = False
@@ -42,7 +48,7 @@ class RequestEditForm(forms.ModelForm):
     
     class Meta:
         model = Request
-        fields = ['status', 'notes', 'description', 'special_request', 'staining_summary', 'priority', 'assigned_to', 'antibody', 'probe', 'study', 'tissue']
+        fields = ['status', 'notes', 'description', 'special_request', 'staining_summary', 'priority', 'assigned_to', 'antibody', 'probe', 'study', 'tissue', 'positive_control_tissue', 'negative_control_tissue']
         widgets = {
             'status': forms.Select(attrs={'class': 'form-control'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'maxlength': 256}),
@@ -55,6 +61,8 @@ class RequestEditForm(forms.ModelForm):
             'probe': forms.Select(attrs={'class': 'form-control'}),
             'study': forms.Select(attrs={'class': 'form-control'}),
             'tissue': forms.Select(attrs={'class': 'form-control'}),
+            'positive_control_tissue': forms.Select(attrs={'class': 'form-control'}),
+            'negative_control_tissue': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -71,6 +79,10 @@ class RequestEditForm(forms.ModelForm):
         self.fields['study'].queryset = Study.objects.all().order_by('study_id')
         self.fields['study'].label_from_instance = lambda obj: f"{obj.study_id} - {obj.title}"
         self.fields['tissue'].queryset = Tissue.objects.all().order_by('name')
+        self.fields['positive_control_tissue'].queryset = Tissue.objects.all().order_by('name')
+        self.fields['negative_control_tissue'].queryset = Tissue.objects.all().order_by('name')
+        self.fields['positive_control_tissue'].required = False
+        self.fields['negative_control_tissue'].required = False
 
 class RequestSearchForm(forms.Form):
     request_id = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Request ID'}))

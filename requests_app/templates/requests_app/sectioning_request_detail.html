@@ -16,14 +16,9 @@
             </div>
 
             <div class="row">
-                <!-- Basic Information -->
                 <div class="col-md-6 mb-4">
                     <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-info-circle me-2"></i>Basic Information
-                            </h5>
-                        </div>
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="sectioning-basic-info" title="Basic Information" icon="fas fa-info-circle" %}
                         <div class="card-body">
                             <table class="table table-borderless">
                                 <tr>
@@ -68,17 +63,13 @@
                                 </tr>
                             </table>
                         </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Study Information -->
                 <div class="col-md-6 mb-4">
                     <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-microscope me-2"></i>Study Information
-                            </h5>
-                        </div>
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="sectioning-study-info" title="Study Information" icon="fas fa-microscope" %}
                         <div class="card-body">
                             <table class="table table-borderless">
                                 <tr>
@@ -113,19 +104,15 @@
                                 {% endif %}
                             </table>
                         </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Sectioning-Specific Information -->
             <div class="row">
                 <div class="col-12 mb-4">
                     <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-cut me-2"></i>Sectioning Specifications
-                            </h5>
-                        </div>
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="sectioning-specifications" title="Sectioning Specifications" icon="fas fa-cut" %}
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6">
@@ -190,38 +177,30 @@
                                 </div>
                             </div>
                         </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Special Requests -->
             {% if request.special_request %}
             <div class="row">
                 <div class="col-12 mb-4">
                     <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-star me-2"></i>Special Requests
-                            </h5>
-                        </div>
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="sectioning-special-request" title="Special Requests" icon="fas fa-star" %}
                         <div class="card-body">
                             <p class="mb-0">{{ request.special_request }}</p>
+                        </div>
                         </div>
                     </div>
                 </div>
             </div>
             {% endif %}
 
-            <!-- Links -->
             {% if request.links %}
             <div class="row">
                 <div class="col-12 mb-4">
                     <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-link me-2"></i>Links
-                            </h5>
-                        </div>
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="sectioning-links" title="Links" icon="fas fa-link" %}
                         <div class="card-body">
                             <div class="list-group">
                                 {% for link in request.links %}
@@ -235,21 +214,17 @@
                                 {% endfor %}
                             </div>
                         </div>
+                        </div>
                     </div>
                 </div>
             </div>
             {% endif %}
 
-            <!-- Change Log -->
             {% if request.change_logs.all %}
             <div class="row">
                 <div class="col-12 mb-4">
                     <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-history me-2"></i>Change History
-                            </h5>
-                        </div>
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="sectioning-change-history" title="Change History" icon="fas fa-history" %}
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-sm">
@@ -284,6 +259,7 @@
                                 </table>
                             </div>
                         </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -291,4 +267,5 @@
         </div>
     </div>
 </div>
+<link href="{% static 'css/collapsible_table_columns.css' %}" rel="stylesheet">
 {% endblock %}

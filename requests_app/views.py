@@ -81,13 +81,14 @@ class RequestCreateView(TemplateView):
         context['max_tissues'] = 10
         context['assignees'] = Assignee.objects.all().order_by('name')
         context['probes'] = Probe.objects.filter(archived=False).order_by('name')
+        context['antibodies'] = Antibody.objects.filter(archived=False).order_by('name')
         
         # Check if we have pre-filled form data from URL parameters
         if self.request.GET.get('success'):
             context['success_message'] = "Request submitted successfully! Form has been pre-filled for creating another similar request."
             # Create form with pre-filled data
             initial_data = {}
-            for field in ['requestor', 'antibody', 'probe', 'study', 'tissue', 'description', 'special_request', 'priority', 'assigned_to']:
+            for field in ['requestor', 'antibody', 'probe', 'study', 'tissue', 'positive_control_tissue', 'negative_control_tissue', 'description', 'special_request', 'priority', 'assigned_to']:
                 value = self.request.GET.get(field)
                 if value:
                     initial_data[field] = value
@@ -159,7 +160,7 @@ class RequestCreateView(TemplateView):
                 print("DEBUG: Submit and copy detected! Creating redirect...")
                 # Redirect to the same page with form data pre-filled
                 form_data = {}
-                for field in ['requestor', 'antibody', 'probe', 'study', 'tissue', 'description', 'special_request', 'priority', 'assigned_to']:
+                for field in ['requestor', 'antibody', 'probe', 'study', 'tissue', 'positive_control_tissue', 'negative_control_tissue', 'description', 'special_request', 'priority', 'assigned_to']:
                     value = form.cleaned_data.get(field)
                     if value:
                         if hasattr(value, 'id'):
@@ -195,108 +196,125 @@ class StainingRequestCreateView(TemplateView):
         context['max_tissues'] = 10
         context['assignees'] = Assignee.objects.all().order_by('name')
         context['probes'] = Probe.objects.filter(archived=False).order_by('name')
+        context['antibodies'] = Antibody.objects.filter(archived=False).order_by('name')
         
         # Check if we have pre-filled form data from URL parameters
         if self.request.GET.get('success'):
             context['success_message'] = "Request submitted successfully! Form has been pre-filled for creating another similar request."
             # Create form with pre-filled data
             initial_data = {}
-            for field in ['requestor', 'antibody', 'probe', 'study', 'tissue', 'description', 'special_request', 'priority', 'assigned_to']:
+            for field in ['requestor', 'antibody', 'probe', 'study', 'tissue', 'positive_control_tissue', 'negative_control_tissue', 'description', 'special_request', 'priority', 'assigned_to']:
                 value = self.request.GET.get(field)
                 if value:
                     initial_data[field] = value
             context['form'] = RequestForm(initial=initial_data)
         else:
             context['form'] = RequestForm()
+
+        context.setdefault('selected_antibody_ids', [])
         
         return context
-    
-    def post(self, request, *args, **kwargs):
-        # Debug: Print all POST data
-        print(f"DEBUG: All POST keys: {list(request.POST.keys())}")
-        print(f"DEBUG: submit_and_copy value: {request.POST.get('submit_and_copy')}")
-        
-        form = RequestForm(request.POST)
-        if form.is_valid():
-            request_obj = form.save(commit=False)
-            request_obj.status = Status.get_default_status()
-            
-            # Collect additional studies from form data
-            additional_studies = []
-            for key, value in request.POST.items():
-                if key.startswith('study_') and value:  # study_0, study_1, etc.
-                    try:
-                        study_id = int(value)
-                        study = Study.objects.get(pk=study_id)
-                        additional_studies.append(f"{study.study_id} - {study.title}")
-                    except (ValueError, Study.DoesNotExist):
-                        pass
-            
-            # Collect additional tissues from form data
-            additional_tissues = []
-            for key, value in request.POST.items():
-                if key.startswith('tissue_') and value:  # tissue_0, tissue_1, etc.
-                    try:
-                        tissue_id = int(value)
-                        tissue = Tissue.objects.get(pk=tissue_id)
-                        additional_tissues.append(tissue.name)
-                    except (ValueError, Tissue.DoesNotExist):
-                        pass
-            
-            # Collect links from form data
-            links = []
-            link_descriptions = {}
-            
-            # First collect all link descriptions
-            for key, value in request.POST.items():
-                if key.startswith('link_description_') and value:
-                    link_index = key.replace('link_description_', '')
-                    link_descriptions[link_index] = value
-            
-            # Then collect links and pair them with descriptions
-            for key, value in request.POST.items():
-                if key.startswith('link_') and not key.startswith('link_description_') and value:
-                    link_index = key.replace('link_', '')
-                    link_obj = {
-                        'url': value,
-                        'description': link_descriptions.get(link_index, '')
-                    }
-                    links.append(link_obj)
-            
-            # Populate the data JSONField with form data
-            request_obj.data = {
-                'date': request.POST.get('date'),
-                'description': form.cleaned_data.get('description'),
-                'special_request': form.cleaned_data.get('special_request'),
-                'studies': additional_studies,
-                'tissues': additional_tissues,
-                'links': links,
-            }
-            
-            # Store links in the links field
-            if links:
-                request_obj.links = links
-            
-            request_obj.save()
-            
-            # Check if this is a "submit and copy" action
-            print(f"DEBUG: Checking submit_and_copy: {request.POST.get('submit_and_copy')}")
-            if request.POST.get('submit_and_copy'):
-                print("DEBUG: Submit and copy detected! Returning JSON response...")
-                # Return JSON response for AJAX request
-                return JsonResponse({
-                    'success': True,
-                    'message': 'Request submitted successfully! Form is ready for creating another similar request.'
+
+    def _collect_staining_request_extras(self, post):
+        additional_studies = []
+        for key, value in post.items():
+            if key.startswith('study_') and value:
+                try:
+                    study = Study.objects.get(pk=int(value))
+                    additional_studies.append(f"{study.study_id} - {study.title}")
+                except (ValueError, Study.DoesNotExist):
+                    pass
+
+        additional_tissues = []
+        for key, value in post.items():
+            if key.startswith('tissue_') and value:
+                try:
+                    tissue = Tissue.objects.get(pk=int(value))
+                    additional_tissues.append(tissue.name)
+                except (ValueError, Tissue.DoesNotExist):
+                    pass
+
+        links = []
+        link_descriptions = {}
+        for key, value in post.items():
+            if key.startswith('link_description_') and value:
+                link_descriptions[key.replace('link_description_', '')] = value
+
+        for key, value in post.items():
+            if key.startswith('link_') and not key.startswith('link_description_') and value:
+                link_index = key.replace('link_', '')
+                links.append({
+                    'url': value,
+                    'description': link_descriptions.get(link_index, ''),
                 })
+
+        return additional_studies, additional_tissues, links
+
+    def _create_staining_request(self, form, post):
+        request_obj = form.save(commit=False)
+        request_obj.status = Status.get_default_status()
+
+        additional_studies, additional_tissues, links = self._collect_staining_request_extras(post)
+        request_obj.data = {
+            'date': post.get('date'),
+            'description': form.cleaned_data.get('description'),
+            'special_request': form.cleaned_data.get('special_request'),
+            'studies': additional_studies,
+            'tissues': additional_tissues,
+            'links': links,
+        }
+        if links:
+            request_obj.links = links
+
+        request_obj.save()
+        return request_obj
+    
+    def _get_antibody_ids_from_post(self, post):
+        antibody_ids = []
+        primary = post.get('antibody')
+        if primary:
+            antibody_ids.append(primary)
+        antibody_ids.extend(aid for aid in post.getlist('antibodies') if aid)
+        return list(dict.fromkeys(antibody_ids))
+
+    def post(self, request, *args, **kwargs):
+        antibody_ids = self._get_antibody_ids_from_post(request.POST)
+
+        if not antibody_ids:
+            context = self.get_context_data()
+            context['form'] = RequestForm(request.POST)
+            context['multi_antibody_error'] = 'Please select at least one antibody.'
+            return self.render_to_response(context)
+
+        for antibody_id in antibody_ids:
+            post_data = request.POST.copy()
+            post_data['antibody'] = antibody_id
+            form = RequestForm(post_data)
+            if not form.is_valid():
+                context = self.get_context_data()
+                context['form'] = form
+                context['selected_antibody_ids'] = request.POST.getlist('antibodies')
+                return self.render_to_response(context)
+
+            self._create_staining_request(form, request.POST)
+
+        created_count = len(antibody_ids)
+
+        if request.POST.get('submit_and_copy'):
+            if created_count > 1:
+                message = (
+                    f'Created {created_count} staining requests successfully! '
+                    'Form is ready for creating another similar request.'
+                )
             else:
-                print("DEBUG: Regular submit detected, redirecting to list")
-                # Regular submit - redirect to success URL
-                return HttpResponseRedirect(reverse_lazy('staining_requests'))
-        
-        # Form is invalid, return with errors
-        context = self.get_context_data()
-        context['form'] = form
-        return self.render_to_response(context)
+                message = 'Request submitted successfully! Form is ready for creating another similar request.'
+            return JsonResponse({'success': True, 'message': message})
+
+        if created_count > 1:
+            messages.success(request, f'Created {created_count} staining requests successfully.')
+        else:
+            messages.success(request, 'Staining request submitted successfully.')
+        return HttpResponseRedirect(reverse_lazy('staining_requests'))
 
     def form_valid(self, form):
         request_obj = form.save(commit=False)
@@ -931,6 +949,11 @@ class AntibodyUpdateView(UpdateView):
     form_class = AntibodyForm
     template_name = 'requests_app/antibody_edit.html'
     success_url = reverse_lazy('antibody_list')
+
+class AntibodyDetailView(DetailView):
+    model = Antibody
+    template_name = 'requests_app/antibody_detail.html'
+    context_object_name = 'antibody'
 
 class AntibodyDeleteView(DeleteView):
     model = Antibody

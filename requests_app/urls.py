@@ -23,6 +23,7 @@ urlpatterns = [
     # Antibody URLs
     path('data/antibodies/', views.AntibodyListView.as_view(), name='antibody_list'),
     path('data/antibodies/create/', views.antibody_create, name='antibody_create'),
+    path('data/antibodies/<int:pk>/', views.AntibodyDetailView.as_view(), name='antibody_detail'),
     path('data/antibodies/<int:pk>/edit/', views.AntibodyUpdateView.as_view(), name='antibody_edit'),
     path('data/antibodies/<int:pk>/delete/', views.AntibodyDeleteView.as_view(), name='antibody_delete'),
     

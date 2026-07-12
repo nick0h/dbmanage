@@ -1,188 +1,125 @@
-# Antibody Requests Management System
+# Histopathology Requests Management System
 
-A Django-based web application for managing antibody requests, studies, and related data in a research laboratory setting.
+A Django web application for managing histopathology laboratory requests — staining, embedding, and sectioning — along with supporting reference data (studies, antibodies, probes, tissues, and more).
 
 ## Features
 
-- **Request Management**: Create, view, edit, and search antibody requests
-- **Data Management**: Manage requestors, antibodies, tissues, statuses, and studies
-- **Search Functionality**: Advanced search with multiple filters
-- **Responsive Design**: Bootstrap-based UI that works on desktop and mobile
-- **Field Truncation**: All display fields are truncated to 40 characters for clean table views
-
-## Models
-
-- **Request**: Main request entity with relationships to other models
-- **Requestor**: People who submit requests
-- **Antibody**: Antibody information including vendor, species, etc.
-- **Study**: Research studies associated with requests
-- **Tissue**: Tissue types for requests
-- **Status**: Request status tracking
+- **Three request workflows**: Staining, embedding, and sectioning, each with create, view, edit, search, and history
+- **Reference data management**: Requestors, studies, antibodies, probes, tissues, statuses, assignees, and priorities
+- **Bulk import**: Excel/CSV import for studies, antibodies, and probes (staff only)
+- **Change history**: Audit logs for all request types
+- **Email notifications**: Configurable status-based alerts (staff only)
+- **Django admin**: Full admin interface for advanced data management
+- **Responsive UI**: Bootstrap 5 with custom Borealis theme
 
 ## Technology Stack
 
-- **Backend**: Django 5.2.3
-- **Database**: PostgreSQL
-- **Frontend**: Bootstrap 5, Font Awesome
-- **Python**: 3.10+
+| Layer | Technology |
+|-------|------------|
+| Backend | Django 5.2+ |
+| Database | PostgreSQL |
+| Frontend | Bootstrap 5, Font Awesome |
+| Email | SMTP (Gmail-compatible) |
+| Python | 3.10+ |
 
-## Installation
+## Quick Start
 
-### 1. **Install Dependencies**
+### Prerequisites
 
-```bash
-sudo apt upgrade
-sudo apt install python3.12 postgresql postgresql-contrib python3.12-venv pip3
-```
+- Python 3.10+
+- PostgreSQL
+- pip
 
-### 2. **Set Up PostgreSQL Database**
-
-```bash
-
-sudo -u postgres psql
-------------------------------------------------------------------------------
-CREATE DATABASE antibody_requests_db;
-
-CREATE USER myuser WITH PASSWORD 'mypassword';
-
-\c antibody_requests_db
-
-GRANT ALL PRIVILEGES ON DATABASE antibody_requests_db TO myuser;
-
-GRANT ALL PRIVILEGES ON SCHEMA public TO myuser;
-```
-
-### 3. **Clone the Repository**
+### Installation
 
 ```bash
-git clone https://github.com/nick0h/dbmanage.git
-cd dbmanage
-```
+# 1. Set up the database (requires postgres access)
+./setup_database.sh
 
-### 4. **Run the Installation Script**
-
-```bash
-chmod +x install.sh
+# 2. Install dependencies, run migrations, collect static files
 ./install.sh
-```
 
-The installation script will automatically:
-- Create a Python virtual environment
-- Install required dependencies
-- Run database migrations
-- Optionally create a superuser account
-- Collect static files
-- Set up environment variables
-
-### 5. **Start the Development Server**
-
-```bash
+# 3. Start the development server
 ./run.sh
 ```
 
 Or manually:
+
 ```bash
+python3 -m venv venv
 source venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
 python manage.py runserver
 ```
 
-The application will be available at: **http://localhost:8000**
+The application will be available at **http://localhost:8000**.
 
-## Usage
+### Environment Variables
 
-### Main Pages
+Copy `.env.example` to `.env` and configure email settings:
 
-- **Home** (`/`): Main dashboard with navigation options
-- **New Request** (`/requests/create/`): Create a new antibody request
-- **Search Requests** (`/requests/search/`): Search and filter existing requests
-- **All Requests** (`/requests/`): View all requests with pagination
-- **Data Management** (`/data/`): Manage system data (requestors, antibodies, etc.)
-
-### Data Management
-
-The system includes management pages for:
-- **Requestors**: People who submit requests
-- **Antibodies**: Antibody catalog with detailed information
-- **Tissues**: Tissue types for requests
-- **Statuses**: Request status tracking
-- **Studies**: Research studies
-
-Each section provides:
-- List view with truncated fields (40 characters max)
-- Add new items
-- Edit existing items
-- Navigation back to home and data management
-
-## Database Configuration
-
-The application is configured to use PostgreSQL. Update the database settings in `antibody_requests/settings.py`:
-
-```python
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "antibody_requests_db",
-        "USER": "myuser",
-        "PASSWORD": "mypassword",
-        "HOST": "localhost",
-        "PORT": "5432",
-    }
-}
+```bash
+cp .env.example .env
 ```
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for full configuration details.
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [User Guide](docs/USER_GUIDE.md) | How to create, search, and manage requests |
+| [Developer Guide](docs/DEVELOPER_GUIDE.md) | Architecture, models, URLs, and code structure |
+| [Deployment Guide](docs/DEPLOYMENT.md) | Database setup, production deployment, and maintenance |
+
+## Main URLs
+
+| Page | URL |
+|------|-----|
+| Home | `/` |
+| Staining requests (active) | `/staining/current/` |
+| New staining request | `/staining/create/` |
+| Embedding requests (active) | `/embedding/current/` |
+| New embedding request | `/embedding/create/` |
+| Sectioning requests (active) | `/sectioning/current/` |
+| New sectioning request | `/sectioning/create/` |
+| Data management | `/data/` |
+| Request history logs | `/logs/` |
+| Django admin | `/admin/` |
 
 ## Project Structure
 
 ```
 dbProj/
-├── antibody_requests/          # Main Django project
-│   ├── settings.py            # Project settings
-│   ├── urls.py                # Main URL configuration
-│   └── wsgi.py                # WSGI configuration
-├── requests_app/              # Main application
-│   ├── models.py              # Database models
-│   ├── views.py               # View logic
-│   ├── forms.py               # Form definitions
-│   ├── urls.py                # App URL configuration
-│   └── templates/             # HTML templates
-│       └── requests_app/      # App-specific templates
-├── manage.py                  # Django management script
-├── requirements.txt           # Python dependencies
-├── .gitignore                 # Git ignore file
-└── README.md                  # This file
+├── antibody_requests/       # Django project settings and root URLs
+├── requests_app/            # Main application
+│   ├── models.py            # Database models
+│   ├── views.py             # View logic
+│   ├── forms.py             # Form definitions
+│   ├── urls.py              # App URL routing
+│   ├── admin.py             # Django admin configuration
+│   ├── email_utils.py       # Email notification helpers
+│   ├── templates/           # HTML templates
+│   └── static/              # CSS, JS, and images
+├── docs/                    # Project documentation
+├── manage.py
+├── requirements.txt
+├── install.sh               # First-time setup script
+├── setup_database.sh        # PostgreSQL setup script
+├── update.sh                # Migration and update script
+└── run.sh                   # Development server script (created by install.sh)
 ```
 
-## Features in Detail
+## Scripts
 
-### Request Management
-- Create requests with description, special requests, and tissue selection
-- Edit request status and add notes
-- Search by request ID, date range, requestor, tissue, and study
-- Pagination for large datasets
-
-### Data Management
-- CRUD operations for all data entities
-- Form validation and sanitization
-- Consistent UI with Bootstrap styling
-- Navigation breadcrumbs
-
-### Search and Filtering
-- Multiple search criteria
-- Date range filtering
-- Dropdown selections for related data
-- Real-time search results
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+| Script | Purpose |
+|--------|---------|
+| `setup_database.sh` | Create PostgreSQL database and user |
+| `install.sh` | Create venv, install deps, migrate, collect static |
+| `update.sh` | Apply migrations and updates on an existing install |
+| `run.sh` | Start the development server |
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For support and questions, please open an issue in the repository or contact the development team. 
+MIT License — see the LICENSE file for details.

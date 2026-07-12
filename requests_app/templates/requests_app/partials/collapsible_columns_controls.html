@@ -1,0 +1,24 @@
+<div class="card border-0 shadow-sm mb-3 collapsible-fields-card">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center collapsible-fields-header"
+         style="cursor: pointer;" role="button"
+         data-bs-toggle="collapse" data-bs-target="#fields-panel-{{ table_id }}"
+         aria-expanded="true" aria-controls="fields-panel-{{ table_id }}">
+        <span class="fw-semibold">
+            <i class="fas fa-columns me-2"></i>Show / Hide Fields
+        </span>
+        <i class="fas fa-chevron-down fields-panel-chevron"></i>
+    </div>
+    <div class="collapse show" id="fields-panel-{{ table_id }}">
+        <div class="card-body py-3">
+            <div class="collapsible-columns-checkboxes d-flex flex-wrap gap-2 mb-2" data-table-id="{{ table_id }}"></div>
+            <div>
+                <button type="button" class="btn btn-sm btn-outline-secondary show-all-columns-btn" data-table-id="{{ table_id }}">
+                    Show All Fields
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary hide-all-columns-btn" data-table-id="{{ table_id }}">
+                    Hide All Fields
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
