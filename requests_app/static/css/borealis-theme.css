@@ -200,6 +200,35 @@
   font-weight: 600;
 }
 
+.card-header.bg-primary,
+.card-header.bg-success,
+.card-header.bg-info,
+.card-header.bg-danger,
+.card-header.bg-borealis-gradient {
+  color: white !important;
+  border-bottom-color: rgba(255, 255, 255, 0.25);
+}
+
+.card-header.bg-primary {
+  background: linear-gradient(135deg, var(--borealis-blue-dark) 0%, var(--borealis-blue) 100%) !important;
+}
+
+.card-header.bg-success {
+  background: linear-gradient(135deg, var(--borealis-green-dark) 0%, var(--borealis-green) 100%) !important;
+}
+
+.card-header.bg-info {
+  background: linear-gradient(135deg, var(--borealis-teal-dark) 0%, var(--borealis-teal) 100%) !important;
+}
+
+.card-header.bg-danger {
+  background: linear-gradient(135deg, #b91c1c 0%, var(--borealis-danger) 100%) !important;
+}
+
+.card-header.bg-borealis-gradient {
+  background: linear-gradient(135deg, var(--borealis-purple) 0%, var(--borealis-blue) 50%, var(--borealis-teal) 100%) !important;
+}
+
 /* Table Styling */
 .table-dark {
   background: linear-gradient(135deg, var(--borealis-purple) 0%, var(--borealis-blue) 100%);

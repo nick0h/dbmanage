@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static request_display %}
 
 {% block content %}
 <div class="container-fluid mt-4">
@@ -68,13 +68,14 @@
     </div>
     {% endif %}
 
-    {% include "requests_app/partials/request_total_box.html" with accent_class="info" %}
-
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Recent Sectioning Requests</h5>
+                    <h5 class="card-title mb-0">
+                        Recent Sectioning Requests
+                        <span class="text-muted fw-normal ms-2">({{ paginator.count }} total)</span>
+                    </h5>
                 </div>
                 <div class="card-body">
                     {% if requests %}
@@ -160,9 +161,9 @@
                                     {% for request in requests %}
                                     <tr>
                                         <td data-column="key">{{ request.key }}</td>
-                                        <td data-column="requestor">{{ request.requestor.name|truncatechars:15 }}</td>
-                                        <td data-column="study">{{ request.study.study_id|truncatechars:12 }}</td>
-                                        <td data-column="tissue">{% if request.tissues.first %}{{ request.tissues.first.name|truncatechars:15 }}{% else %}-{% endif %}</td>
+                                        <td data-column="requestor">{{ request.requestor.name|cell_tooltip:15 }}</td>
+                                        <td data-column="study">{{ request.study.study_id|cell_tooltip:12 }}</td>
+                                        <td data-column="tissue">{% if request.tissues.first %}{{ request.tissues.first.name|cell_tooltip:15 }}{% else %}-{% endif %}</td>
                                         <td data-column="for_what">{{ request.for_what }}</td>
                                         <td data-column="cut_surface_down">
                                             <span class="badge bg-{% if request.cut_surface_down %}success{% else %}secondary{% endif %}">
@@ -171,15 +172,15 @@
                                         </td>
                                         <td data-column="sections_per_slide">{{ request.sections_per_slide|default:"-" }}</td>
                                         <td data-column="slides_per_block">{{ request.slides_per_block|default:"-" }}</td>
-                                        <td data-column="other">{{ request.other|truncatechars:20|default:"-" }}</td>
-                                        <td data-column="special_request">{{ request.special_request|truncatechars:25|default:"-" }}</td>
+                                        <td data-column="other">{{ request.other|cell_tooltip:20 }}</td>
+                                        <td data-column="special_request">{{ request.special_request|cell_tooltip:25 }}</td>
                                         <td data-column="status">
                                             <span class="badge bg-secondary">{{ request.status.status }}</span>
                                         </td>
                                         <td data-column="status_timestamp">
                                             <small class="text-muted">{{ request.status_timestamp|date:"M d, Y H:i" }}</small>
                                         </td>
-                                        <td data-column="assigned_to">{{ request.assigned_to.name|truncatechars:15|default:"-" }}</td>
+                                        <td data-column="assigned_to">{% if request.assigned_to %}{{ request.assigned_to.name|cell_tooltip:15 }}{% else %}-{% endif %}</td>
                                         <td data-column="created_at">{{ request.created_at|date:"M d, Y" }}</td>
                                         <td>
                                             <a href="{% url 'sectioning_request_detail' request.pk %}" class="btn btn-sm btn-outline-info" title="View Details">
@@ -260,5 +261,7 @@ function toggleFilter() {
 }
 </script>
 <link href="{% static 'css/collapsible_table_columns.css' %}" rel="stylesheet">
+<link href="{% static 'css/cell_hover_tooltip.css' %}" rel="stylesheet">
 <script src="{% static 'js/collapsible_table_columns.js' %}"></script>
+<script src="{% static 'js/cell_hover_tooltip.js' %}"></script>
 {% endblock %}

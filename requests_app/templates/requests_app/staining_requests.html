@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static request_display %}
 
 {% block content %}
 <div class="container-fluid mt-4">
@@ -68,13 +68,14 @@
     </div>
     {% endif %}
 
-    {% include "requests_app/partials/request_total_box.html" with accent_class="primary" %}
-
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Recent Staining Requests</h5>
+                    <h5 class="card-title mb-0">
+                        Recent Staining Requests
+                        <span class="text-muted fw-normal ms-2">({{ paginator.count }} total)</span>
+                    </h5>
                 </div>
                 <div class="card-body">
                     {% if requests %}
@@ -155,13 +156,13 @@
                                     {% for request in requests %}
                                     <tr>
                                         <td data-column="key">{{ request.key }}</td>
-                                        <td data-column="requestor">{{ request.requestor.name|truncatechars:15 }}</td>
-                                        <td data-column="study">{{ request.study.study_id|truncatechars:12 }}</td>
-                                        <td data-column="tissue">{{ request.tissue.name|truncatechars:15 }}</td>
-                                        <td data-column="antibody">{{ request.antibody.name|truncatechars:20|default:"-" }}</td>
-                                        <td data-column="probe">{{ request.probe.name|truncatechars:20|default:"-" }}</td>
-                                        <td data-column="description">{{ request.description|truncatechars:25|default:"-" }}</td>
-                                        <td data-column="special_request">{{ request.special_request|truncatechars:30|default:"-" }}</td>
+                                        <td data-column="requestor">{{ request.requestor.name|cell_tooltip:15 }}</td>
+                                        <td data-column="study">{{ request.study.study_id|cell_tooltip:12 }}</td>
+                                        <td data-column="tissue">{{ request.tissue.name|cell_tooltip:15 }}</td>
+                                        <td data-column="antibody">{% if request.antibody %}{{ request.antibody.name|cell_tooltip:20 }}{% else %}-{% endif %}</td>
+                                        <td data-column="probe">{% if request.probe %}{{ request.probe.name|cell_tooltip:20 }}{% else %}-{% endif %}</td>
+                                        <td data-column="description">{{ request.description|cell_tooltip:25 }}</td>
+                                        <td data-column="special_request">{{ request.special_request|cell_tooltip:30 }}</td>
                                         <td data-column="status">
                                             <span class="badge bg-secondary">{{ request.status.status }}</span>
                                         </td>
@@ -173,7 +174,7 @@
                                                 {{ request.priority.value }}
                                             </span>
                                         </td>
-                                        <td data-column="assigned_to">{{ request.assigned_to.name|truncatechars:15|default:"-" }}</td>
+                                        <td data-column="assigned_to">{% if request.assigned_to %}{{ request.assigned_to.name|cell_tooltip:15 }}{% else %}-{% endif %}</td>
                                         <td data-column="created_at">{{ request.created_at|date:"M d, Y" }}</td>
                                         <td>
                                             <a href="{% url 'staining_request_detail' request.pk %}" class="btn btn-sm btn-outline-primary" title="View Details">
@@ -254,5 +255,7 @@ function toggleFilter() {
 }
 </script>
 <link href="{% static 'css/collapsible_table_columns.css' %}" rel="stylesheet">
+<link href="{% static 'css/cell_hover_tooltip.css' %}" rel="stylesheet">
 <script src="{% static 'js/collapsible_table_columns.js' %}"></script>
+<script src="{% static 'js/cell_hover_tooltip.js' %}"></script>
 {% endblock %}

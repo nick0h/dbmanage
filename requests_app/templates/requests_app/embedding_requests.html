@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static request_display %}
 
 {% block content %}
 <div class="container-fluid mt-4">
@@ -68,13 +68,14 @@
     </div>
     {% endif %}
 
-    {% include "requests_app/partials/request_total_box.html" with accent_class="success" %}
-
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Recent Embedding Requests</h5>
+                    <h5 class="card-title mb-0">
+                        Recent Embedding Requests
+                        <span class="text-muted fw-normal ms-2">({{ paginator.count }} total)</span>
+                    </h5>
                 </div>
                 <div class="card-body">
                     {% if requests %}
@@ -160,9 +161,9 @@
                                     {% for request in requests %}
                                     <tr>
                                         <td data-column="key">{{ request.key }}</td>
-                                        <td data-column="requestor">{{ request.requestor.name|truncatechars:15 }}</td>
-                                        <td data-column="study">{{ request.study.study_id|truncatechars:12 }}</td>
-                                        <td data-column="tissue">{% if request.tissues.first %}{{ request.tissues.first.name|truncatechars:15 }}{% else %}-{% endif %}</td>
+                                        <td data-column="requestor">{{ request.requestor.name|cell_tooltip:15 }}</td>
+                                        <td data-column="study">{{ request.study.study_id|cell_tooltip:12 }}</td>
+                                        <td data-column="tissue">{% if request.tissues.first %}{{ request.tissues.first.name|cell_tooltip:15 }}{% else %}-{% endif %}</td>
                                         <td data-column="number_of_animals">{{ request.number_of_animals|default:"-" }}</td>
                                         <td data-column="take_down_date">{{ request.take_down_date|date:"M d, Y"|default:"-" }}</td>
                                         <td data-column="currently_in">
@@ -173,15 +174,15 @@
                                             {% endif %}
                                         </td>
                                         <td data-column="date_of_xylene_etoh_change">{{ request.date_of_xylene_etoh_change|date:"M d, Y"|default:"-" }}</td>
-                                        <td data-column="length_of_time_in_etoh">{{ request.length_of_time_in_etoh|truncatechars:15|default:"-" }}</td>
-                                        <td data-column="special_request">{{ request.special_request|truncatechars:25|default:"-" }}</td>
+                                        <td data-column="length_of_time_in_etoh">{{ request.length_of_time_in_etoh|cell_tooltip:15 }}</td>
+                                        <td data-column="special_request">{{ request.special_request|cell_tooltip:25 }}</td>
                                         <td data-column="status">
                                             <span class="badge bg-secondary">{{ request.status.status }}</span>
                                         </td>
                                         <td data-column="status_timestamp">
                                             <small class="text-muted">{{ request.status_timestamp|date:"M d, Y H:i" }}</small>
                                         </td>
-                                        <td data-column="assigned_to">{{ request.assigned_to.name|truncatechars:15|default:"-" }}</td>
+                                        <td data-column="assigned_to">{% if request.assigned_to %}{{ request.assigned_to.name|cell_tooltip:15 }}{% else %}-{% endif %}</td>
                                         <td data-column="created_at">{{ request.created_at|date:"M d, Y" }}</td>
                                         <td>
                                             <a href="{% url 'embedding_request_detail' request.pk %}" class="btn btn-sm btn-outline-success" title="View Details">
@@ -262,5 +263,7 @@ function toggleFilter() {
 }
 </script>
 <link href="{% static 'css/collapsible_table_columns.css' %}" rel="stylesheet">
+<link href="{% static 'css/cell_hover_tooltip.css' %}" rel="stylesheet">
 <script src="{% static 'js/collapsible_table_columns.js' %}"></script>
+<script src="{% static 'js/cell_hover_tooltip.js' %}"></script>
 {% endblock %}
