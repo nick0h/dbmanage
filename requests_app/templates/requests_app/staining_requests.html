@@ -157,7 +157,7 @@
                                     <tr>
                                         <td data-column="key">{{ request.key }}</td>
                                         <td data-column="requestor">{{ request.requestor.name|cell_tooltip:15 }}</td>
-                                        <td data-column="study">{{ request.study.study_id|cell_tooltip:12 }}</td>
+                                        <td data-column="study">{{ request|format_study_ids|cell_tooltip:20 }}</td>
                                         <td data-column="tissue">{{ request.tissue.name|cell_tooltip:15 }}</td>
                                         <td data-column="antibody">{% if request.antibody %}{{ request.antibody.name|cell_tooltip:20 }}{% else %}-{% endif %}</td>
                                         <td data-column="probe">{% if request.probe %}{{ request.probe.name|cell_tooltip:20 }}{% else %}-{% endif %}</td>

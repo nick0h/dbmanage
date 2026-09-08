@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static request_display %}
 
 {% block content %}
 <div class="container-fluid mt-3">
@@ -134,7 +134,7 @@
                             <td title="{{ request.description }}">{{ request.description|truncatechars:30|default:"No description" }}</td>
                             <td title="{{ request.antibody.name }}">{{ request.antibody.name|truncatechars:30 }}</td>
                             <td title="{{ request.probe.name|default:'No Probe' }}">{{ request.probe.name|truncatechars:25|default:"No Probe" }}</td>
-                            <td title="{{ request.study.title }}">{{ request.study.title|truncatechars:30 }}</td>
+                            <td title="{{ request|format_study_ids }}">{{ request|format_study_ids|truncatechars:30 }}</td>
                             <td title="{{ request.tissue.name }}{% if request.data.tissues %}, {{ request.data.tissues|join:', ' }}{% endif %}">
                                 {% if request.data.tissues %}
                                     <div>

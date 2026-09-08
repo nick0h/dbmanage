@@ -18,66 +18,67 @@
             <div class="row">
                 <div class="col-md-6 mb-4">
                     <div class="card">
-                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="sectioning-basic-info" title="Basic Information" icon="fas fa-info-circle" %}
-                        <div class="card-body">
-                            <table class="table table-borderless">
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="sectioning-basic-info" title="Basic Information" icon="fas fa-info-circle" start_collapsed=True open_collapse=False %}
+                        <div class="card-body pb-2">
+                            <table class="table table-borderless mb-0">
                                 <tr>
-                                    <td class="fw-bold" style="width: 30%;">Request ID:</td>
-                                    <td>{{ request.key }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold">Created:</td>
-                                    <td>{{ request.created_at|date:'Y-m-d H:i' }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold">Last Updated:</td>
-                                    <td>{{ request.updated_at|date:'Y-m-d H:i' }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold">Requestor:</td>
-                                    <td>{{ request.requestor.name }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold">Status:</td>
+                                    <td class="fw-bold" style="width: 30%;">Status:</td>
                                     <td>
                                         <span class="badge bg-{% if request.status.status == 'Submitted' %}primary{% elif request.status.status == 'Pending' %}warning{% elif request.status.status == 'Complete' %}success{% elif request.status.status == 'Awaiting Completion' %}info{% else %}secondary{% endif %}">
                                             {{ request.status.status|title }}
                                         </span>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td class="fw-bold">Assigned To:</td>
-                                    <td>
-                                        {% if request.assigned_to %}
-                                            {{ request.assigned_to.name }}
-                                            {% if request.assigned_to.email %}
-                                                <br><small class="text-muted">{{ request.assigned_to.email }}</small>
-                                            {% endif %}
-                                            {% if request.assigned_to.department %}
-                                                <br><small class="text-muted">{{ request.assigned_to.department }}</small>
-                                            {% endif %}
-                                        {% else %}
-                                            <span class="text-muted">Not assigned</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
                             </table>
                         </div>
+                        <div class="collapse" id="sectioning-basic-info">
+                            <div class="card-body pt-0 border-top">
+                                <table class="table table-borderless mb-0">
+                                    <tr>
+                                        <td class="fw-bold" style="width: 30%;">Request ID:</td>
+                                        <td>{{ request.key }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Created:</td>
+                                        <td>{{ request.created_at|date:'Y-m-d H:i' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Last Updated:</td>
+                                        <td>{{ request.updated_at|date:'Y-m-d H:i' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Requestor:</td>
+                                        <td>{{ request.requestor.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Assigned To:</td>
+                                        <td>
+                                            {% if request.assigned_to %}
+                                                {{ request.assigned_to.name }}
+                                                {% if request.assigned_to.email %}
+                                                    <br><small class="text-muted">{{ request.assigned_to.email }}</small>
+                                                {% endif %}
+                                                {% if request.assigned_to.department %}
+                                                    <br><small class="text-muted">{{ request.assigned_to.department }}</small>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">Not assigned</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-6 mb-4">
                     <div class="card">
-                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="sectioning-study-info" title="Study Information" icon="fas fa-microscope" %}
-                        <div class="card-body">
-                            <table class="table table-borderless">
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="sectioning-study-info" title="Study Information" icon="fas fa-microscope" start_collapsed=True open_collapse=False %}
+                        <div class="card-body pb-2">
+                            <table class="table table-borderless mb-0">
                                 <tr>
-                                    <td class="fw-bold" style="width: 30%;">Study ID:</td>
-                                    <td>{{ request.study.study_id }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold">Study Title:</td>
+                                    <td class="fw-bold" style="width: 30%;">Study Title:</td>
                                     <td>{{ request.study.title }}</td>
                                 </tr>
                                 <tr>
@@ -90,20 +91,39 @@
                                         {% endif %}
                                     </td>
                                 </tr>
-                                {% if request.tissues.count > 1 %}
-                                <tr>
-                                    <td class="fw-bold">Additional Tissues:</td>
-                                    <td>
-                                        {% for tissue in request.tissues.all %}
-                                            {% if not forloop.first %}
-                                                <span class="badge bg-secondary me-1">{{ tissue.name }}</span>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </td>
-                                </tr>
-                                {% endif %}
                             </table>
                         </div>
+                        <div class="collapse" id="sectioning-study-info">
+                            <div class="card-body pt-0 border-top">
+                                <table class="table table-borderless mb-0">
+                                    <tr>
+                                        <td class="fw-bold" style="width: 30%;">Study ID:</td>
+                                        <td>{{ request.study.study_id }}</td>
+                                    </tr>
+                                    {% if request.data.studies %}
+                                    <tr>
+                                        <td class="fw-bold">Additional Studies:</td>
+                                        <td>
+                                            {% for study_str in request.data.studies %}
+                                                <span class="badge bg-info me-1 mb-1">{{ study_str }}</span>
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if request.tissues.count > 1 %}
+                                    <tr>
+                                        <td class="fw-bold">Additional Tissues:</td>
+                                        <td>
+                                            {% for tissue in request.tissues.all %}
+                                                {% if not forloop.first %}
+                                                    <span class="badge bg-secondary me-1">{{ tissue.name }}</span>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

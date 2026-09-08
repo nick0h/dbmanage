@@ -18,211 +18,255 @@
             <div class="row">
                 <div class="col-md-6 mb-4">
                     <div class="card">
-                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="staining-basic-info" title="Basic Information" icon="fas fa-info-circle" %}
-                        <div class="card-body">
-                            <table class="table table-borderless">
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="staining-basic-info" title="Basic Information" icon="fas fa-info-circle" start_collapsed=True open_collapse=False %}
+                        <div class="card-body pb-2">
+                            <table class="table table-borderless mb-0">
                                 <tr>
-                                    <td class="fw-bold" style="width: 30%;">Request ID:</td>
-                                    <td>{{ request.key }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold">Created:</td>
-                                    <td>{{ request.created_at|date:'Y-m-d H:i' }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold">Last Updated:</td>
-                                    <td>{{ request.updated_at|date:'Y-m-d H:i' }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold">Requestor:</td>
-                                    <td>{{ request.requestor.name }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold">Status:</td>
+                                    <td class="fw-bold" style="width: 30%;">Status:</td>
                                     <td>
                                         <span class="badge bg-{% if request.status.status == 'submitted' %}primary{% elif request.status.status == 'in_progress' %}warning{% elif request.status.status == 'completed' %}success{% else %}secondary{% endif %}">
                                             {{ request.status.status|title }}
                                         </span>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td class="fw-bold">Priority:</td>
-                                    <td>
-                                        <span class="badge bg-{% if request.priority.value == 1 %}success{% elif request.priority.value == 2 %}info{% elif request.priority.value == 3 %}warning{% elif request.priority.value == 4 %}orange{% else %}danger{% endif %}">
-                                            {{ request.priority.label }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold">Assigned To:</td>
-                                    <td>
-                                        {% if request.assigned_to %}
-                                            {{ request.assigned_to.name }}
-                                            {% if request.assigned_to.email %}
-                                                <br><small class="text-muted">{{ request.assigned_to.email }}</small>
-                                            {% endif %}
-                                            {% if request.assigned_to.department %}
-                                                <br><small class="text-muted">{{ request.assigned_to.department }}</small>
-                                            {% endif %}
-                                        {% else %}
-                                            <span class="text-muted">Not assigned</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
                             </table>
                         </div>
+                        <div class="collapse" id="staining-basic-info">
+                            <div class="card-body pt-0 border-top">
+                                <table class="table table-borderless mb-0">
+                                    <tr>
+                                        <td class="fw-bold" style="width: 30%;">Request ID:</td>
+                                        <td>{{ request.key }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Created:</td>
+                                        <td>{{ request.created_at|date:'Y-m-d H:i' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Last Updated:</td>
+                                        <td>{{ request.updated_at|date:'Y-m-d H:i' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Requestor:</td>
+                                        <td>{{ request.requestor.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Priority:</td>
+                                        <td>
+                                            <span class="badge bg-{% if request.priority.value == 1 %}success{% elif request.priority.value == 2 %}info{% elif request.priority.value == 3 %}warning{% elif request.priority.value == 4 %}orange{% else %}danger{% endif %}">
+                                                {{ request.priority.label }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Assigned To:</td>
+                                        <td>
+                                            {% if request.assigned_to %}
+                                                {{ request.assigned_to.name }}
+                                                {% if request.assigned_to.email %}
+                                                    <br><small class="text-muted">{{ request.assigned_to.email }}</small>
+                                                {% endif %}
+                                                {% if request.assigned_to.department %}
+                                                    <br><small class="text-muted">{{ request.assigned_to.department }}</small>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">Not assigned</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-6 mb-4">
                     <div class="card">
-                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="staining-study-info" title="Study Information" icon="fas fa-microscope" %}
-                        <div class="card-body">
-                            <table class="table table-borderless">
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="staining-study-info" title="Study Information" icon="fas fa-microscope" start_collapsed=True open_collapse=False %}
+                        <div class="card-body pb-2">
+                            <table class="table table-borderless mb-0">
                                 <tr>
-                                    <td class="fw-bold" style="width: 30%;">Study ID:</td>
-                                    <td>{{ request.study.study_id }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold">Study Title:</td>
+                                    <td class="fw-bold" style="width: 30%;">Study Title:</td>
                                     <td>{{ request.study.title }}</td>
                                 </tr>
-                                <tr>
-                                    <td class="fw-bold">Study Status:</td>
-                                    <td>
-                                        {% if request.study.status %}
-                                            <span class="badge bg-secondary">{{ request.study.status.status }}</span>
-                                        {% else %}
-                                            <span class="text-muted">No status set</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
                             </table>
                         </div>
+                        <div class="collapse" id="staining-study-info">
+                            <div class="card-body pt-0 border-top">
+                                <table class="table table-borderless mb-0">
+                                    <tr>
+                                        <td class="fw-bold" style="width: 30%;">Study ID:</td>
+                                        <td>{{ request.study.study_id }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Study Status:</td>
+                                        <td>
+                                            {% if request.study.status %}
+                                                <span class="badge bg-secondary">{{ request.study.status.status }}</span>
+                                            {% else %}
+                                                <span class="text-muted">No status set</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% if request.data.studies %}
+                                    <tr>
+                                        <td class="fw-bold">Additional Studies:</td>
+                                        <td>
+                                            {% for study_str in request.data.studies %}
+                                                <span class="badge bg-info me-1 mb-1">{{ study_str }}</span>
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-6 mb-4">
                     <div class="card">
-                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="staining-antibody-info" title="Antibody Information" icon="fas fa-flask" %}
-                        <div class="card-body">
-                            <table class="table table-borderless">
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="staining-antibody-info" title="Antibody Information" icon="fas fa-flask" start_collapsed=True open_collapse=False %}
+                        <div class="card-body pb-2">
+                            <table class="table table-borderless mb-0">
                                 <tr>
-                                    <td class="fw-bold" style="width: 30%;">Name:</td>
-                                    <td>{{ request.antibody.name }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold">Description:</td>
+                                    <td class="fw-bold" style="width: 30%;">Description:</td>
                                     <td>{{ request.antibody.description }}</td>
                                 </tr>
-                                <tr>
-                                    <td class="fw-bold">Antigen:</td>
-                                    <td>{{ request.antibody.antigen }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold">Species:</td>
-                                    <td>{{ request.antibody.species }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold">Recognizes:</td>
-                                    <td>{{ request.antibody.recognizes }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold">Vendor:</td>
-                                    <td>{{ request.antibody.vendor }}</td>
-                                </tr>
                             </table>
                         </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-6 mb-4">
-                    <div class="card">
-                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="staining-probe-info" title="Probe Information" icon="fas fa-dna" %}
-                        <div class="card-body">
-                            {% if request.probe %}
-                                <table class="table table-borderless">
+                        <div class="collapse" id="staining-antibody-info">
+                            <div class="card-body pt-0 border-top">
+                                <table class="table table-borderless mb-0">
                                     <tr>
                                         <td class="fw-bold" style="width: 30%;">Name:</td>
-                                        <td>{{ request.probe.name }}</td>
+                                        <td>{{ request.antibody.name }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="fw-bold">Description:</td>
-                                        <td>{{ request.probe.description|default:"No description" }}</td>
+                                        <td class="fw-bold">Antigen:</td>
+                                        <td>{{ request.antibody.antigen }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="fw-bold">Sequence:</td>
-                                        <td>{{ request.probe.sequence|default:"No sequence" }}</td>
+                                        <td class="fw-bold">Species:</td>
+                                        <td>{{ request.antibody.species }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="fw-bold">Target Gene:</td>
-                                        <td>{{ request.probe.target_gene|default:"No target gene" }}</td>
+                                        <td class="fw-bold">Recognizes:</td>
+                                        <td>{{ request.antibody.recognizes }}</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold">Vendor:</td>
-                                        <td>{{ request.probe.vendor|default:"No vendor" }}</td>
+                                        <td>{{ request.antibody.vendor }}</td>
                                     </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="staining-probe-info" title="Probe Information" icon="fas fa-dna" start_collapsed=True open_collapse=False %}
+                        <div class="card-body pb-2">
+                            {% if request.probe %}
+                                <table class="table table-borderless mb-0">
                                     <tr>
-                                        <td class="fw-bold">Catalog Number:</td>
-                                        <td>{{ request.probe.catalog_number|default:"No catalog number" }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Platform:</td>
-                                        <td>{{ request.probe.platform|default:"No platform" }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Target Region:</td>
-                                        <td>{{ request.probe.target_region|default:"No target region" }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Number of Pairs:</td>
-                                        <td>{{ request.probe.number_of_pairs|default:"Not specified" }}</td>
+                                        <td class="fw-bold" style="width: 30%;">Description:</td>
+                                        <td>{{ request.probe.description|default:"No description" }}</td>
                                     </tr>
                                 </table>
                             {% else %}
                                 <p class="text-muted mb-0">No probe assigned to this request.</p>
                             {% endif %}
                         </div>
+                        <div class="collapse" id="staining-probe-info">
+                            <div class="card-body pt-0 border-top">
+                                {% if request.probe %}
+                                    <table class="table table-borderless mb-0">
+                                        <tr>
+                                            <td class="fw-bold" style="width: 30%;">Name:</td>
+                                            <td>{{ request.probe.name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Sequence:</td>
+                                            <td>{{ request.probe.sequence|default:"No sequence" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Target Gene:</td>
+                                            <td>{{ request.probe.target_gene|default:"No target gene" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Vendor:</td>
+                                            <td>{{ request.probe.vendor|default:"No vendor" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Catalog Number:</td>
+                                            <td>{{ request.probe.catalog_number|default:"No catalog number" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Platform:</td>
+                                            <td>{{ request.probe.platform|default:"No platform" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Target Region:</td>
+                                            <td>{{ request.probe.target_region|default:"No target region" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Number of Pairs:</td>
+                                            <td>{{ request.probe.number_of_pairs|default:"Not specified" }}</td>
+                                        </tr>
+                                    </table>
+                                {% else %}
+                                    <p class="text-muted mb-0">No additional probe details.</p>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-6 mb-4">
                     <div class="card">
-                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="staining-tissue-info" title="Tissue Information" icon="fas fa-tint" %}
-                        <div class="card-body">
-                            <table class="table table-borderless">
+                        {% include "requests_app/partials/collapsible_section_start.html" with section_id="staining-tissue-info" title="Tissue Information" icon="fas fa-tint" start_collapsed=True open_collapse=False %}
+                        <div class="card-body pb-2">
+                            <table class="table table-borderless mb-0">
                                 <tr>
                                     <td class="fw-bold" style="width: 30%;">Primary Tissue:</td>
                                     <td>{{ request.tissue.name }}</td>
                                 </tr>
-                                {% if request.data.tissues %}
-                                    <tr>
-                                        <td class="fw-bold">Additional Tissues:</td>
-                                        <td>
-                                            {% for tissue in request.data.tissues %}
-                                                <span class="badge bg-info me-1">{{ tissue }}</span>
-                                            {% endfor %}
-                                        </td>
-                                    </tr>
-                                {% endif %}
-                                {% if request.positive_control_tissue %}
-                                    <tr>
-                                        <td class="fw-bold">Positive Control Tissue:</td>
-                                        <td>{{ request.positive_control_tissue.name }}</td>
-                                    </tr>
-                                {% endif %}
-                                {% if request.negative_control_tissue %}
-                                    <tr>
-                                        <td class="fw-bold">Negative Control Tissue:</td>
-                                        <td>{{ request.negative_control_tissue.name }}</td>
-                                    </tr>
-                                {% endif %}
                             </table>
                         </div>
+                        <div class="collapse" id="staining-tissue-info">
+                            <div class="card-body pt-0 border-top">
+                                <table class="table table-borderless mb-0">
+                                    {% if request.data.tissues %}
+                                        <tr>
+                                            <td class="fw-bold" style="width: 30%;">Additional Tissues:</td>
+                                            <td>
+                                                {% for tissue in request.data.tissues %}
+                                                    <span class="badge bg-info me-1">{{ tissue }}</span>
+                                                {% endfor %}
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                    {% if request.positive_control_tissue %}
+                                        <tr>
+                                            <td class="fw-bold" style="width: 30%;">Positive Control Tissue:</td>
+                                            <td>{{ request.positive_control_tissue.name }}</td>
+                                        </tr>
+                                    {% endif %}
+                                    {% if request.negative_control_tissue %}
+                                        <tr>
+                                            <td class="fw-bold" style="width: 30%;">Negative Control Tissue:</td>
+                                            <td>{{ request.negative_control_tissue.name }}</td>
+                                        </tr>
+                                    {% endif %}
+                                    {% if not request.data.tissues and not request.positive_control_tissue and not request.negative_control_tissue %}
+                                        <tr>
+                                            <td colspan="2" class="text-muted">No additional tissue details.</td>
+                                        </tr>
+                                    {% endif %}
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -162,7 +162,7 @@
                                     <tr>
                                         <td data-column="key">{{ request.key }}</td>
                                         <td data-column="requestor">{{ request.requestor.name|cell_tooltip:15 }}</td>
-                                        <td data-column="study">{{ request.study.study_id|cell_tooltip:12 }}</td>
+                                        <td data-column="study">{{ request|format_study_ids|cell_tooltip:20 }}</td>
                                         <td data-column="tissue">{% if request.tissues.first %}{{ request.tissues.first.name|cell_tooltip:15 }}{% else %}-{% endif %}</td>
                                         <td data-column="for_what">{{ request.for_what }}</td>
                                         <td data-column="cut_surface_down">

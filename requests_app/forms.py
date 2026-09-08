@@ -1,5 +1,5 @@
 from django import forms
-from .models import Requestor, Antibody, Study, Tissue, Request, Status, Assignee, Probe, Priority, EmbeddingRequest, SectioningRequest, AntibodyStatus
+from .models import Requestor, Antibody, Study, Tissue, Request, Status, Assignee, Probe, Priority, EmbeddingRequest, SectioningRequest, AntibodyStatus, EmailConfiguration
 
 class RequestForm(forms.ModelForm):
     special_request = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': 256}), required=False, max_length=256)
@@ -503,3 +503,67 @@ class SectioningNotificationConfigForm(BaseNotificationConfigForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(request_type="sectioning", *args, **kwargs)
+
+
+class EmailConfigurationForm(forms.ModelForm):
+    password = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'autocomplete': 'new-password',
+            'placeholder': 'Enter password or app password',
+        }),
+        help_text='Leave blank to keep the existing saved password.',
+    )
+
+    class Meta:
+        model = EmailConfiguration
+        fields = [
+            'provider',
+            'smtp_host',
+            'smtp_port',
+            'use_tls',
+            'use_ssl',
+            'email_address',
+            'from_email',
+            'admin_email',
+            'is_enabled',
+        ]
+        widgets = {
+            'provider': forms.Select(attrs={'class': 'form-select', 'id': 'id_provider'}),
+            'smtp_host': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_smtp_host'}),
+            'smtp_port': forms.NumberInput(attrs={'class': 'form-control', 'id': 'id_smtp_port'}),
+            'use_tls': forms.CheckboxInput(attrs={'class': 'form-check-input', 'id': 'id_use_tls'}),
+            'use_ssl': forms.CheckboxInput(attrs={'class': 'form-check-input', 'id': 'id_use_ssl'}),
+            'email_address': forms.EmailInput(attrs={'class': 'form-control', 'autocomplete': 'username'}),
+            'from_email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'admin_email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'is_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        provider = cleaned_data.get('provider')
+        email_address = cleaned_data.get('email_address')
+        password = cleaned_data.get('password')
+        is_enabled = cleaned_data.get('is_enabled')
+
+        if is_enabled:
+            if not email_address:
+                self.add_error('email_address', 'Email address is required when email is enabled.')
+            if not password and not (self.instance and self.instance.has_password):
+                self.add_error('password', 'Password is required when enabling email for the first time.')
+
+        if provider == EmailConfiguration.PROVIDER_CUSTOM and not cleaned_data.get('smtp_host'):
+            self.add_error('smtp_host', 'SMTP host is required for custom providers.')
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        password = self.cleaned_data.get('password')
+        if password:
+            instance.set_password(password)
+        if commit:
+            instance.save()
+        return instance

@@ -639,3 +639,121 @@ class NotificationSettings(models.Model):
             if not created:
                 setting.notify_enabled = enabled
                 setting.save()
+
+
+class EmailConfiguration(models.Model):
+    """Singleton model for SMTP email settings configured via the admin UI."""
+
+    PROVIDER_OUTLOOK = 'outlook'
+    PROVIDER_GMAIL = 'gmail'
+    PROVIDER_CUSTOM = 'custom'
+
+    PROVIDER_CHOICES = [
+        (PROVIDER_OUTLOOK, 'Microsoft Outlook / Office 365'),
+        (PROVIDER_GMAIL, 'Gmail'),
+        (PROVIDER_CUSTOM, 'Custom SMTP'),
+    ]
+
+    PROVIDER_DEFAULTS = {
+        PROVIDER_OUTLOOK: {
+            'smtp_host': 'smtp.office365.com',
+            'smtp_port': 587,
+            'use_tls': True,
+            'use_ssl': False,
+        },
+        PROVIDER_GMAIL: {
+            'smtp_host': 'smtp.gmail.com',
+            'smtp_port': 587,
+            'use_tls': True,
+            'use_ssl': False,
+        },
+        PROVIDER_CUSTOM: {
+            'smtp_host': '',
+            'smtp_port': 587,
+            'use_tls': True,
+            'use_ssl': False,
+        },
+    }
+
+    provider = models.CharField(
+        max_length=20,
+        choices=PROVIDER_CHOICES,
+        default=PROVIDER_OUTLOOK,
+        help_text='Email provider preset',
+    )
+    smtp_host = models.CharField(max_length=255, blank=True)
+    smtp_port = models.PositiveIntegerField(default=587)
+    use_tls = models.BooleanField(default=True)
+    use_ssl = models.BooleanField(default=False)
+    email_address = models.EmailField(
+        blank=True,
+        help_text='SMTP login email address',
+    )
+    password = models.CharField(
+        max_length=512,
+        blank=True,
+        help_text='Encrypted SMTP password or app password',
+    )
+    from_email = models.EmailField(
+        blank=True,
+        help_text='Sender address shown to recipients (defaults to login email)',
+    )
+    admin_email = models.EmailField(
+        blank=True,
+        help_text='Fallback recipient for notifications and test emails',
+    )
+    is_enabled = models.BooleanField(
+        default=False,
+        help_text='Use these settings instead of environment variables',
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Email Configuration'
+        verbose_name_plural = 'Email Configuration'
+
+    def __str__(self):
+        provider_label = dict(self.PROVIDER_CHOICES).get(self.provider, self.provider)
+        return f'{provider_label} ({self.email_address or "not configured"})'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        if self.provider != self.PROVIDER_CUSTOM:
+            defaults = self.PROVIDER_DEFAULTS[self.provider]
+            self.smtp_host = defaults['smtp_host']
+            self.smtp_port = defaults['smtp_port']
+            self.use_tls = defaults['use_tls']
+            self.use_ssl = defaults['use_ssl']
+        if not self.from_email and self.email_address:
+            self.from_email = self.email_address
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        config, _ = cls.objects.get_or_create(pk=1)
+        return config
+
+    def set_password(self, raw_password):
+        from django.core.signing import Signer
+
+        if raw_password:
+            self.password = Signer(salt='requests_app.email_password').sign(raw_password)
+        else:
+            self.password = ''
+
+    def get_password(self):
+        from django.core.signing import BadSignature, Signer
+
+        if not self.password:
+            return ''
+        try:
+            return Signer(salt='requests_app.email_password').unsign(self.password)
+        except BadSignature:
+            return ''
+
+    @property
+    def has_password(self):
+        return bool(self.password)
+
+    def is_configured(self):
+        return self.is_enabled and bool(self.email_address) and bool(self.password)

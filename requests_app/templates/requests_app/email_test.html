@@ -1,18 +1,17 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Email Test - Admin{% endblock %}
+{% block title %}Email Settings - Admin{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header Section -->
     <div class="page-header mb-4">
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <h1 class="h2 mb-2 text-info">
-                    <i class="fas fa-envelope me-2"></i>Email Configuration Test
+                    <i class="fas fa-envelope me-2"></i>Email Settings
                 </h1>
-                <p class="text-muted mb-0">Test the email notification system</p>
+                <p class="text-muted mb-0">Configure Outlook or other SMTP credentials and send a test email</p>
             </div>
             <div>
                 <a href="{% url 'admin:index' %}" class="btn btn-outline-info">
@@ -22,9 +21,138 @@
         </div>
     </div>
 
-    <!-- Email Test Form -->
     <div class="row">
-        <div class="col-12">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>SMTP Configuration
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="save">
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.provider.id_for_label }}" class="form-label">Email Provider</label>
+                                {{ form.provider }}
+                                <div class="form-text">Choose Outlook for Microsoft 365 / Outlook.com accounts.</div>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <div class="form-check mb-2">
+                                    {{ form.is_enabled }}
+                                    <label class="form-check-label fw-bold" for="{{ form.is_enabled.id_for_label }}">
+                                        Use these site settings for sending email
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="custom-smtp-fields">
+                            <div class="row mb-3">
+                                <div class="col-md-8">
+                                    <label for="{{ form.smtp_host.id_for_label }}" class="form-label">SMTP Host</label>
+                                    {{ form.smtp_host }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="{{ form.smtp_port.id_for_label }}" class="form-label">Port</label>
+                                    {{ form.smtp_port }}
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        {{ form.use_tls }}
+                                        <label class="form-check-label" for="{{ form.use_tls.id_for_label }}">Use TLS (STARTTLS)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        {{ form.use_ssl }}
+                                        <label class="form-check-label" for="{{ form.use_ssl.id_for_label }}">Use SSL</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.email_address.id_for_label }}" class="form-label">Login Email</label>
+                                {{ form.email_address }}
+                                <div class="form-text">Your Outlook or SMTP account email address.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_password" class="form-label">Password / App Password</label>
+                                {{ form.password }}
+                                {% if config.has_password %}
+                                <div class="form-text text-success">
+                                    <i class="fas fa-check-circle me-1"></i>A password is already saved. Leave blank to keep it.
+                                </div>
+                                {% else %}
+                                <div class="form-text">{{ form.password.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.from_email.id_for_label }}" class="form-label">From Email</label>
+                                {{ form.from_email }}
+                                <div class="form-text">Shown to recipients. Defaults to the login email if left blank.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.admin_email.id_for_label }}" class="form-label">Admin / Fallback Email</label>
+                                {{ form.admin_email }}
+                                <div class="form-text">Used when a requestor email is not available.</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'admin:index' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-info">
+                                <i class="fas fa-save me-2"></i>Save Email Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Current Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <strong>Site settings:</strong>
+                            {% if using_site_settings %}
+                                <span class="text-success">Active</span>
+                            {% else %}
+                                <span class="text-warning">Not active</span>
+                            {% endif %}
+                        </li>
+                        <li class="mb-2"><strong>Provider:</strong> {{ config.get_provider_display }}</li>
+                        <li class="mb-2"><strong>SMTP Host:</strong> {{ config.smtp_host|default:"-" }}</li>
+                        <li class="mb-2"><strong>Port:</strong> {{ config.smtp_port }}</li>
+                        <li class="mb-2"><strong>Login Email:</strong> {{ config.email_address|default:"-" }}</li>
+                        <li class="mb-2"><strong>From Email:</strong> {{ config.from_email|default:config.email_address|default:"-" }}</li>
+                        <li class="mb-2"><strong>Password saved:</strong> {% if config.has_password %}Yes{% else %}No{% endif %}</li>
+                        <li><strong>Env fallback:</strong> {% if env_fallback_configured %}Available{% else %}Not configured{% endif %}</li>
+                    </ul>
+                </div>
+            </div>
+
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-info text-white">
                     <h5 class="mb-0">
@@ -34,83 +162,86 @@
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
-                        
-                        <div class="row mb-3">
-                            <div class="col-12">
-                                <h6 class="text-muted">
-                                    Send a test email to verify email configuration is working
-                                </h6>
-                            </div>
+                        <input type="hidden" name="action" value="test">
+                        <div class="mb-3">
+                            <label for="test_email" class="form-label">Recipient Email</label>
+                            <input type="email"
+                                   class="form-control"
+                                   id="test_email"
+                                   name="test_email"
+                                   value="{{ admin_email }}"
+                                   required>
                         </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="email" class="form-label">Recipient Email</label>
-                                <input type="email" 
-                                       class="form-control" 
-                                       id="email" 
-                                       name="email" 
-                                       value="{{ admin_email }}"
-                                       required>
-                                <div class="form-text">Enter the email address to send the test email to</div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="d-flex justify-content-between">
-                                    <a href="{% url 'admin:index' %}" class="btn btn-secondary">
-                                        <i class="fas fa-times me-2"></i>Cancel
-                                    </a>
-                                    <button type="submit" class="btn btn-info">
-                                        <i class="fas fa-paper-plane me-2"></i>Send Test Email
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                        <button type="submit" class="btn btn-info w-100">
+                            <i class="fas fa-paper-plane me-2"></i>Send Test Email
+                        </button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Email Configuration Info -->
-    <div class="row mt-4">
+    <div class="row mt-2">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-light">
                     <h5 class="mb-0">
-                        <i class="fas fa-info-circle me-2"></i>Email Configuration
+                        <i class="fas fa-lightbulb me-2"></i>Outlook Setup Notes
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6>Current Configuration:</h6>
-                            <ul class="list-unstyled">
-                                <li><strong>SMTP Host:</strong> smtp.gmail.com</li>
-                                <li><strong>Port:</strong> 587</li>
-                                <li><strong>TLS:</strong> Enabled</li>
-                                <li><strong>From Email:</strong> borealisemails@gmail.com</li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <h6>Notification Features:</h6>
-                            <ul class="list-unstyled">
-                                <li>✅ New request creation notifications</li>
-                                <li>✅ Status change notifications</li>
-                                <li>✅ Configurable per request type</li>
-                                <li>✅ HTML email templates</li>
-                            </ul>
-                        </div>
-                    </div>
+                    <ul class="mb-0">
+                        <li>For Microsoft 365 / Outlook, use your full email as the login and your account password or app password.</li>
+                        <li>Outlook SMTP defaults to <code>smtp.office365.com</code> on port <code>587</code> with TLS enabled.</li>
+                        <li>If you see <strong>SmtpClientAuthentication is disabled</strong>, your Microsoft 365 admin must enable Authenticated SMTP for your mailbox. See <a href="https://aka.ms/smtp_auth_disabled" target="_blank" rel="noopener">Microsoft's guide</a>.</li>
+                        <li>In Exchange Online PowerShell, an admin can run:
+                            <code>Set-CASMailbox -Identity you@company.com -SmtpClientAuthenticationDisabled $false</code>
+                        </li>
+                        <li>If your organization blocks SMTP, use Gmail with an app password instead, or ask IT to enable SMTP AUTH.</li>
+                        <li>Enable "Use these site settings" and save before sending a test email.</li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
-
 </div>
 
-<!-- Add Font Awesome for icons -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+{{ provider_defaults|json_script:"provider-defaults-data" }}
+
+<script>
+const providerDefaults = JSON.parse(document.getElementById('provider-defaults-data').textContent);
+
+function applyProviderDefaults() {
+    const provider = document.getElementById('id_provider').value;
+    const defaults = providerDefaults[provider];
+    const customFields = document.getElementById('custom-smtp-fields');
+    const isCustom = provider === 'custom';
+
+    customFields.style.display = isCustom ? 'block' : 'block';
+
+    ['id_smtp_host', 'id_smtp_port', 'id_use_tls', 'id_use_ssl'].forEach((id) => {
+        const field = document.getElementById(id);
+        if (!field) {
+            return;
+        }
+        field.readOnly = !isCustom;
+        field.disabled = false;
+    });
+
+    if (!isCustom && defaults) {
+        document.getElementById('id_smtp_host').value = defaults.smtp_host;
+        document.getElementById('id_smtp_port').value = defaults.smtp_port;
+        document.getElementById('id_use_tls').checked = defaults.use_tls;
+        document.getElementById('id_use_ssl').checked = defaults.use_ssl;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const providerSelect = document.getElementById('id_provider');
+    if (providerSelect) {
+        providerSelect.addEventListener('change', applyProviderDefaults);
+        applyProviderDefaults();
+    }
+});
+</script>
 {% endblock %}

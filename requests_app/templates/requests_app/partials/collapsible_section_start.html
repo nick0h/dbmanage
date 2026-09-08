@@ -2,7 +2,7 @@
      role="button"
      data-bs-toggle="collapse"
      data-bs-target="#{{ section_id }}"
-     aria-expanded="true"
+     aria-expanded="{% if start_collapsed %}false{% else %}true{% endif %}"
      aria-controls="{{ section_id }}"
      style="cursor: pointer;">
     <h5 class="card-title mb-0">
@@ -10,4 +10,6 @@
     </h5>
     <i class="fas fa-chevron-down detail-section-chevron"></i>
 </div>
-<div class="collapse show" id="{{ section_id }}">
+{% if open_collapse != False %}
+<div class="collapse{% if not start_collapsed %} show{% endif %}" id="{{ section_id }}">
+{% endif %}

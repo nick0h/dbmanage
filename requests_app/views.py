@@ -5,8 +5,8 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import logout
 from django.utils.decorators import method_decorator
 from django.utils import timezone
-from .forms import RequestForm, RequestEditForm, RequestSearchForm, StudyEditForm, AntibodyForm, RequestorForm, TissueForm, StatusForm, AssigneeForm, ProbeForm, PriorityForm, SectioningRequestSearchForm, EmbeddingRequestSearchForm, EmbeddingRequestForm, SectioningRequestForm, StainingRequestSearchForm, EmbeddingRequestEditForm, SectioningRequestEditForm, StainingNotificationConfigForm, EmbeddingNotificationConfigForm, SectioningNotificationConfigForm
-from .models import Request, Status, Study, Requestor, Antibody, Tissue, Assignee, Probe, Priority, StainingRequest, EmbeddingRequest, SectioningRequest, StainingRequestChangeLog, EmbeddingRequestChangeLog, SectioningRequestChangeLog, NotificationSettings
+from .forms import RequestForm, RequestEditForm, RequestSearchForm, StudyEditForm, AntibodyForm, RequestorForm, TissueForm, StatusForm, AssigneeForm, ProbeForm, PriorityForm, SectioningRequestSearchForm, EmbeddingRequestSearchForm, EmbeddingRequestForm, SectioningRequestForm, StainingRequestSearchForm, EmbeddingRequestEditForm, SectioningRequestEditForm, StainingNotificationConfigForm, EmbeddingNotificationConfigForm, SectioningNotificationConfigForm, EmailConfigurationForm
+from .models import Request, Status, Study, Requestor, Antibody, Tissue, Assignee, Probe, Priority, StainingRequest, EmbeddingRequest, SectioningRequest, StainingRequestChangeLog, EmbeddingRequestChangeLog, SectioningRequestChangeLog, NotificationSettings, EmailConfiguration
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 from django.template.loader import render_to_string
 from django.db.models import Q
@@ -2768,32 +2768,58 @@ class SectioningNotificationConfigView(FormView):
         return super().form_valid(form)
 
 
-# Email Test View
+# Email Settings View
 @method_decorator(user_passes_test(is_staff_user), name='dispatch')
 class EmailTestView(TemplateView):
-    """Admin-only view for testing email configuration"""
+    """Admin-only view for configuring SMTP credentials and testing email delivery."""
     template_name = 'requests_app/email_test.html'
-    
+
     def get_context_data(self, **kwargs):
+        from django.conf import settings
+        from .email_service import get_admin_email
+
         context = super().get_context_data(**kwargs)
-        context['admin_email'] = 'n30h.300@gmail.com'
+        config = EmailConfiguration.load()
+        context['form'] = EmailConfigurationForm(instance=config)
+        context['config'] = config
+        context['provider_defaults'] = EmailConfiguration.PROVIDER_DEFAULTS
+        context['admin_email'] = config.admin_email or get_admin_email() or ''
+        context['using_site_settings'] = config.is_configured()
+        context['env_fallback_configured'] = bool(
+            getattr(settings, 'EMAIL_HOST_USER', '') and getattr(settings, 'EMAIL_HOST_PASSWORD', '')
+        )
         return context
-    
+
     def post(self, request, *args, **kwargs):
-        """Send a test email"""
-        from .email_notifications import send_test_email
-        
-        recipient_email = request.POST.get('email', 'n30h.300@gmail.com')
-        
-        try:
-            success = send_test_email(recipient_email)
-            if success:
+        from .email_service import send_test_email
+
+        config = EmailConfiguration.load()
+        action = request.POST.get('action', 'save')
+
+        if action == 'test':
+            recipient_email = request.POST.get('test_email', '').strip()
+            if not recipient_email:
+                messages.error(request, 'Please enter a recipient email address for the test.')
+                return redirect('email_test')
+
+            try:
+                from .email_service import format_smtp_error
+                send_test_email(recipient_email)
                 messages.success(request, f'Test email sent successfully to {recipient_email}!')
-            else:
-                messages.error(request, 'Failed to send test email. Check the logs for details.')
-        except Exception as e:
-            messages.error(request, f'Error sending test email: {str(e)}')
-        
+            except Exception as e:
+                messages.error(request, f'Error sending test email: {format_smtp_error(e)}')
+            return redirect('email_test')
+
+        form = EmailConfigurationForm(request.POST, instance=config)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Email settings saved successfully.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    label = field.replace('_', ' ').title()
+                    messages.error(request, f'{label}: {error}')
+
         return redirect('email_test')
 
 
