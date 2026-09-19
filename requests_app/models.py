@@ -656,20 +656,20 @@ class EmailConfiguration(models.Model):
 
     PROVIDER_DEFAULTS = {
         PROVIDER_OUTLOOK: {
-            'smtp_host': 'smtp.office365.com',
-            'smtp_port': 587,
+            'smtp_host': 'mail.smtp2go.com',
+            'smtp_port': 2525,
             'use_tls': True,
             'use_ssl': False,
         },
         PROVIDER_GMAIL: {
-            'smtp_host': 'smtp.gmail.com',
-            'smtp_port': 587,
+            'smtp_host': 'mail.smtp2go.com',
+            'smtp_port': 2525,
             'use_tls': True,
             'use_ssl': False,
         },
         PROVIDER_CUSTOM: {
-            'smtp_host': '',
-            'smtp_port': 587,
+            'smtp_host': 'mail.smtp2go.com',
+            'smtp_port': 2525,
             'use_tls': True,
             'use_ssl': False,
         },
@@ -682,7 +682,7 @@ class EmailConfiguration(models.Model):
         help_text='Email provider preset',
     )
     smtp_host = models.CharField(max_length=255, blank=True)
-    smtp_port = models.PositiveIntegerField(default=587)
+    smtp_port = models.PositiveIntegerField(default=2525)
     use_tls = models.BooleanField(default=True)
     use_ssl = models.BooleanField(default=False)
     email_address = models.EmailField(
